@@ -1,3 +1,14 @@
+# Domain Threat Intelligence API
+
+Masters thesis in cyber security on malicious domains detection. Central core application.
+Provides API for Web application and users. Controls scanning agents, report ananlysis and more.
+
+Mirror from GitLab. 
+
+Links:
+- [Main project on GitLab](https://gitlab.qvineox.ru/masters/domain-threat-intelligence-api)
+- [Mirror on GitHub](https://github.com/Qvineox/domain-threat-intelligence-api-mirror)
+
 ## Project structure
 
 The Go language maintainer has no strong convention about structuring a project in Go. However, one layout has emerged
