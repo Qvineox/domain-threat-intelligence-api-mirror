@@ -11,7 +11,7 @@ type NetworkNode struct {
 	UUID pgtype.UUID `json:"uuid" gorm:"primaryKey"`
 
 	// Network node unique identity, can be any address or URI. Must be unique.
-	Identity string `json:"identity" gorm:"column:identity;not null;unique"`
+	Identity string `json:"identity" gorm:"column:identity;size:128;not null;unique"`
 
 	// Network node discovery timestamp, when was this node first found
 	DiscoveredAt sql.NullTime `json:"discovered_at" gorm:"column:identity"`

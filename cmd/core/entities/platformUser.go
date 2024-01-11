@@ -10,8 +10,8 @@ import (
 type PlatformUser struct {
 	UUID pgtype.UUID `json:"uuid" gorm:"primaryKey"`
 
-	FullName     string `json:"full_name" gorm:"column:full_name;not null"`
-	Login        string `json:"login" gorm:"column:login;not null;unique"`
+	FullName     string `json:"full_name" gorm:"column:full_name;size:128;not null"`
+	Login        string `json:"login" gorm:"column:login;size:32;not null;unique"`
 	PasswordHash string `json:"password_hash" gorm:"column:password_hash"`
 	IsActive     bool   `json:"is_active" gorm:"column:is_active;default:true"`
 

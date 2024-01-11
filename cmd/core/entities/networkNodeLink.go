@@ -13,5 +13,5 @@ type NetworkNodeLink struct {
 	DestinationNodeUUID pgtype.UUID `json:"destination_node_uuid"`
 
 	// LinkType determines the nature of the link between two nodes.
-	LinkType string `json:"link_type"`
+	LinkType string `json:"link_type" gorm:"size:128"`
 }

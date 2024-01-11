@@ -11,9 +11,11 @@ import (
 type ScanAgent struct {
 	UUID pgtype.UUID `json:"uuid" gorm:"primaryKey"`
 
-	Name     string `json:"name" gorm:"column:name;not null"`
-	Host     string `json:"ip_address" gorm:"column:ip_address;type:inet"`
-	IsActive bool   `json:"is_active" gorm:"column:is_active;default:true"`
+	Name        string      `json:"name" gorm:"column:name;size:64;not null"`
+	IPAddress   pgtype.Inet `json:"ip_address" gorm:"column:ip_address;type:inet"`
+	Host        string      `json:"host" gorm:"column:host;size:128;type:inet"`
+	IsActive    bool        `json:"is_active" gorm:"column:is_active;default:true"`
+	Description string      `json:"description" gorm:"column:description;size:512;default:No description."`
 
 	// Defines who is the owner of agent.
 	Owner     PlatformUser `json:"owner" gorm:"foreignKey:OwnerUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
