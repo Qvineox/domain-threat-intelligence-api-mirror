@@ -9,6 +9,10 @@ Links:
 - [Main project on GitLab](https://gitlab.qvineox.ru/masters/domain-threat-intelligence-api)
 - [Mirror on GitHub](https://github.com/Qvineox/domain-threat-intelligence-api-mirror)
 
+## Setup
+
+> TODO: coming soon...
+
 ## Project structure
 
 The Go language maintainer has no strong convention about structuring a project in Go. However, one layout has emerged
