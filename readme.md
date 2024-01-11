@@ -3,7 +3,7 @@
 Masters thesis in cyber security on malicious domains detection. Central core application.
 Provides API for Web application and users. Controls scanning agents, report ananlysis and more.
 
-Mirror from GitLab. 
+This projecr is mirrored from GitLab. 
 
 Links:
 - [Main project on GitLab](https://gitlab.qvineox.ru/masters/domain-threat-intelligence-api)
