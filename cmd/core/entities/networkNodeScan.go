@@ -8,8 +8,6 @@ import (
 
 // NetworkNodeScan represents unique scanning procedure on a single defined network node.
 type NetworkNodeScan struct {
-	gorm.Model
-
 	IsComplete bool `json:"is_complete" gorm:"default:false;not null"`
 
 	// Defines parent node, scan object belongs to node object (many-to-one)
@@ -17,6 +15,8 @@ type NetworkNodeScan struct {
 	NodeUUID pgtype.UUID `json:"node_uuid"`
 
 	Data datatypes.JSONType[NetworkNodeScanData] `json:"data" gorm:"column:data"`
+
+	gorm.Model
 }
 
 // NetworkNodeScanData represents contents of a NetworkNodeScan.

@@ -13,6 +13,7 @@ type Config struct {
 		User     string `env-required:"true" env:"db_user" json:"user"`
 		Password string `env-required:"true" env:"db_pass" json:"password"`
 		Name     string `env-required:"true" env:"db_name" json:"name"`
+		Timezone string `env-required:"true" env:"db_timezone" json:"timezone"`
 	} `env-required:"true" json:"database"`
 
 	Logging struct {
@@ -28,7 +29,7 @@ func ReadConfig() (Config, error) {
 		return Config{}, err
 	}
 
-	err = cleanenv.ReadConfig(filepath.Join(currentDir, "config", "config.json"), &cfg)
+	err = cleanenv.ReadConfig(filepath.Join(currentDir, "configs", "config.json"), &cfg)
 	if err != nil {
 		return Config{}, err
 	}

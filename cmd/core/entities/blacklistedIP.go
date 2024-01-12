@@ -6,8 +6,11 @@ import (
 )
 
 type BlacklistedIP struct {
-	gorm.Model
-
 	IPAddress pgtype.Inet `json:"ip_address" gorm:"column:ip_address;type:inet;not_null"`
-	Source    string      `json:"source" gorm:"column:source;size:128;default:manual input"`
+
+	// Defines source from where blacklisted host was added
+	Source   BlacklistSource `json:"source" gorm:"foreignKey:SourceID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	SourceID uint64          `json:"source_id"`
+
+	gorm.Model
 }

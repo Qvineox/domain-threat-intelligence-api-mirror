@@ -1,12 +1,13 @@
 package entities
 
-import (
-	"gorm.io/gorm"
-)
+import "gorm.io/gorm"
 
 type BlacklistedDomain struct {
-	gorm.Model
+	URN string `json:"URN" gorm:"column:URN;not_null;size:256"`
 
-	URN    string `json:"URN" gorm:"column:URN;not_null;size:256"`
-	Source string `json:"source" gorm:"column:source;size:128;default:manual input"`
+	// Defines source from where blacklisted host was added
+	Source   BlacklistSource `json:"source" gorm:"foreignKey:SourceID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	SourceID uint64          `json:"source_id"`
+
+	gorm.Model
 }

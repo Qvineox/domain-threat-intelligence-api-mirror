@@ -1,17 +1,33 @@
 # Domain Threat Intelligence API
 
-Masters thesis in cyber security on malicious domains detection. Central core application.
-Provides API for Web application and users. Controls scanning agents, report ananlysis and more.
+Master's thesis in Cybersecurity on malicious domain detection. Central core application.
+Provides API for Web application and users. Controls scanning agents, report analysis and more.
 
-This projecr is mirrored from GitLab. 
+This project is mirrored from GitLab.
 
 Links:
+
 - [Main project on GitLab](https://gitlab.qvineox.ru/masters/domain-threat-intelligence-api)
 - [Mirror on GitHub](https://github.com/Qvineox/domain-threat-intelligence-api-mirror)
 
-## Setup
+## Setup and deployment
 
-> TODO: coming soon...
+This project is cloud based and uses Docker Compose as it's primary and only method of deployment.
+Docker-compose files are available in [docker](scripts%2Fdocker) directory.
+
+### Continuous integration using GitLab
+
+All the files required to run automated GitLab CI are located in [build](build) directory.
+
+Following variables are used in automated GitLab CI/CD:
+
+| GitLab CI Variable | Description            | Example values    |
+|--------------------|------------------------|-------------------|
+| $DB_HOST           | Database host          | 0.0.0.0, database |
+| $DB_PORT           | Database port          | 5432              |
+| $DB_USER           | Database user          | user              |
+| $DB_PASS           | Database user password | password123!      |
+| $DB_NAME           | Default database name  | database_name     |
 
 ## Project structure
 

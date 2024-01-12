@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  dti_db:
+    container_name: dti_db
+    hostname: database
+
+  dti_api:
+    container_name: dti_api
+    depends_on:
+      - dti_db
+    environment:
+      db_host: 'database'
+      db_port: '5432'
+      db_user: 'example_user'
+      db_pass: 'example_user_password_123!'
+      db_name: 'example_database'

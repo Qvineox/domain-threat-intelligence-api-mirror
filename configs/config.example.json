@@ -4,6 +4,7 @@
     "port": 0,
     "name": "threat_intel_db",
     "user": "threat_intel_user",
-    "password": "threat_intel_pass"
+    "password": "threat_intel_pass",
+    "timezone": "Europe/Moscow"
   }
 }
