@@ -6,10 +6,10 @@ import "github.com/jackc/pgtype"
 type NetworkNodeLink struct {
 	UUID pgtype.UUID `json:"uuid" gorm:"primaryKey"`
 
-	SourceNode     NetworkNode `json:"source_node" gorm:"foreignKey:SourceNodeUUID;constraint:OnUpdate:CASCADE,OnDelete:DELETE;"`
+	SourceNode     NetworkNode `json:"source_node" gorm:"foreignKey:SourceNodeUUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	SourceNodeUUID pgtype.UUID `json:"source_node_uuid"`
 
-	DestinationNode     NetworkNode `json:"destination_node" gorm:"foreignKey:DestinationNodeUUID;constraint:OnUpdate:CASCADE,OnDelete:DELETE;"`
+	DestinationNode     NetworkNode `json:"destination_node" gorm:"foreignKey:DestinationNodeUUID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	DestinationNodeUUID pgtype.UUID `json:"destination_node_uuid"`
 
 	// LinkType determines the nature of the link between two nodes.

@@ -14,6 +14,10 @@ type NetworkNodeScan struct {
 	Node     NetworkNode `json:"node" gorm:"foreignKey:NodeUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	NodeUUID pgtype.UUID `json:"node_uuid"`
 
+	// Defines which agent provided current scan result
+	Agent     NetworkNode `json:"agent" gorm:"foreignKey:AgentUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	AgentUUID pgtype.UUID `json:"agent_uuid"`
+
 	Data datatypes.JSONType[NetworkNodeScanData] `json:"data" gorm:"column:data"`
 
 	gorm.Model

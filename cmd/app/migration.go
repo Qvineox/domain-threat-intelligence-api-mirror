@@ -9,7 +9,18 @@ import (
 func runMigrations(database *gorm.DB) error {
 	slog.Info("running migrations...")
 
-	err := database.AutoMigrate(entities.BlacklistSource{}, entities.BlacklistedDomain{}, entities.BlacklistedIP{})
+	err := database.AutoMigrate(
+		entities.BlacklistSource{},
+		entities.BlacklistedDomain{},
+		entities.BlacklistedIP{},
+		entities.NetworkNodeType{},
+		entities.NetworkNode{},
+		entities.NetworkNodeScan{},
+		entities.NetworkNodeLink{},
+		entities.PlatformUserRole{},
+		entities.PlatformUser{},
+		entities.ScanAgent{},
+	)
 	if err != nil {
 		return err
 	}
