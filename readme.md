@@ -11,10 +11,17 @@ Links:
 - [Mirror on GitHub](https://github.com/Qvineox/domain-threat-intelligence-api-mirror)
 - [Master's thesis paper RU](https://cloud.qvineox.ru/index.php/s/wLg8bncwQWz9Tff)
 
+Ecosystem:
+
+- Hub ([GitLab](https://gitlab.qvineox.ru/masters/domain-threat-intelligence-hub) / [GitHub](https://github.com/Qvineox/domain-threat-intelligence-hub-mirror))
+- Agent ([GitLab](https://gitlab.qvineox.ru/masters/domain_threat_intelligence) / [GitHub](https://github.com/Qvineox/domain-threat-intelligence-agent-mirror))
+
 ## Setup and deployment
 
-This project is cloud based and uses Docker Compose as it's primary and only method of deployment.
+This project is cloud based and uses Docker Compose as it's primary and only supported method of deployment.
 Docker-compose files are available in [docker](scripts%2Fdocker) directory.
+
+All development scripts are available in [scripts](scripts) directory.
 
 ### Environment
 
@@ -69,4 +76,4 @@ favors directories such as /cmd, /internal, or /pkg.
 
 ### Guides
 
-- [HABR - Запускаем PostgreSQL в Docker: от простого к сложному](https://habr.com/ru/articles/578744/)
+- [HABR - "Запускаем PostgreSQL в Docker: от простого к сложному" - 2021](https://habr.com/ru/articles/578744/)
