@@ -1,0 +1,40 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {
+            "name": "Yaroslav Lysak",
+            "url": "https://t.me/Qvineox"
+        }
+    },
+    "host": "localhost:7090",
+    "basePath": "/api/v1",
+    "paths": {
+        "/maintenance/ping": {
+            "get": {
+                "description": "Gets info about application availability and status",
+                "tags": [
+                    "Maintenance"
+                ],
+                "summary": "application availability and status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entities.AppStatus"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "entities.AppStatus": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

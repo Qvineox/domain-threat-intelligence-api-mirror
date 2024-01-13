@@ -1,6 +1,7 @@
 package app
 
 import (
+	"domain_threat_intelligence_api/api/rest"
 	"domain_threat_intelligence_api/configs"
 	"fmt"
 	"gorm.io/driver/postgres"
@@ -12,6 +13,7 @@ func StartApp(cfg configs.Config) error {
 	slog.Info("application starting...")
 	slog.Info("establishing database connection...")
 
+	// prepare database and run migrations
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s database=%s sslmode=disable TimeZone=%s", cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Password, cfg.Database.Name, cfg.Database.Timezone)
 	dbConn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -21,12 +23,21 @@ func StartApp(cfg configs.Config) error {
 		slog.Info("database connected")
 	}
 
-	// prepare database and run migrations
-
 	err = runMigrations(dbConn)
 	if err != nil {
 		return err
 	}
+
+	slog.Info("web server starting...")
+
+	webServer, err := rest.NewHTTPServer(cfg.WebServer.Host, cfg.WebServer.Port)
+	err = webServer.Start()
+	if err != nil {
+		slog.Info("web server stopped with error: " + err.Error())
+		return err
+	}
+
+	slog.Info("application stopping...")
 
 	return nil
 }

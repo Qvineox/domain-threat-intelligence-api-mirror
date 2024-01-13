@@ -16,6 +16,12 @@ type Config struct {
 		Timezone string `env-required:"true" env:"db_timezone" json:"timezone"`
 	} `env-required:"true" json:"database"`
 
+	WebServer struct {
+		Host    string `env-required:"true" env:"http_host" json:"host"`
+		Port    uint64 `env-required:"true" env:"http_port" json:"port"`
+		Swagger bool   `env-default:"false" env:"http_swagger" json:"swagger"`
+	} `env-required:"true" json:"web_server"`
+
 	Logging struct {
 		Level string `env-default:"info" env:"log_level" json:"level"`
 	} `json:"log"`
