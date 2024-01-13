@@ -9,12 +9,16 @@ Links:
 
 - [Main project on GitLab](https://gitlab.qvineox.ru/masters/domain-threat-intelligence-api)
 - [Mirror on GitHub](https://github.com/Qvineox/domain-threat-intelligence-api-mirror)
-- [Master's thesis paper RU](https://cloud.qvineox.ru/index.php/s/wLg8bncwQWz9Tff)
+- [Master's thesis paper](https://cloud.qvineox.ru/index.php/s/wLg8bncwQWz9Tff)
 
 Ecosystem:
 
-- Hub ([GitLab](https://gitlab.qvineox.ru/masters/domain-threat-intelligence-hub) / [GitHub](https://github.com/Qvineox/domain-threat-intelligence-hub-mirror))
-- Agent ([GitLab](https://gitlab.qvineox.ru/masters/domain_threat_intelligence) / [GitHub](https://github.com/Qvineox/domain-threat-intelligence-agent-mirror))
+- Hub
+    - Main project on [GitLab](https://gitlab.qvineox.ru/masters/domain-threat-intelligence-hub)
+    - Mirror on [GitHub](https://github.com/Qvineox/domain-threat-intelligence-hub-mirror)
+- Agent
+    - Main project on [GitLab](https://gitlab.qvineox.ru/masters/domain_threat_intelligence)
+    - Mirror on [GitHub](https://github.com/Qvineox/domain-threat-intelligence-agent-mirror)
 
 ## Setup and deployment
 
@@ -48,13 +52,13 @@ If our project is small enough (only a few files), or if our organization has al
 be worth using or migrating to project-layout. Other-wise, it might be worth considering. Let’s look at this layout and
 see what the main directories are:
 
-- `/cmd` - The main source files. The main.go of a foo application should live in /cmd/foo/main.go.
-    - `/core` - Main application logic. Holds all business processes.
+- `/cmd` - The main source files.
+    - `/core` - Main application code.
         - `/entities` - Core domain model of the application.
         - `/repos` - Repositories to manipulate stored data.
         - `/services` - Defines domain logic using domain models.
-- `/internal` - Private code that we don’t want others importing for their applications or libraries.
-- `/pkg` - Public code that we want to expose to others.
+- `/internal` - Private code not importing to other applications or libraries.
+- `/pkg` - Public code exposed to others.
 - `/test` - Additional external tests and test data.
 - `/configs` - Configuration files.
 - `/docs` - Design and user documents.
@@ -65,6 +69,8 @@ see what the main directories are:
 - `/web` - Web application-specific assets (static files, etc.).
 - `/build` - Packaging and continuous integration (CI) files.
 - `/scripts` - Scripts for analysis, installation, and so on.
+    - `/docker` - Docker compose files to start the application.
+    - `/idea` - IDE development scripts.
 - `/vendor` - Application dependencies (for example, Go modules dependencies).
 
 There’s no /src directory like in some other languages. The rationale is that /src is too generic; hence, this layout
