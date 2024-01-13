@@ -8,7 +8,7 @@ import (
 
 // PlatformUser defines a single system user account.
 type PlatformUser struct {
-	UUID pgtype.UUID `json:"uuid" gorm:"primaryKey"`
+	UUID pgtype.UUID `json:"uuid" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 
 	FullName     string `json:"full_name" gorm:"column:full_name;size:128;not null"`
 	Login        string `json:"login" gorm:"column:login;size:32;not null;unique"`

@@ -1,9 +1,40 @@
 version: '3.9'
 
+networks:
+  internal:
+    external: false
+  web:
+    external: true
+
+name: dti_stack
+
 services:
   dti_db:
     container_name: dti_db
+    image: postgres:16.1-alpine3.19
     hostname: database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "example_database"
+      POSTGRES_USER: "example_user"
+      POSTGRES_PASSWORD: "example_user_password_123!"
+    networks:
+      - internal
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U example_user -d example_database" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
 
   dti_api:
     container_name: dti_api
@@ -15,3 +46,6 @@ services:
       db_user: 'example_user'
       db_pass: 'example_user_password_123!'
       db_name: 'example_database'
+    networks:
+      - internal
+      - web

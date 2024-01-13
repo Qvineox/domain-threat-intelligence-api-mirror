@@ -9,25 +9,29 @@ Links:
 
 - [Main project on GitLab](https://gitlab.qvineox.ru/masters/domain-threat-intelligence-api)
 - [Mirror on GitHub](https://github.com/Qvineox/domain-threat-intelligence-api-mirror)
+- [Master's thesis paper RU](https://cloud.qvineox.ru/index.php/s/wLg8bncwQWz9Tff)
 
 ## Setup and deployment
 
 This project is cloud based and uses Docker Compose as it's primary and only method of deployment.
 Docker-compose files are available in [docker](scripts%2Fdocker) directory.
 
+### Environment
+
+Following variables are used in application. These variables are also mapped in automated GitLab CI/CD:
+
+| Environment Variable | GitLab CI Variable | Description               | Example values    |
+|----------------------|--------------------|---------------------------|-------------------|
+| db_host              | $DB_HOST           | Database host             | 0.0.0.0, database |
+| db_port              | $DB_PORT           | Database port             | 5432              |
+| db_user              | $DB_USER           | Database user             | user              |
+| db_pass              | $DB_PASS           | Database user password    | password123!      |
+| db_name              | $DB_NAME           | Default database name     | database_name     |
+| db_timezone          | $DB_TZ             | Default database timezone | Europe/Moscow     |
+
 ### Continuous integration using GitLab
 
 All the files required to run automated GitLab CI are located in [build](build) directory.
-
-Following variables are used in automated GitLab CI/CD:
-
-| GitLab CI Variable | Description            | Example values    |
-|--------------------|------------------------|-------------------|
-| $DB_HOST           | Database host          | 0.0.0.0, database |
-| $DB_PORT           | Database port          | 5432              |
-| $DB_USER           | Database user          | user              |
-| $DB_PASS           | Database user password | password123!      |
-| $DB_NAME           | Default database name  | database_name     |
 
 ## Project structure
 
@@ -60,3 +64,9 @@ There’s no /src directory like in some other languages. The rationale is that 
 favors directories such as /cmd, /internal, or /pkg.
 
 > Source: Manning, 100 Go Mistakes and How to Avoid Them
+
+## Useful resources
+
+### Guides
+
+- [HABR - Запускаем PostgreSQL в Docker: от простого к сложному](https://habr.com/ru/articles/578744/)
