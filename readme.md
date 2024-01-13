@@ -34,17 +34,17 @@ in [swagger](scripts%2Fswagger) directory.
 
 Following variables are used in application. These variables are also mapped in automated GitLab CI/CD:
 
-| Environment Variable    | GitLab CI Variable | Description                                                | Example values    |
-|-------------------------|--------------------|------------------------------------------------------------|-------------------|
-| db_host                 | $DB_HOST           | Database host                                              | 0.0.0.0, database |
-| db_port                 | $DB_PORT           | Database port                                              | 5432              |
-| db_user                 | $DB_USER           | Database user                                              | user              |
-| db_pass                 | $DB_PASS           | Database user password                                     | password123!      |
-| db_name                 | $DB_NAME           | Default database name                                      | database_name     |
-| db_timezone             | $DB_TZ             | Default database timezone                                  | Europe/Moscow     |
-| http_host               | $WEB_HOST          | Default REST endpoint host                                 | localhost         |
-| http_port               | $WEB_PORT          | Default REST endpoint port                                 | 80                |
-| http_swagger (optional) | $WEB_SWAGGER       | Defines if [swagger](scripts%2Fswagger%2Freadme.md) starts | false             |
+| Environment Variable | Is Required? | GitLab CI Variable | Description                                                | Example values    |
+|----------------------|--------------|--------------------|------------------------------------------------------------|-------------------|
+| db_host              |              | $DB_HOST           | Database host                                              | 0.0.0.0, database |
+| db_port              |              | $DB_PORT           | Database port                                              | 5432              |
+| db_user              |              | $DB_USER           | Database user                                              | user              |
+| db_pass              |              | $DB_PASS           | Database user password                                     | password123!      |
+| db_name              |              | $DB_NAME           | Default database name                                      | database_name     |
+| db_timezone          |              | $DB_TZ             | Default database timezone                                  | Europe/Moscow     |
+| http_host            |              | $WEB_HOST          | Default REST endpoint host                                 | localhost         |
+| http_port            |              | $WEB_PORT          | Default REST endpoint port                                 | 80                |
+| http_swagger         | optional     | $WEB_SWAGGER       | Defines if [swagger](scripts%2Fswagger%2Freadme.md) starts | false             |
 
 ### Continuous integration using GitLab
 
