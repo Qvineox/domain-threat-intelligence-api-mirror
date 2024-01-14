@@ -8,6 +8,7 @@ import (
 
 func HandleMaintenanceGroup(path *gin.RouterGroup) {
 	maintenanceGroup := path.Group("/maintenance")
+
 	{
 		maintenanceGroup.GET("/ping", Ping)
 	}
@@ -18,8 +19,8 @@ func HandleMaintenanceGroup(path *gin.RouterGroup) {
 // @Summary     application availability and status
 // @Description Gets info about application availability and status
 // @Tags        Maintenance
-// @Success     200 {object} entities.AppStatus
 // @Router      /maintenance/ping [get]
+// @Success     200 {object} entities.AppStatus
 func Ping(c *gin.Context) {
 	c.JSON(http.StatusOK, entities.AppStatus{Status: "all good!"})
 }

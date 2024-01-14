@@ -9,12 +9,13 @@ import (
 )
 
 type HTTPServer struct {
-	server *http.Server
-	host   string
-	port   uint64
+	server         *http.Server
+	host           string
+	port           uint64
+	swaggerEnabled bool
 }
 
-func NewHTTPServer(host string, port uint64) (*HTTPServer, error) {
+func NewHTTPServer(host string, port uint64, swagger bool) (*HTTPServer, error) {
 	s := &HTTPServer{}
 
 	if len(host) == 0 {
@@ -30,10 +31,13 @@ func NewHTTPServer(host string, port uint64) (*HTTPServer, error) {
 	}
 
 	// gin router initialization
-	router := createRouter()
+	router := CreateRouter()
 
 	// swagger routing
-	handleSwagger(router)
+	s.swaggerEnabled = swagger
+	if s.swaggerEnabled {
+		handleSwagger(router)
+	}
 
 	// http server creation
 	address := fmt.Sprintf("%s:%d", s.host, s.port)

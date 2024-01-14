@@ -94,4 +94,6 @@ favors directories such as /cmd, /internal, or /pkg.
 ### Guides
 
 - [HABR - "Запускаем PostgreSQL в Docker: от простого к сложному" - 2021](https://habr.com/ru/articles/578744/)
+- [HABR - "Разбираемся с пакетом Context в Golang" - 2019](https://habr.com/ru/companies/nixys/articles/461723/)
 - [YouTube - "Swagger for Go REST APIs: Quick & Easy Documentation with Gin" - 2023](https://youtu.be/0b_N4y8_9iI?si=hqdJT9NGcBtQJbkK)
+- [LogRocket - "Gin binding in Go: A tutorial with examples" - 2021](https://blog.logrocket.com/gin-binding-in-go-a-tutorial-with-examples/)

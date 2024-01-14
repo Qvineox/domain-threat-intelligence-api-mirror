@@ -19,6 +19,344 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/blacklists/domain": {
+            "delete": {
+                "description": "Accepts and deletes single blacklisted domain",
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "delete blacklisted domain",
+                "parameters": [
+                    {
+                        "description": "record id to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.blacklistDeleteParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/domains": {
+            "get": {
+                "description": "Gets list of blacklisted domains by filter",
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "blacklisted domains by filter",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Source type ID",
+                        "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is active",
+                        "name": "is_active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is after",
+                        "name": "created_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is before",
+                        "name": "created_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Substring to search",
+                        "name": "search_string",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.BlacklistedDomain"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Accepts and saves list of blacklisted domains",
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "insert blacklisted domains",
+                "parameters": [
+                    {
+                        "description": "IPs to save",
+                        "name": "hosts",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.blacklistInsertParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/import/fincert": {
+            "post": {
+                "description": "Accepts and imports blacklisted hosts from FinCERT file",
+                "tags": [
+                    "Blacklists",
+                    "Import"
+                ],
+                "summary": "import blacklisted hosts from file (FinCERT)",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "file to import",
+                        "name": "import_file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/import/stix": {
+            "post": {
+                "description": "Accepts and imports blacklisted hosts from STIX 2.0 file",
+                "tags": [
+                    "Blacklists",
+                    "Import"
+                ],
+                "summary": "import blacklisted hosts from file (STIX 2.0)",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "file to import",
+                        "name": "import_file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/ip": {
+            "delete": {
+                "description": "Accepts and deletes single blacklisted IP",
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "delete blacklisted ip",
+                "parameters": [
+                    {
+                        "description": "record id to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.blacklistDeleteParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/ips": {
+            "get": {
+                "description": "Gets list of blacklisted ips by filter",
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "blacklisted ips by filter",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Source type ID",
+                        "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is active",
+                        "name": "is_active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is after",
+                        "name": "created_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is before",
+                        "name": "created_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Substring to search",
+                        "name": "search_string",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.BlacklistedIP"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Accepts and saves list of blacklisted IPs",
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "insert blacklisted ips",
+                "parameters": [
+                    {
+                        "description": "IPs to save",
+                        "name": "hosts",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.blacklistInsertParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/maintenance/ping": {
             "get": {
                 "description": "Gets info about application availability and status",
@@ -45,18 +383,204 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "entities.BlacklistSource": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.BlacklistedDomain": {
+            "type": "object",
+            "properties": {
+                "URN": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "source": {
+                    "description": "Defines source from where blacklisted host was added",
+                    "$ref": "#/definitions/entities.BlacklistSource"
+                },
+                "source_id": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.BlacklistedIP": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "ip_address": {
+                    "$ref": "#/definitions/pgtype.Inet"
+                },
+                "source": {
+                    "description": "Defines source from where blacklisted host was added",
+                    "$ref": "#/definitions/entities.BlacklistSource"
+                },
+                "source_id": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "error.APIError": {
+            "type": "object",
+            "properties": {
+                "error_code": {
+                    "type": "integer"
+                },
+                "error_message": {
+                    "type": "string"
+                },
+                "error_module": {
+                    "type": "string"
+                },
+                "status_code": {
+                    "type": "integer"
+                }
+            }
+        },
+        "gorm.DeletedAt": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if Time is not NULL",
+                    "type": "boolean"
+                }
+            }
+        },
+        "net.IPNet": {
+            "type": "object",
+            "properties": {
+                "ip": {
+                    "description": "network number",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "mask": {
+                    "description": "network mask",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "pgtype.Inet": {
+            "type": "object",
+            "properties": {
+                "ipnet": {
+                    "$ref": "#/definitions/net.IPNet"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "routing.blacklistDeleteParams": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "routing.blacklistInsertParams": {
+            "type": "object",
+            "required": [
+                "hosts"
+            ],
+            "properties": {
+                "hosts": {
+                    "description": "issue: https://github.com/gin-gonic/gin/issues/3436",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "host",
+                            "source_id"
+                        ],
+                        "properties": {
+                            "host": {
+                                "type": "string"
+                            },
+                            "source_id": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "success.DatabaseResponse": {
+            "type": "object",
+            "properties": {
+                "rows_affected": {
+                    "type": "integer"
+                },
+                "status_code": {
+                    "type": "integer"
+                }
+            }
         }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
+	Version:          "0.0.2",
 	Host:             "localhost:7090",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "Domain Threat Intelligence API",
+	Description:      "API provided by DTI project",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }
