@@ -1,3 +1,4 @@
+![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white)
 # Domain Threat Intelligence API
 
 Master's thesis in Cybersecurity on malicious domain detection. Central core application.
