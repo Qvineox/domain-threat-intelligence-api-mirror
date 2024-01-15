@@ -1,4 +1,3 @@
-![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white)
 # Domain Threat Intelligence API
 
 Master's thesis in Cybersecurity on malicious domain detection. Central core application.
@@ -91,6 +90,10 @@ favors directories such as /cmd, /internal, or /pkg.
 > TODO: add security and compliance data...
 
 ## Useful resources
+
+### Services
+
+- [Shields.io](https://shields.io/)
 
 ### Guides
 

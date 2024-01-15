@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"domain_threat_intelligence_api/cmd/core"
 	"fmt"
 	"net/http"
 	"time"
@@ -15,7 +16,7 @@ type HTTPServer struct {
 	swaggerEnabled bool
 }
 
-func NewHTTPServer(host string, port uint64, swagger bool) (*HTTPServer, error) {
+func NewHTTPServer(host string, port uint64, swagger bool, services Services) (*HTTPServer, error) {
 	s := &HTTPServer{}
 
 	if len(host) == 0 {
@@ -31,7 +32,7 @@ func NewHTTPServer(host string, port uint64, swagger bool) (*HTTPServer, error) 
 	}
 
 	// gin router initialization
-	router := CreateRouter()
+	router := CreateRouter(services)
 
 	// swagger routing
 	s.swaggerEnabled = swagger
@@ -49,11 +50,15 @@ func NewHTTPServer(host string, port uint64, swagger bool) (*HTTPServer, error) 
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	// cors configuration // TODO
+	// TODO: cors configuration
 
 	return s, nil
 }
 
 func (s *HTTPServer) Start() error {
 	return s.server.ListenAndServe()
+}
+
+type Services struct {
+	BlacklistService core.IBlacklistsService
 }

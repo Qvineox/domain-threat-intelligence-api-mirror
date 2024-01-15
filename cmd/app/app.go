@@ -2,6 +2,8 @@ package app
 
 import (
 	"domain_threat_intelligence_api/api/rest"
+	"domain_threat_intelligence_api/cmd/core/repos"
+	"domain_threat_intelligence_api/cmd/core/services"
 	"domain_threat_intelligence_api/configs"
 	"fmt"
 	"gorm.io/driver/postgres"
@@ -28,9 +30,14 @@ func StartApp(cfg configs.Config) error {
 		return err
 	}
 
+	// creating repositories and services
+	domainServices := rest.Services{
+		BlacklistService: services.NewBlackListsServiceImpl(repos.NewBlacklistsRepoImpl(dbConn)),
+	}
+
 	slog.Info("web server starting...")
 
-	webServer, err := rest.NewHTTPServer(cfg.WebServer.Host, cfg.WebServer.Port, cfg.WebServer.Swagger)
+	webServer, err := rest.NewHTTPServer(cfg.WebServer.Host, cfg.WebServer.Port, cfg.WebServer.Swagger, domainServices)
 	err = webServer.Start()
 	if err != nil {
 		slog.Info("web server stopped with error: " + err.Error())

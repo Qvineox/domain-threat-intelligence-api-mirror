@@ -16,7 +16,7 @@ type PlatformUser struct {
 	IsActive     bool   `json:"is_active" gorm:"column:is_active;default:true"`
 
 	// Defines which roles user has
-	Roles []PlatformUserRole `json:"roles" gorm:"many2many:platform_users_roles;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Roles []PlatformUserRole `json:"roles,omitempty" gorm:"many2many:platform_users_roles;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`

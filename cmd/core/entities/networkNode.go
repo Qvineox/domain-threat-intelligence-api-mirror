@@ -16,8 +16,8 @@ type NetworkNode struct {
 	// Network node discovery timestamp, when was this node first found
 	DiscoveredAt sql.NullTime `json:"discovered_at" gorm:"column:identity"`
 
-	Type   NetworkNodeType `json:"node_type" gorm:"foreignKey:TypeID;constraint:OnUpdate:CASCADE;OnDelete:SET NULL"`
-	TypeID uint64          `json:"node_type_id"`
+	Type   *NetworkNodeType `json:"node_type,omitempty" gorm:"foreignKey:TypeID;constraint:OnUpdate:CASCADE;OnDelete:SET NULL"`
+	TypeID uint64           `json:"node_type_id"`
 
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`

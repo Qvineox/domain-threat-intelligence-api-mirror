@@ -19,6 +19,7 @@ const (
 	DecodingErrorCode
 	IncorrectParamsErrorCode
 	InsufficientParamsErrorCode
+	DatabaseErrorCode
 )
 
 func ParamsErrorResponse(c *gin.Context, err error) {
@@ -27,5 +28,14 @@ func ParamsErrorResponse(c *gin.Context, err error) {
 		ErrorCode:    IncorrectParamsErrorCode,
 		ErrorMessage: err.Error(),
 		ErrorModule:  "rest endpoint",
+	})
+}
+
+func DatabaseErrorResponse(c *gin.Context, err error) {
+	c.JSON(http.StatusBadRequest, APIError{
+		StatusCode:   http.StatusBadRequest,
+		ErrorCode:    DatabaseErrorCode,
+		ErrorMessage: err.Error(),
+		ErrorModule:  "database operations",
 	})
 }

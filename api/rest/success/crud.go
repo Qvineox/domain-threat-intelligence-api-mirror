@@ -7,17 +7,17 @@ import (
 
 type DatabaseResponse struct {
 	StatusCode   uint64 `json:"status_code"`
-	RowsAffected uint64 `json:"rows_affected"`
+	RowsAffected int64  `json:"rows_affected"`
 }
 
-func SavedResponse(c *gin.Context, rows uint64) {
+func SavedResponse(c *gin.Context, rows int64) {
 	c.JSON(http.StatusCreated, DatabaseResponse{
 		StatusCode:   http.StatusCreated,
 		RowsAffected: rows,
 	})
 }
 
-func DeletedResponse(c *gin.Context, rows uint64) {
+func DeletedResponse(c *gin.Context, rows int64) {
 	c.JSON(http.StatusOK, DatabaseResponse{
 		StatusCode:   http.StatusOK,
 		RowsAffected: rows,

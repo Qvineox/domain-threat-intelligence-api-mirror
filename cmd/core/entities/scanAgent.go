@@ -18,8 +18,8 @@ type ScanAgent struct {
 	Description string      `json:"description" gorm:"column:description;size:512;default:No description."`
 
 	// Defines who is the owner of agent.
-	Owner     PlatformUser `json:"owner" gorm:"foreignKey:OwnerUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	OwnerUUID pgtype.UUID  `json:"owner_uuid"`
+	Owner     *PlatformUser `json:"owner,omitempty" gorm:"foreignKey:OwnerUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	OwnerUUID pgtype.UUID   `json:"owner_uuid"`
 
 	// Private agents can only be used by their owners.
 	IsPrivate bool `json:"is_private" gorm:"column:is_private;default:true"`

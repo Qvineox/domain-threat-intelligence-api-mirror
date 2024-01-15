@@ -62,8 +62,12 @@ const docTemplate = `{
                 "summary": "blacklisted domains by filter",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Source type ID",
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Source type IDs",
                         "name": "source_id",
                         "in": "query"
                     },
@@ -95,7 +99,8 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Query limit",
                         "name": "limit",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",
@@ -264,9 +269,12 @@ const docTemplate = `{
                 "summary": "blacklisted ips by filter",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Source type ID",
-                        "name": "source_id",
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "description": "Source type IDs",
+                        "name": "source_ids",
                         "in": "query"
                     },
                     {
@@ -297,7 +305,8 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Query limit",
                         "name": "limit",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "integer",

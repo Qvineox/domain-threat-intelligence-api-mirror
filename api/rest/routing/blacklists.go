@@ -3,32 +3,42 @@ package routing
 import (
 	"domain_threat_intelligence_api/api/rest/error"
 	"domain_threat_intelligence_api/api/rest/success"
+	"domain_threat_intelligence_api/cmd/core"
+	"domain_threat_intelligence_api/cmd/core/entities"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"time"
 )
 
-func HandleBlacklistsGroup(path *gin.RouterGroup) {
+type BlacklistsRouter struct {
+	service core.IBlacklistsService
+	path    *gin.RouterGroup
+}
+
+func NewBlacklistsRouter(service core.IBlacklistsService, path *gin.RouterGroup) *BlacklistsRouter {
+	router := BlacklistsRouter{service: service, path: path}
+
 	blacklistsGroup := path.Group("/blacklists")
 
 	{
-		blacklistsGroup.GET("/ips", GetBlackListedIPsByFilter)
-		blacklistsGroup.PUT("/ips", PutBlackListedIPs)
-		blacklistsGroup.DELETE("/ip", DeleteBlackListedIP)
+		blacklistsGroup.GET("/ips", router.GetBlackListedIPsByFilter)
+		blacklistsGroup.PUT("/ips", router.PutBlackListedIPs)
+		blacklistsGroup.DELETE("/ip", router.DeleteBlackListedIP)
 	}
 
 	{
-		blacklistsGroup.GET("/domains", GetBlackListedDomainsByFilter)
-		blacklistsGroup.PUT("/domains", PutBlackListedDomains)
-		blacklistsGroup.DELETE("/domain", DeleteBlackListedDomain)
+		blacklistsGroup.GET("/domains", router.GetBlackListedDomainsByFilter)
+		blacklistsGroup.PUT("/domains", router.PutBlackListedDomains)
+		blacklistsGroup.DELETE("/domain", router.DeleteBlackListedDomain)
 	}
 
 	blacklistImportGroup := blacklistsGroup.Group("/import")
 
 	{
-		blacklistImportGroup.POST("/fincert", PostImportBlacklistsFromFinCERTFile)
-		blacklistImportGroup.POST("/stix", PostImportBlacklistsFromSTIXFile)
+		blacklistImportGroup.POST("/fincert", router.PostImportBlacklistsFromFinCERTFile)
+		blacklistImportGroup.POST("/stix", router.PostImportBlacklistsFromSTIXFile)
 	}
+
+	return &router
 }
 
 // GetBlackListedIPsByFilter returns list of blacklisted IPs by filter
@@ -37,23 +47,31 @@ func HandleBlacklistsGroup(path *gin.RouterGroup) {
 // @Description Gets list of blacklisted ips by filter
 // @Tags        Blacklists
 // @Router      /blacklists/ips [get]
-// @Param       source_id      query    uint64 false "Source type ID"
-// @Param       is_active      query    bool   false "Is active"
-// @Param       created_after  query    string false "Created timestamp is after"
-// @Param       created_before query    string false "Created timestamp is before"
-// @Param       search_string  query    string false "Substring to search"
-// @Param       limit          query    uint64 false "Query limit"
-// @Param       offset         query    uint64 false "Query offset"
+// @Param       source_ids     query    []uint64 false "Source type IDs"
+// @Param       is_active      query    bool     false "Is active"
+// @Param       created_after  query    string   false "Created timestamp is after"
+// @Param       created_before query    string   false "Created timestamp is before"
+// @Param       search_string  query    string   false "Substring to search"
+// @Param       limit          query    int      true  "Query limit"
+// @Param       offset         query    int      false "Query offset"
 // @Success     200            {object} []entities.BlacklistedIP
 // @Failure     400         {object} error.APIError
-func GetBlackListedIPsByFilter(c *gin.Context) {
-	params := blackListsFilter{}
+func (r *BlacklistsRouter) GetBlackListedIPsByFilter(c *gin.Context) {
+	params := entities.BlacklistFilter{}
 
 	err := c.ShouldBind(&params)
 	if err != nil {
 		error.ParamsErrorResponse(c, err)
 		return
 	}
+
+	ips, err := r.service.RetrieveIPsByFilter(params)
+	if err != nil {
+		error.DatabaseErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, ips)
 }
 
 // GetBlackListedDomainsByFilter returns list of blacklisted domains by filter
@@ -62,35 +80,31 @@ func GetBlackListedIPsByFilter(c *gin.Context) {
 // @Description Gets list of blacklisted domains by filter
 // @Tags        Blacklists
 // @Router      /blacklists/domains [get]
-// @Param       source_id      query    uint64 false "Source type ID"
-// @Param       is_active      query    bool   false "Is active"
-// @Param       created_after  query    string false "Created timestamp is after"
-// @Param       created_before query    string false "Created timestamp is before"
-// @Param       search_string  query    string false "Substring to search"
-// @Param       limit          query    uint64 false "Query limit"
-// @Param       offset         query    uint64 false "Query offset"
+// @Param       source_id      query    []uint64 false "Source type IDs" collectionFormat(multi)
+// @Param       is_active      query    bool     false "Is active"
+// @Param       created_after  query    string   false "Created timestamp is after"
+// @Param       created_before query    string   false "Created timestamp is before"
+// @Param       search_string  query    string   false "Substring to search"
+// @Param       limit          query    int      true  "Query limit"
+// @Param       offset         query    int      false "Query offset"
 // @Success     200            {object} []entities.BlacklistedDomain
 // @Failure     400         {object} error.APIError
-func GetBlackListedDomainsByFilter(c *gin.Context) {
-	params := blackListsFilter{}
+func (r *BlacklistsRouter) GetBlackListedDomainsByFilter(c *gin.Context) {
+	params := entities.BlacklistFilter{}
 
-	err := c.ShouldBind(&params)
+	err := c.ShouldBindQuery(&params)
 	if err != nil {
 		error.ParamsErrorResponse(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, "good!")
-}
+	domains, err := r.service.RetrieveDomainsByFilter(params)
+	if err != nil {
+		error.DatabaseErrorResponse(c, err)
+		return
+	}
 
-type blackListsFilter struct {
-	SourceID      uint64    `json:"source_id" form:"source_id"`
-	IsActive      bool      `json:"is_active" form:"is_active"`
-	CreatedAfter  time.Time `json:"created_after" form:"created_after" time_format:"2006-01-02"`
-	CreatedBefore time.Time `json:"created_before" form:"created_before" time_format:"2006-01-02"`
-	Substring     string    `json:"search_string" form:"search_string"`
-	Offset        uint64    `json:"offset" form:"offset"`
-	Limit         uint64    `json:"limit" form:"limit" binding:"required"`
+	c.JSON(http.StatusOK, domains)
 }
 
 // PutBlackListedDomains accepts and saves list of blacklisted domains
@@ -102,7 +116,7 @@ type blackListsFilter struct {
 // @Param       hosts body     blacklistInsertParams true "IPs to save"
 // @Success     201   {object} success.DatabaseResponse
 // @Failure     400   {object} error.APIError
-func PutBlackListedDomains(c *gin.Context) {
+func (r *BlacklistsRouter) PutBlackListedDomains(c *gin.Context) {
 	var params blacklistInsertParams
 
 	err := c.ShouldBindJSON(&params)
@@ -111,7 +125,21 @@ func PutBlackListedDomains(c *gin.Context) {
 		return
 	}
 
-	success.SavedResponse(c, 0)
+	var domains []entities.BlacklistedDomain
+	for _, h := range params.Hosts {
+		domains = append(domains, entities.BlacklistedDomain{
+			URN:      h.Host,
+			SourceID: h.SourceID,
+		})
+	}
+
+	rows, err := r.service.SaveDomains(domains)
+	if err != nil {
+		error.DatabaseErrorResponse(c, err)
+		return
+	}
+
+	success.SavedResponse(c, rows)
 }
 
 // PutBlackListedIPs accepts and saves list of blacklisted IPs
@@ -123,7 +151,7 @@ func PutBlackListedDomains(c *gin.Context) {
 // @Param       hosts body     blacklistInsertParams    true "IPs to save"
 // @Success     201   {object} success.DatabaseResponse true
 // @Failure     400   {object} error.APIError
-func PutBlackListedIPs(c *gin.Context) {
+func (r *BlacklistsRouter) PutBlackListedIPs(c *gin.Context) {
 	var params blacklistInsertParams
 
 	err := c.ShouldBindJSON(&params)
@@ -151,7 +179,7 @@ type blacklistInsertParams struct {
 // @Param       id  body     blacklistDeleteParams    true "record id to delete"
 // @Success     200 {object} success.DatabaseResponse true
 // @Failure     400 {object} error.APIError
-func DeleteBlackListedIP(c *gin.Context) {
+func (r *BlacklistsRouter) DeleteBlackListedIP(c *gin.Context) {
 	var params blacklistDeleteParams
 
 	err := c.ShouldBindJSON(&params)
@@ -160,7 +188,13 @@ func DeleteBlackListedIP(c *gin.Context) {
 		return
 	}
 
-	success.DeletedResponse(c, 0)
+	rows, err := r.service.DeleteIP(params.ID)
+	if err != nil {
+		error.DatabaseErrorResponse(c, err)
+		return
+	}
+
+	success.DeletedResponse(c, rows)
 }
 
 // DeleteBlackListedDomain accepts and deletes single blacklisted domain
@@ -172,7 +206,7 @@ func DeleteBlackListedIP(c *gin.Context) {
 // @Param       id  body     blacklistDeleteParams    true "record id to delete"
 // @Success     200 {object} success.DatabaseResponse true
 // @Failure     400 {object} error.APIError
-func DeleteBlackListedDomain(c *gin.Context) {
+func (r *BlacklistsRouter) DeleteBlackListedDomain(c *gin.Context) {
 	var params blacklistDeleteParams
 
 	err := c.ShouldBindJSON(&params)
@@ -181,7 +215,13 @@ func DeleteBlackListedDomain(c *gin.Context) {
 		return
 	}
 
-	success.DeletedResponse(c, 0)
+	rows, err := r.service.DeleteDomain(params.ID)
+	if err != nil {
+		error.DatabaseErrorResponse(c, err)
+		return
+	}
+
+	success.DeletedResponse(c, rows)
 }
 
 type blacklistDeleteParams struct {
@@ -197,7 +237,7 @@ type blacklistDeleteParams struct {
 // @Param       import_file formData file                     true "file to import"
 // @Success     201         {object} success.DatabaseResponse true
 // @Failure     400            {object} error.APIError
-func PostImportBlacklistsFromFinCERTFile(c *gin.Context) {
+func (r *BlacklistsRouter) PostImportBlacklistsFromFinCERTFile(c *gin.Context) {
 	success.SavedResponse(c, 0)
 }
 
@@ -210,6 +250,6 @@ func PostImportBlacklistsFromFinCERTFile(c *gin.Context) {
 // @Param       import_file formData file                     true "file to import"
 // @Success     201         {object} success.DatabaseResponse true
 // @Failure     400            {object} error.APIError
-func PostImportBlacklistsFromSTIXFile(c *gin.Context) {
+func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 	success.SavedResponse(c, 0)
 }
