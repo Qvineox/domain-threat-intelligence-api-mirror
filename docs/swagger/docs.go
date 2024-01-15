@@ -160,6 +160,152 @@ const docTemplate = `{
                 }
             }
         },
+        "/blacklists/export/csv": {
+            "post": {
+                "description": "Accepts filters and returns exported blacklisted hosts in CSV",
+                "tags": [
+                    "Blacklists",
+                    "Export"
+                ],
+                "summary": "exports blacklisted hosts into CSV",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Source type IDs",
+                        "name": "source_ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is active",
+                        "name": "is_active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is after",
+                        "name": "created_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is before",
+                        "name": "created_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Substring to search",
+                        "name": "search_string",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/export/json": {
+            "post": {
+                "description": "Accepts filters and returns exported blacklisted hosts in JSON",
+                "tags": [
+                    "Blacklists",
+                    "Export"
+                ],
+                "summary": "exports blacklisted hosts into JSON",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Source type IDs",
+                        "name": "source_ids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is active",
+                        "name": "is_active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is after",
+                        "name": "created_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is before",
+                        "name": "created_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Substring to search",
+                        "name": "search_string",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/blacklists/import/fincert": {
             "post": {
                 "description": "Accepts and imports blacklisted hosts from FinCERT file",
@@ -273,8 +419,9 @@ const docTemplate = `{
                         "items": {
                             "type": "integer"
                         },
+                        "collectionFormat": "multi",
                         "description": "Source type IDs",
-                        "name": "source_ids",
+                        "name": "source_id",
                         "in": "query"
                     },
                     {
@@ -297,7 +444,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Substring to search",
+                        "description": "CIDR to search (must include IP/MASK)",
                         "name": "search_string",
                         "in": "query"
                     },
@@ -388,7 +535,7 @@ const docTemplate = `{
         "entities.AppStatus": {
             "type": "object",
             "properties": {
-                "status": {
+                "Status": {
                     "type": "string"
                 }
             }
@@ -396,20 +543,20 @@ const docTemplate = `{
         "entities.BlacklistSource": {
             "type": "object",
             "properties": {
+                "Description": {
+                    "type": "string"
+                },
+                "Name": {
+                    "type": "string"
+                },
                 "createdAt": {
                     "type": "string"
                 },
                 "deletedAt": {
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
-                "description": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "integer"
-                },
-                "name": {
-                    "type": "string"
                 },
                 "updatedAt": {
                     "type": "string"
@@ -419,6 +566,13 @@ const docTemplate = `{
         "entities.BlacklistedDomain": {
             "type": "object",
             "properties": {
+                "Source": {
+                    "description": "Defines source from where blacklisted host was added",
+                    "$ref": "#/definitions/entities.BlacklistSource"
+                },
+                "SourceID": {
+                    "type": "integer"
+                },
                 "URN": {
                     "type": "string"
                 },
@@ -431,13 +585,6 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "source": {
-                    "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/entities.BlacklistSource"
-                },
-                "source_id": {
-                    "type": "integer"
-                },
                 "updatedAt": {
                     "type": "string"
                 }
@@ -446,6 +593,16 @@ const docTemplate = `{
         "entities.BlacklistedIP": {
             "type": "object",
             "properties": {
+                "IPAddress": {
+                    "$ref": "#/definitions/pgtype.Inet"
+                },
+                "Source": {
+                    "description": "Defines source from where blacklisted host was added",
+                    "$ref": "#/definitions/entities.BlacklistSource"
+                },
+                "SourceID": {
+                    "type": "integer"
+                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -453,16 +610,6 @@ const docTemplate = `{
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
                 "id": {
-                    "type": "integer"
-                },
-                "ip_address": {
-                    "$ref": "#/definitions/pgtype.Inet"
-                },
-                "source": {
-                    "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/entities.BlacklistSource"
-                },
-                "source_id": {
                     "type": "integer"
                 },
                 "updatedAt": {

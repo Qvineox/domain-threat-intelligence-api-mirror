@@ -31,15 +31,15 @@ func (r *BlacklistsRepoImpl) SelectIPsByFilter(filter entities.BlacklistFilter) 
 	}
 
 	if len(filter.SearchString) > 0 {
-		query = query.Where("ip_address LIKE ?", filter.SearchString)
+		query = query.Where("ip_address << ?", filter.SearchString)
 	}
 
 	if len(filter.SourceIDs) > 0 {
-		query = query.Where("source_id IN ?", "%"+filter.SearchString+"%")
+		query = query.Where("source_id IN ?", filter.SourceIDs)
 	}
 
 	var result []entities.BlacklistedIP
-	err := query.Limit(filter.Limit).Offset(filter.Offset).Select(&result).Error
+	err := query.Limit(filter.Limit).Offset(filter.Offset).Find(&result).Error
 
 	return result, err
 }

@@ -8,17 +8,17 @@ import (
 
 // NetworkNodeScan represents unique scanning procedure on a single defined network node.
 type NetworkNodeScan struct {
-	IsComplete bool `json:"is_complete" gorm:"default:false;not null"`
+	IsComplete bool `json:"IsComplete" gorm:"default:false;not null"`
 
 	// Defines parent node, scan object belongs to node object (many-to-one)
-	Node     *NetworkNode `json:"node,omitempty" gorm:"foreignKey:NodeUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	NodeUUID pgtype.UUID  `json:"node_uuid"`
+	Node     *NetworkNode `json:"Node,omitempty" gorm:"foreignKey:NodeUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	NodeUUID pgtype.UUID  `json:"NodeUUID"`
 
 	// Defines which agent provided current scan result
-	Agent     *ScanAgent  `json:"agent,omitempty" gorm:"foreignKey:AgentUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	AgentUUID pgtype.UUID `json:"agent_uuid"`
+	Agent     *ScanAgent  `json:"Agent,omitempty" gorm:"foreignKey:AgentUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	AgentUUID pgtype.UUID `json:"AgentUUID"`
 
-	Data datatypes.JSONType[NetworkNodeScanData] `json:"data" gorm:"column:data"`
+	Data datatypes.JSONType[NetworkNodeScanData] `json:"Data" gorm:"column:data"`
 
 	gorm.Model
 }

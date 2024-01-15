@@ -1,5 +1,5 @@
 package entities
 
 type AppStatus struct {
-	Status string `json:"status"`
+	Status string `json:"Status"`
 }

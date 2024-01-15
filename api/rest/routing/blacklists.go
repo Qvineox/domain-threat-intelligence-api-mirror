@@ -6,6 +6,8 @@ import (
 	"domain_threat_intelligence_api/cmd/core"
 	"domain_threat_intelligence_api/cmd/core/entities"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgtype"
+	"net"
 	"net/http"
 )
 
@@ -38,6 +40,13 @@ func NewBlacklistsRouter(service core.IBlacklistsService, path *gin.RouterGroup)
 		blacklistImportGroup.POST("/stix", router.PostImportBlacklistsFromSTIXFile)
 	}
 
+	blacklistExportGroup := blacklistsGroup.Group("/export")
+
+	{
+		blacklistExportGroup.POST("/csv", router.PostExportBlacklistsToCSV)
+		blacklistExportGroup.POST("/json", router.PostExportBlacklistsToJSON)
+	}
+
 	return &router
 }
 
@@ -47,19 +56,26 @@ func NewBlacklistsRouter(service core.IBlacklistsService, path *gin.RouterGroup)
 // @Description Gets list of blacklisted ips by filter
 // @Tags        Blacklists
 // @Router      /blacklists/ips [get]
-// @Param       source_ids     query    []uint64 false "Source type IDs"
-// @Param       is_active      query    bool     false "Is active"
-// @Param       created_after  query    string   false "Created timestamp is after"
-// @Param       created_before query    string   false "Created timestamp is before"
-// @Param       search_string  query    string   false "Substring to search"
-// @Param       limit          query    int      true  "Query limit"
-// @Param       offset         query    int      false "Query offset"
+// @Param       source_id      query    []uint64 false "Source type IDs" collectionFormat(multi)
+// @Param       is_active      query    bool                     false "Is active"
+// @Param       created_after  query    string                   false "Created timestamp is after"
+// @Param       created_before query    string                   false "Created timestamp is before"
+// @Param       search_string  query    string   false "CIDR to search (must include IP/MASK)"
+// @Param       limit          query    int                      true  "Query limit"
+// @Param       offset         query    int                      false "Query offset"
 // @Success     200            {object} []entities.BlacklistedIP
-// @Failure     400         {object} error.APIError
+// @Failure     400                     {object} error.APIError
 func (r *BlacklistsRouter) GetBlackListedIPsByFilter(c *gin.Context) {
 	params := entities.BlacklistFilter{}
 
-	err := c.ShouldBind(&params)
+	err := c.ShouldBindQuery(&params)
+	if err != nil {
+		error.ParamsErrorResponse(c, err)
+		return
+	}
+
+	// check if search string is IP or IP with mask
+	_, _, err = net.ParseCIDR(params.SearchString)
 	if err != nil {
 		error.ParamsErrorResponse(c, err)
 		return
@@ -81,12 +97,12 @@ func (r *BlacklistsRouter) GetBlackListedIPsByFilter(c *gin.Context) {
 // @Tags        Blacklists
 // @Router      /blacklists/domains [get]
 // @Param       source_id      query    []uint64 false "Source type IDs" collectionFormat(multi)
-// @Param       is_active      query    bool     false "Is active"
-// @Param       created_after  query    string   false "Created timestamp is after"
-// @Param       created_before query    string   false "Created timestamp is before"
-// @Param       search_string  query    string   false "Substring to search"
-// @Param       limit          query    int      true  "Query limit"
-// @Param       offset         query    int      false "Query offset"
+// @Param       is_active      query    bool                     false "Is active"
+// @Param       created_after  query    string                   false "Created timestamp is after"
+// @Param       created_before query    string                   false "Created timestamp is before"
+// @Param       search_string  query    string                   false "Substring to search"
+// @Param       limit          query    int                      true  "Query limit"
+// @Param       offset         query    int                      false "Query offset"
 // @Success     200            {object} []entities.BlacklistedDomain
 // @Failure     400         {object} error.APIError
 func (r *BlacklistsRouter) GetBlackListedDomainsByFilter(c *gin.Context) {
@@ -160,7 +176,29 @@ func (r *BlacklistsRouter) PutBlackListedIPs(c *gin.Context) {
 		return
 	}
 
-	success.SavedResponse(c, 0)
+	var ips []entities.BlacklistedIP
+	for _, h := range params.Hosts {
+		var ipAddress = pgtype.Inet{}
+
+		err = ipAddress.Set(h.Host)
+		if err != nil {
+			error.ParamsErrorResponse(c, err)
+			return
+		}
+
+		ips = append(ips, entities.BlacklistedIP{
+			IPAddress: ipAddress,
+			SourceID:  h.SourceID,
+		})
+	}
+
+	rows, err := r.service.SaveIPs(ips)
+	if err != nil {
+		error.DatabaseErrorResponse(c, err)
+		return
+	}
+
+	success.SavedResponse(c, rows)
 }
 
 type blacklistInsertParams struct {
@@ -235,8 +273,8 @@ type blacklistDeleteParams struct {
 // @Tags        Blacklists, Import
 // @Router      /blacklists/import/fincert [post]
 // @Param       import_file formData file                     true "file to import"
-// @Success     201         {object} success.DatabaseResponse true
-// @Failure     400            {object} error.APIError
+// @Success     201            {object} success.DatabaseResponse true
+// @Failure     400         {object} error.APIError
 func (r *BlacklistsRouter) PostImportBlacklistsFromFinCERTFile(c *gin.Context) {
 	success.SavedResponse(c, 0)
 }
@@ -248,8 +286,46 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromFinCERTFile(c *gin.Context) {
 // @Tags        Blacklists, Import
 // @Router      /blacklists/import/stix [post]
 // @Param       import_file formData file                     true "file to import"
-// @Success     201         {object} success.DatabaseResponse true
+// @Success     201            {object} success.DatabaseResponse true
 // @Failure     400            {object} error.APIError
 func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
+	success.SavedResponse(c, 0)
+}
+
+// PostExportBlacklistsToCSV accepts filters and returns exported blacklisted hosts in CSV
+//
+// @Summary     exports blacklisted hosts into CSV
+// @Description Accepts filters and returns exported blacklisted hosts in CSV
+// @Tags        Blacklists, Export
+// @Router      /blacklists/export/csv [post]
+// @Param       source_ids     query    []uint64                 false "Source type IDs" collectionFormat(multi)
+// @Param       is_active      query    bool     false "Is active"
+// @Param       created_after  query    string   false "Created timestamp is after"
+// @Param       created_before query    string   false "Created timestamp is before"
+// @Param       search_string  query    string                   false "Substring to search"
+// @Param       limit          query    int      true  "Query limit"
+// @Param       offset         query    int      false "Query offset"
+// @Success     201         {object} success.DatabaseResponse true
+// @Failure     400            {object} error.APIError
+func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
+	success.SavedResponse(c, 0)
+}
+
+// PostExportBlacklistsToJSON accepts filters and returns exported blacklisted hosts in JSON
+//
+// @Summary     exports blacklisted hosts into JSON
+// @Description Accepts filters and returns exported blacklisted hosts in JSON
+// @Tags        Blacklists, Export
+// @Router      /blacklists/export/json [post]
+// @Param       source_ids     query    []uint64                 false "Source type IDs" collectionFormat(multi)
+// @Param       is_active      query    bool     false "Is active"
+// @Param       created_after  query    string   false "Created timestamp is after"
+// @Param       created_before query    string   false "Created timestamp is before"
+// @Param       search_string  query    string   false "Substring to search"
+// @Param       limit          query    int      true  "Query limit"
+// @Param       offset         query    int      false "Query offset"
+// @Success     201         {object} success.DatabaseResponse true
+// @Failure     400            {object} error.APIError
+func (r *BlacklistsRouter) PostExportBlacklistsToJSON(c *gin.Context) {
 	success.SavedResponse(c, 0)
 }
