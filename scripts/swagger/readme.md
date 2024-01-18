@@ -9,6 +9,8 @@ Swagger docs are built with [Swag](https://github.com/swaggo/swag) tool for Gola
 First, Swagger development tool has to be installed. Then use following script to generate documentation.
 
 ```shell
+go env -w GOOS=windows
+
 go install github.com/swaggo/swag/cmd/swag@latest
 swag init --dir api/rest -g router.go --output docs/swagger -ot go,json --parseDependency
 swag fmt

@@ -13,6 +13,7 @@ func runMigrations(database *gorm.DB) error {
 		entities.BlacklistSource{},
 		entities.BlacklistedDomain{},
 		entities.BlacklistedIP{},
+		entities.BlacklistedURL{},
 		entities.NetworkNodeType{},
 		entities.NetworkNode{},
 		entities.NetworkNodeScan{},

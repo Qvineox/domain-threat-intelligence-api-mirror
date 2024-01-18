@@ -16,11 +16,11 @@ func HandleMaintenanceGroup(path *gin.RouterGroup) {
 
 // Ping returns info about application availability and status
 //
-// @Summary     application availability and status
-// @Description Gets info about application availability and status
-// @Tags        Maintenance
-// @Router      /maintenance/ping [get]
-// @Success     200 {object} entities.AppStatus
+//	@Summary		application availability and status
+//	@Description	Gets info about application availability and status
+//	@Tags			Maintenance
+//	@Router			/maintenance/ping [get]
+//	@Success		200	{object}	entities.AppStatus
 func Ping(c *gin.Context) {
 	c.JSON(http.StatusOK, entities.AppStatus{Status: "all good!"})
 }

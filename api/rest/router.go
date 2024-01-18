@@ -6,15 +6,18 @@ import (
 )
 
 // CreateRouter initializes application routing and all route groups
-// @title        Domain Threat Intelligence API
-// @version      0.0.2
-// @description  API provided by DTI project
-// @contact.name Yaroslav Lysak
-// @contact.url  https://t.me/Qvineox
-// @host         localhost:7090
-// @BasePath     /api/v1
+//
+//	@title			Domain Threat Intelligence API
+//	@version		0.0.3
+//	@description	API provided by DTI project
+//	@contact.name	Yaroslav Lysak
+//	@contact.url	https://t.me/Qvineox
+//	@host			localhost:7090
+//	@BasePath		/api/v1
 func CreateRouter(services Services) *gin.Engine {
 	router := gin.Default()
+
+	router.MaxMultipartMemory = 16 << 25
 
 	baseRouteV1 := router.Group("/api/v1")
 

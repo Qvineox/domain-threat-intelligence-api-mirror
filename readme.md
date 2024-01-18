@@ -101,3 +101,4 @@ favors directories such as /cmd, /internal, or /pkg.
 - [HABR - "Разбираемся с пакетом Context в Golang" - 2019](https://habr.com/ru/companies/nixys/articles/461723/)
 - [YouTube - "Swagger for Go REST APIs: Quick & Easy Documentation with Gin" - 2023](https://youtu.be/0b_N4y8_9iI?si=hqdJT9NGcBtQJbkK)
 - [LogRocket - "Gin binding in Go: A tutorial with examples" - 2021](https://blog.logrocket.com/gin-binding-in-go-a-tutorial-with-examples/)
+- [ZetCode - "Go CSV - read & write CSV" - 2023](https://zetcode.com/golang/csv/)

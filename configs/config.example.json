@@ -6,5 +6,10 @@
     "user": "threat_intel_user",
     "password": "threat_intel_pass",
     "timezone": "Europe/Moscow"
+  },
+  "web_server": {
+    "host": "localhost",
+    "port": 7090,
+    "swagger": true
   }
 }

@@ -6,7 +6,8 @@ import (
 )
 
 type BlacklistedIP struct {
-	IPAddress pgtype.Inet `json:"IPAddress" gorm:"column:ip_address;type:inet;not_null;uniqueIndex:idx_ip"`
+	IPAddress   pgtype.Inet `json:"IPAddress" gorm:"column:ip_address;type:inet;not_null;uniqueIndex:idx_ip"`
+	Description string      `json:"Description" gorm:"column:description"`
 
 	// Defines source from where blacklisted host was added
 	Source   *BlacklistSource `json:"Source,omitempty" gorm:"foreignKey:SourceID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`

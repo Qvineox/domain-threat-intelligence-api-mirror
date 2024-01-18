@@ -9,7 +9,7 @@ import (
 
 // ScanAgent represents remote network scanner agent.
 type ScanAgent struct {
-	UUID pgtype.UUID `json:"UUID" gorm:"primaryKey"`
+	UUID pgtype.UUID `json:"UUID" gorm:"primaryKey;type:uuid"`
 
 	Name        string      `json:"Name" gorm:"column:name;size:64;not null"`
 	IPAddress   pgtype.Inet `json:"IPAddress" gorm:"column:ip_address;type:inet"`
