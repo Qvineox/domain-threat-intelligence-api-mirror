@@ -10,6 +10,7 @@
   "web_server": {
     "host": "localhost",
     "port": 7090,
-    "swagger": true
+    "swagger": true,
+    "allowed_origin": "localhost"
   }
 }

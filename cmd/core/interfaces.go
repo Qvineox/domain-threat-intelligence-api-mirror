@@ -2,6 +2,7 @@ package core
 
 import (
 	"domain_threat_intelligence_api/cmd/core/entities"
+	"github.com/jackc/pgtype"
 )
 
 type IBlacklistsService interface {
@@ -40,4 +41,48 @@ type IBlacklistsRepo interface {
 	DeleteURL(id uint64) (int64, error)
 
 	CountStatistics() (ips int64, urls int64, domains int64)
+}
+
+type IUsersService interface {
+	// CreateUser creates only new entities.PlatformUser, returns error if user exists, ignores defined UUID
+	CreateUser(login, password, fullName, email string) (pgtype.UUID, error)
+
+	// SaveUser updates only existing entities.PlatformUser, returns error if user doesn't exist, UUID should be defined.
+	// This method doesn't update user password, use ResetPassword or ChangePassword
+	SaveUser(user entities.PlatformUser) (pgtype.UUID, error)
+
+	DeleteUser(uuid pgtype.UUID) error
+	RetrieveUsers() ([]entities.PlatformUser, error)
+	RetrieveUser(uuid pgtype.UUID) (entities.PlatformUser, error)
+
+	RetrieveRoles() ([]entities.PlatformUserRole, error)
+
+	// ResetPassword is used to send recovery messages to users
+	ResetPassword(uuid pgtype.UUID) error
+
+	// ChangePassword allows to set new password for user. Can be used by admin and user itself
+	ChangePassword(uuid pgtype.UUID, oldPassword, newPassword string) error
+}
+
+type IUsersRepo interface {
+	InsertUser(user entities.PlatformUser) (pgtype.UUID, error)
+	UpdateUser(user entities.PlatformUser) (pgtype.UUID, error)
+	DeleteUser(uuid pgtype.UUID) error
+	SelectUsers() ([]entities.PlatformUser, error)
+	SelectUser(uuid pgtype.UUID) (entities.PlatformUser, error)
+
+	SelectRoles() ([]entities.PlatformUserRole, error)
+
+	// UpdatePasswordHash is used only to update user password hash. Must be used when resetting or changing password
+	UpdatePasswordHash(uuid pgtype.UUID, hash string) error
+}
+
+type IAuthService interface {
+	RegisterNewUser(login, password, fullName, email string) (pgtype.UUID, error)
+	ConfirmEmail(confirmationUUID pgtype.UUID) error
+
+	Login(login, password string) (accessToken, refreshToken string, err error)
+	Logout(uuid pgtype.UUID) error
+
+	Refresh(token string) (accessToken, refreshToken string, err error)
 }

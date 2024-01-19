@@ -12,7 +12,7 @@ type PlatformUser struct {
 
 	FullName     string `json:"FullName" gorm:"column:full_name;size:128;not null"`
 	Login        string `json:"Login" gorm:"column:login;size:32;not null;unique"`
-	PasswordHash string `json:"PasswordHash" gorm:"column:password_hash"`
+	PasswordHash string `json:"-" gorm:"column:password_hash"`
 	IsActive     bool   `json:"IsActive" gorm:"column:is_active;default:true"`
 
 	// Defines which roles user has

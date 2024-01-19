@@ -2,3 +2,4 @@
 configs/config.json
 scripts/docker/docker-compose.yml
 go.sum
+build/bin

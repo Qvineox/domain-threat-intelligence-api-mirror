@@ -16,7 +16,7 @@ type HTTPServer struct {
 	swaggerEnabled bool
 }
 
-func NewHTTPServer(host string, port uint64, swagger bool, services Services) (*HTTPServer, error) {
+func NewHTTPServer(host string, port uint64, swagger bool, services Services, allowedOrigins []string) (*HTTPServer, error) {
 	s := &HTTPServer{}
 
 	if len(host) == 0 {
@@ -32,7 +32,7 @@ func NewHTTPServer(host string, port uint64, swagger bool, services Services) (*
 	}
 
 	// gin router initialization
-	router := CreateRouter(services)
+	router := CreateRouter(services, allowedOrigins)
 
 	// swagger routing
 	s.swaggerEnabled = swagger
@@ -49,8 +49,6 @@ func NewHTTPServer(host string, port uint64, swagger bool, services Services) (*
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-
-	// TODO: cors configuration
 
 	return s, nil
 }

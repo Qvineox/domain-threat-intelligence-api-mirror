@@ -30,6 +30,16 @@ All development scripts are available in [scripts](scripts) directory.
 This project uses Swagger to communicate with the API. Swagger scripts are also available
 in [swagger](scripts%2Fswagger) directory.
 
+### Building and running
+
+Following commands should be executed to build and run the application. Note that required environment variables should
+be in `./configs/config.json` directory or in environment to start the application. Runs from project root.
+
+```shell
+go build -ldflags="-s -w" -o .\build\bin\build.go ./cmd
+.\build\bin\build.go
+```
+
 ### Environment
 
 Following variables are used in application. These variables are also mapped in automated GitLab CI/CD:
@@ -44,7 +54,7 @@ Following variables are used in application. These variables are also mapped in 
 | db_timezone          |              | $DB_TZ             | Default database timezone                                  | Europe/Moscow     |
 | http_host            |              | $WEB_HOST          | Default REST endpoint host                                 | localhost         |
 | http_port            |              | $WEB_PORT          | Default REST endpoint port                                 | 80                |
-| http_swagger         | optional     | $WEB_SWAGGER       | Defines if [swagger](scripts%2Fswagger%2Freadme.md) starts | false             |
+| http_swagger         | optional     | $WEB_SWAGGER       | Defines if [swagger](scripts%2Fswagger%2Freadme.md) starts | false             |   
 
 ### Continuous integration using GitLab
 
@@ -75,6 +85,7 @@ see what the main directories are:
     - `/services` - Web API endpoints.
 - `/web` - Web application-specific assets (static files, etc.).
 - `/build` - Packaging and continuous integration (CI) files.
+    - `/bin` - Binary and compilation files.
 - `/scripts` - Scripts for analysis, installation, and so on.
     - `/docker` - Docker compose files to start the application.
     - `/idea` - IDE development scripts.

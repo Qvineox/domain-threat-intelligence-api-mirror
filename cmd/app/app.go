@@ -37,7 +37,7 @@ func StartApp(cfg configs.Config) error {
 
 	slog.Info("web server starting...")
 
-	webServer, err := rest.NewHTTPServer(cfg.WebServer.Host, cfg.WebServer.Port, cfg.WebServer.Swagger, domainServices)
+	webServer, err := rest.NewHTTPServer(cfg.WebServer.Host, cfg.WebServer.Port, cfg.WebServer.Swagger, domainServices, []string{cfg.WebServer.AllowedOrigin})
 	err = webServer.Start()
 	if err != nil {
 		slog.Info("web server stopped with error: " + err.Error())

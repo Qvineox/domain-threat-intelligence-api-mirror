@@ -17,9 +17,10 @@ type Config struct {
 	} `env-required:"true" json:"database"`
 
 	WebServer struct {
-		Host    string `env-required:"true" env:"http_host" json:"host"`
-		Port    uint64 `env-required:"true" env:"http_port" json:"port"`
-		Swagger bool   `env-default:"false" env:"http_swagger" json:"swagger"`
+		Host          string `env-required:"true" env:"http_host" json:"host"`
+		Port          uint64 `env-required:"true" env:"http_port" json:"port"`
+		Swagger       bool   `env-default:"false" env:"http_swagger" json:"swagger"`
+		AllowedOrigin string `env-required:"false" env:"http_origin" json:"allowed_origin"`
 	} `env-required:"true" json:"web_server"`
 
 	Logging struct {
@@ -35,8 +36,11 @@ func ReadConfig() (Config, error) {
 		return Config{}, err
 	}
 
+	// if config file not find tries to get configuration parameters from environment
 	err = cleanenv.ReadConfig(filepath.Join(currentDir, "configs", "config.json"), &cfg)
 	if err != nil {
+		err = cleanenv.ReadEnv(&cfg)
+
 		return Config{}, err
 	}
 
