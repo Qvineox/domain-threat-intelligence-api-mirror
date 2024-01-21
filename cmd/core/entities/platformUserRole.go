@@ -6,43 +6,40 @@ import (
 )
 
 type PlatformUserRole struct {
-	IsActive bool `json:"IsActive" gorm:"column:is_active;default:true"`
+	ID uint64 `json:"UUID" gorm:"primaryKey"`
 
+	IsActive    bool   `json:"IsActive" gorm:"column:is_active;default:true"`
 	Name        string `json:"Name" gorm:"column:name;size:64;not null;unique"`
 	Description string `json:"Description" gorm:"column:description;size:128;default:No description."`
 
-	gorm.Model
+	CreatedAt time.Time      `json:"CreatedAt"`
+	UpdatedAt time.Time      `json:"UpdatedAt"`
+	DeletedAt gorm.DeletedAt `json:"DeletedAt,omitempty" gorm:"index"`
 }
 
 const (
-	RoleLogin uint = iota + 1
+	RoleLogin uint64 = iota + 1
 	RoleAdmin
 	RoleBlacklistImport
 )
 
 var DefaultUserRoles = []PlatformUserRole{
 	{
+		ID:          RoleLogin,
+		UpdatedAt:   time.Now(),
 		Name:        "Auth",
 		Description: "Определяет может ли пользователи авторизоваться в системе",
-		Model: gorm.Model{
-			ID:        RoleLogin,
-			UpdatedAt: time.Now(),
-		},
 	},
 	{
+		ID:          RoleAdmin,
+		UpdatedAt:   time.Now(),
 		Name:        "Admin",
 		Description: "Является ли пользователь администратором",
-		Model: gorm.Model{
-			ID:        RoleAdmin,
-			UpdatedAt: time.Now(),
-		},
 	},
 	{
+		ID:          RoleBlacklistImport,
+		UpdatedAt:   time.Now(),
 		Name:        "Can import blacklists",
 		Description: "Определяет может ли пользователи импортировать списки блокировок",
-		Model: gorm.Model{
-			ID:        RoleBlacklistImport,
-			UpdatedAt: time.Now(),
-		},
 	},
 }

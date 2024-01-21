@@ -28,7 +28,7 @@ type ScanAgent struct {
 
 	CreatedAt time.Time      `json:"CreatedAt"`
 	UpdatedAt time.Time      `json:"UpdatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	DeletedAt gorm.DeletedAt `json:"DeletedAt,omitempty" gorm:"index"`
 }
 
 // ScanAgentConfiguration defines configuration parameters used in agent.

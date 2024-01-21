@@ -7,10 +7,10 @@ import (
 )
 
 type APIError struct {
-	StatusCode   uint64    `json:"status_code"`
-	ErrorCode    CodeError `json:"error_code"`
-	ErrorMessage string    `json:"error_message"`
-	ErrorModule  string    `json:"error_module"`
+	StatusCode   uint64    `json:"StatusCode"`
+	ErrorCode    CodeError `json:"ErrorCode"`
+	ErrorMessage string    `json:"ErrorMessage"`
+	ErrorModule  string    `json:"ErrorModule"`
 }
 
 type CodeError uint64

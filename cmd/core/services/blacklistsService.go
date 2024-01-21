@@ -11,7 +11,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jackc/pgtype"
-	"strconv"
+	"log/slog"
+	"net"
 	"strings"
 	"sync"
 )
@@ -40,8 +41,8 @@ func (s *BlackListsServiceImpl) SaveURLs(urls []entities.BlacklistedURL) (int64,
 	return s.repo.SaveURLs(urls)
 }
 
-func (s *BlackListsServiceImpl) DeleteURL(id uint64) (int64, error) {
-	return s.repo.DeleteURL(id)
+func (s *BlackListsServiceImpl) DeleteURL(uuid pgtype.UUID) (int64, error) {
+	return s.repo.DeleteURL(uuid)
 }
 
 func NewBlackListsServiceImpl(repo core.IBlacklistsRepo) *BlackListsServiceImpl {
@@ -60,8 +61,8 @@ func (s *BlackListsServiceImpl) SaveIPs(ips []entities.BlacklistedIP) (int64, er
 	return s.repo.SaveIPs(ips)
 }
 
-func (s *BlackListsServiceImpl) DeleteIP(id uint64) (int64, error) {
-	return s.repo.DeleteIP(id)
+func (s *BlackListsServiceImpl) DeleteIP(uuid pgtype.UUID) (int64, error) {
+	return s.repo.DeleteIP(uuid)
 }
 
 func (s *BlackListsServiceImpl) RetrieveDomainsByFilter(filter entities.BlacklistSearchFilter) ([]entities.BlacklistedDomain, error) {
@@ -76,8 +77,87 @@ func (s *BlackListsServiceImpl) SaveDomains(domains []entities.BlacklistedDomain
 	return s.repo.SaveDomains(domains)
 }
 
-func (s *BlackListsServiceImpl) DeleteDomain(id uint64) (int64, error) {
-	return s.repo.DeleteDomain(id)
+func (s *BlackListsServiceImpl) DeleteDomain(uuid pgtype.UUID) (int64, error) {
+	return s.repo.DeleteDomain(uuid)
+}
+
+func (s *BlackListsServiceImpl) RetrieveHostsByFilter(filter entities.BlacklistSearchFilter) ([]entities.BlacklistedHost, error) {
+	wg := sync.WaitGroup{}
+	wg.Add(3)
+
+	var hosts []entities.BlacklistedHost
+
+	go func() {
+		urls, err := s.RetrieveURLsByFilter(filter)
+		if err != nil {
+			slog.Error("failed to retrieve urls in multi-search: " + err.Error())
+			wg.Done()
+			return
+		}
+
+		for _, url := range urls {
+			var h = entities.BlacklistedHost{}
+			h.FromURL(url)
+
+			hosts = append(hosts, h)
+		}
+
+		wg.Done()
+	}()
+
+	go func() {
+		domains, err := s.RetrieveDomainsByFilter(filter)
+		if err != nil {
+			slog.Error("failed to retrieve ips in multi-search: " + err.Error())
+			wg.Done()
+			return
+		}
+
+		for _, d := range domains {
+			var h = entities.BlacklistedHost{}
+			h.FromDomain(d)
+
+			hosts = append(hosts, h)
+		}
+
+		wg.Done()
+	}()
+
+	go func() {
+		if len(filter.SearchString) > 0 {
+			// check if search string is IP or IP with mask
+			_, _, err := net.ParseCIDR(filter.SearchString)
+			ip := net.ParseIP(filter.SearchString)
+
+			if err != nil && ip == nil {
+				slog.Warn("failed to parse CIDR in multi-search: " + err.Error())
+				wg.Done()
+				return
+			} else if err != nil {
+				filter.SearchString = ip.String() + "/32"
+			}
+		}
+
+		ips, err := s.RetrieveIPsByFilter(filter)
+		if err != nil {
+			slog.Error("failed to retrieve ips in multi-search: " + err.Error())
+			wg.Done()
+			return
+		}
+
+		for _, ip := range ips {
+			var h = entities.BlacklistedHost{}
+			h.FromIP(ip)
+
+			hosts = append(hosts, h)
+		}
+
+		wg.Done()
+	}()
+
+	wg.Wait()
+
+	return hosts, nil
 }
 
 func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []entities.STIX2Bundle) (int64, []error) {
@@ -298,18 +378,18 @@ func (s *BlackListsServiceImpl) ExportToCSV(filter entities.BlacklistExportFilte
 
 	var lines [][]string
 
-	lines = append(lines, []string{"ID", "Identity", "Source", "CreatedAt", "UpdatedAt"})
+	lines = append(lines, []string{"UUID", "Identity", "Source", "CreatedAt", "UpdatedAt"})
 
 	for _, v := range bundle.IPs {
-		lines = append(lines, []string{strconv.Itoa(int(v.ID)), v.IPAddress.IPNet.String(), v.Source.Name, v.CreatedAt.Format("02.01.2006"), v.UpdatedAt.Format("02.01.2006")})
+		lines = append(lines, []string{fmt.Sprintf("%x", v.UUID.Bytes), v.IPAddress.IPNet.String(), v.Source.Name, v.CreatedAt.Format("02.01.2006"), v.UpdatedAt.Format("02.01.2006")})
 	}
 
 	for _, v := range bundle.Domains {
-		lines = append(lines, []string{strconv.Itoa(int(v.ID)), v.URN, v.Source.Name, v.CreatedAt.Format("02.01.2006"), v.UpdatedAt.Format("02.01.2006")})
+		lines = append(lines, []string{fmt.Sprintf("%x", v.UUID.Bytes), v.URN, v.Source.Name, v.CreatedAt.Format("02.01.2006"), v.UpdatedAt.Format("02.01.2006")})
 	}
 
 	for _, v := range bundle.URLs {
-		lines = append(lines, []string{strconv.Itoa(int(v.ID)), v.URL, v.Source.Name, v.CreatedAt.Format("02.01.2006"), v.UpdatedAt.Format("02.01.2006")})
+		lines = append(lines, []string{fmt.Sprintf("%x", v.UUID.Bytes), v.URL, v.Source.Name, v.CreatedAt.Format("02.01.2006"), v.UpdatedAt.Format("02.01.2006")})
 	}
 
 	var buf bytes.Buffer
@@ -372,4 +452,8 @@ type BlacklistedBundle struct {
 	IPs     []entities.BlacklistedIP     `json:"blacklisted_ip_addresses"`
 	Domains []entities.BlacklistedDomain `json:"blacklisted_domains"`
 	URLs    []entities.BlacklistedURL    `json:"blacklisted_urls"`
+}
+
+func (s *BlackListsServiceImpl) RetrieveAllSources() ([]entities.BlacklistSource, error) {
+	return s.repo.SelectAllSources()
 }

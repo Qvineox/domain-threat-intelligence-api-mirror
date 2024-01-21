@@ -2,6 +2,7 @@ package repos
 
 import (
 	"domain_threat_intelligence_api/cmd/core/entities"
+	"github.com/jackc/pgtype"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"time"
@@ -27,7 +28,7 @@ func (r *BlacklistsRepoImpl) SelectURLsByFilter(filter entities.BlacklistSearchF
 	}
 
 	if len(filter.SearchString) > 0 {
-		query = query.Where("URN LIKE ?", "%"+filter.SearchString+"%")
+		query = query.Where("URL LIKE ?", "%"+filter.SearchString+"%")
 	}
 
 	if len(filter.SourceIDs) > 0 {
@@ -39,7 +40,7 @@ func (r *BlacklistsRepoImpl) SelectURLsByFilter(filter entities.BlacklistSearchF
 	}
 
 	var result []entities.BlacklistedURL
-	err := query.Preload("Source").Offset(filter.Offset).Find(&result).Error
+	err := query.Preload("Source").Offset(filter.Offset).Order("UUID ASC").Find(&result).Error
 
 	return result, err
 }
@@ -53,11 +54,9 @@ func (r *BlacklistsRepoImpl) SaveURLs(urls []entities.BlacklistedURL) (int64, er
 	return query.RowsAffected, query.Error
 }
 
-func (r *BlacklistsRepoImpl) DeleteURL(id uint64) (int64, error) {
+func (r *BlacklistsRepoImpl) DeleteURL(uuid pgtype.UUID) (int64, error) {
 	query := r.Delete(&entities.BlacklistedURL{
-		Model: gorm.Model{
-			ID: uint(id),
-		},
+		UUID: uuid,
 	})
 
 	return query.RowsAffected, query.Error
@@ -83,7 +82,7 @@ func (r *BlacklistsRepoImpl) SelectIPsByFilter(filter entities.BlacklistSearchFi
 	}
 
 	if len(filter.SearchString) > 0 {
-		query = query.Where("ip_address << ?", filter.SearchString)
+		query = query.Where("ip_address <<= ?", filter.SearchString)
 	}
 
 	if len(filter.SourceIDs) > 0 {
@@ -95,7 +94,7 @@ func (r *BlacklistsRepoImpl) SelectIPsByFilter(filter entities.BlacklistSearchFi
 	}
 
 	var result []entities.BlacklistedIP
-	err := query.Preload("Source").Offset(filter.Offset).Find(&result).Error
+	err := query.Preload("Source").Offset(filter.Offset).Order("UUID ASC").Find(&result).Error
 
 	return result, err
 }
@@ -111,11 +110,9 @@ func (r *BlacklistsRepoImpl) SaveIPs(ips []entities.BlacklistedIP) (int64, error
 	return query.RowsAffected, query.Error
 }
 
-func (r *BlacklistsRepoImpl) DeleteIP(id uint64) (int64, error) {
+func (r *BlacklistsRepoImpl) DeleteIP(uuid pgtype.UUID) (int64, error) {
 	query := r.Delete(&entities.BlacklistedIP{
-		Model: gorm.Model{
-			ID: uint(id),
-		},
+		UUID: uuid,
 	})
 
 	return query.RowsAffected, query.Error
@@ -149,7 +146,7 @@ func (r *BlacklistsRepoImpl) SelectDomainsByFilter(filter entities.BlacklistSear
 	}
 
 	var result []entities.BlacklistedDomain
-	err := query.Preload("Source").Offset(filter.Offset).Find(&result).Error
+	err := query.Preload("Source").Offset(filter.Offset).Order("UUID ASC").Find(&result).Error
 
 	return result, err
 }
@@ -165,11 +162,9 @@ func (r *BlacklistsRepoImpl) SaveDomains(domains []entities.BlacklistedDomain) (
 	return query.RowsAffected, query.Error
 }
 
-func (r *BlacklistsRepoImpl) DeleteDomain(id uint64) (int64, error) {
+func (r *BlacklistsRepoImpl) DeleteDomain(uuid pgtype.UUID) (int64, error) {
 	query := r.Delete(&entities.BlacklistedDomain{
-		Model: gorm.Model{
-			ID: uint(id),
-		},
+		UUID: uuid,
 	})
 
 	return query.RowsAffected, query.Error
@@ -183,4 +178,15 @@ func (r *BlacklistsRepoImpl) CountStatistics() (int64, int64, int64) {
 	r.Model(&entities.BlacklistedDomain{}).Count(&domainCount)
 
 	return ipCount, urlCount, domainCount
+}
+
+func (r *BlacklistsRepoImpl) SelectAllSources() ([]entities.BlacklistSource, error) {
+	var sources []entities.BlacklistSource
+
+	err := r.Find(&sources).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return sources, err
 }

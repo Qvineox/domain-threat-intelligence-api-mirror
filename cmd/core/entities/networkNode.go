@@ -21,5 +21,5 @@ type NetworkNode struct {
 
 	CreatedAt time.Time      `json:"CreatedAt"`
 	UpdatedAt time.Time      `json:"UpdatedAt"`
-	DeletedAt gorm.DeletedAt `json:"DeletedAt" gorm:"index"`
+	DeletedAt gorm.DeletedAt `json:"DeletedAt,omitempty" gorm:"index"`
 }

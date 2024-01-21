@@ -6,9 +6,9 @@ import (
 )
 
 type DatabaseResponse struct {
-	StatusCode   uint64   `json:"status_code"`
-	RowsAffected int64    `json:"rows_affected"`
-	Warnings     []string `json:"warnings,omitempty"`
+	StatusCode   uint64   `json:"StatusCode"`
+	RowsAffected int64    `json:"RowsAffected"`
+	Warnings     []string `json:"Warnings,omitempty"`
 }
 
 func SavedResponse(c *gin.Context, rows int64) {

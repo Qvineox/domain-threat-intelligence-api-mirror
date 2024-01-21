@@ -21,7 +21,7 @@
                 "summary": "delete blacklisted domain",
                 "parameters": [
                     {
-                        "description": "record ID to delete",
+                        "description": "record UUID to delete",
                         "name": "id",
                         "in": "body",
                         "required": true,
@@ -259,6 +259,81 @@
                 }
             }
         },
+        "/blacklists/hosts": {
+            "get": {
+                "description": "Gets list of blacklisted hosts (all types) by filter",
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "all hosts by filter",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Source type IDs",
+                        "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is active",
+                        "name": "is_active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is after",
+                        "name": "created_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is before",
+                        "name": "created_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "value to search",
+                        "name": "search_string",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.BlacklistedHost"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/blacklists/import/csv": {
             "post": {
                 "description": "Accepts and imports blacklisted hosts from CSV file",
@@ -305,11 +380,7 @@
                 "summary": "import blacklisted hosts from file (STIX 2.0)",
                 "parameters": [
                     {
-                        "type": "array",
-                        "items": {
-                            "type": "file"
-                        },
-                        "collectionFormat": "csv",
+                        "type": "file",
                         "description": "files to import",
                         "name": "file_upload",
                         "in": "formData",
@@ -341,7 +412,7 @@
                 "summary": "delete blacklisted ip",
                 "parameters": [
                     {
-                        "description": "record ID to delete",
+                        "description": "record UUID to delete",
                         "name": "id",
                         "in": "body",
                         "required": true,
@@ -473,6 +544,35 @@
                 }
             }
         },
+        "/blacklists/sources": {
+            "get": {
+                "description": "Returns all available blacklist data sources",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "returns blacklist sources",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.BlacklistSource"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/blacklists/stats": {
             "get": {
                 "description": "Returns data containing overall amount of blacklisted entities",
@@ -508,7 +608,7 @@
                 "summary": "delete blacklisted URL",
                 "parameters": [
                     {
-                        "description": "record ID to delete",
+                        "description": "record UUID to delete",
                         "name": "id",
                         "in": "body",
                         "required": true,
@@ -670,22 +770,22 @@
         "entities.BlacklistSource": {
             "type": "object",
             "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
                 "Description": {
                     "type": "string"
                 },
                 "Name": {
                     "type": "string"
                 },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
-                "id": {
+                "UUID": {
                     "type": "integer"
                 },
-                "updatedAt": {
+                "UpdatedAt": {
                     "type": "string"
                 }
             }
@@ -693,16 +793,18 @@
         "entities.BlacklistedDomain": {
             "type": "object",
             "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
                 "Description": {
                     "type": "string"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/entities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/entities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -710,16 +812,44 @@
                 "URN": {
                     "type": "string"
                 },
-                "createdAt": {
+                "UUID": {
                     "type": "string"
                 },
-                "deletedAt": {
+                "UpdatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.BlacklistedHost": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
-                "id": {
+                "Description": {
+                    "type": "string"
+                },
+                "Host": {
+                    "type": "string"
+                },
+                "Source": {
+                    "description": "Defines source from where blacklisted host was added",
+                    "$ref": "#/definitions/entities.BlacklistSource"
+                },
+                "SourceID": {
                     "type": "integer"
                 },
-                "updatedAt": {
+                "Type": {
+                    "description": "domain, url or IP",
+                    "type": "string"
+                },
+                "UUID": {
+                    "type": "string"
+                },
+                "UpdatedAt": {
                     "type": "string"
                 }
             }
@@ -727,6 +857,12 @@
         "entities.BlacklistedIP": {
             "type": "object",
             "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
                 "Description": {
                     "type": "string"
                 },
@@ -735,25 +871,15 @@
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/entities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/entities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
                 },
-                "createdAt": {
+                "UUID": {
                     "type": "string"
                 },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "updatedAt": {
+                "UpdatedAt": {
                     "type": "string"
                 }
             }
@@ -761,6 +887,12 @@
         "entities.BlacklistedURL": {
             "type": "object",
             "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
                 "Description": {
                     "type": "string"
                 },
@@ -769,11 +901,7 @@
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/entities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/entities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -781,16 +909,10 @@
                 "URL": {
                     "type": "string"
                 },
-                "createdAt": {
+                "UUID": {
                     "type": "string"
                 },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "updatedAt": {
+                "UpdatedAt": {
                     "type": "string"
                 }
             }
@@ -798,46 +920,19 @@
         "error.APIError": {
             "type": "object",
             "properties": {
-                "error_code": {
-                    "$ref": "#/definitions/error.CodeError"
+                "ErrorCode": {
+                    "type": "integer"
                 },
-                "error_message": {
+                "ErrorMessage": {
                     "type": "string"
                 },
-                "error_module": {
+                "ErrorModule": {
                     "type": "string"
                 },
-                "status_code": {
+                "StatusCode": {
                     "type": "integer"
                 }
             }
-        },
-        "error.CodeError": {
-            "type": "integer",
-            "enum": [
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10
-            ],
-            "x-enum-varnames": [
-                "EncodingErrorCode",
-                "DecodingErrorCode",
-                "IncorrectParamsErrorCode",
-                "InsufficientParamsErrorCode",
-                "DatabaseErrorCode",
-                "FileDecodingErrorCode",
-                "FileReadingErrorCode",
-                "FileExtensionNotSupportedErrorCode",
-                "NotImplementedErrorCode",
-                "FileProcessingErrorCode"
-            ]
         },
         "gorm.DeletedAt": {
             "type": "object",
@@ -877,22 +972,9 @@
                     "$ref": "#/definitions/net.IPNet"
                 },
                 "status": {
-                    "$ref": "#/definitions/pgtype.Status"
+                    "type": "integer"
                 }
             }
-        },
-        "pgtype.Status": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2
-            ],
-            "x-enum-varnames": [
-                "Undefined",
-                "Null",
-                "Present"
-            ]
         },
         "routing.BlacklistedStatistics": {
             "type": "object",
@@ -913,12 +995,9 @@
         },
         "routing.blacklistDeleteParams": {
             "type": "object",
-            "required": [
-                "id"
-            ],
             "properties": {
-                "id": {
-                    "type": "integer"
+                "uuid": {
+                    "type": "string"
                 }
             }
         },
@@ -956,13 +1035,13 @@
         "success.DatabaseResponse": {
             "type": "object",
             "properties": {
-                "rows_affected": {
+                "RowsAffected": {
                     "type": "integer"
                 },
-                "status_code": {
+                "StatusCode": {
                     "type": "integer"
                 },
-                "warnings": {
+                "Warnings": {
                     "type": "array",
                     "items": {
                         "type": "string"

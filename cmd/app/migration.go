@@ -50,7 +50,7 @@ func runMigrations(database *gorm.DB) error {
 func migrateBlacklistSources(database *gorm.DB) error {
 	for _, s := range entities.DefaultSources {
 		err := database.
-			Where(entities.BlacklistSource{Model: gorm.Model{ID: s.ID}}).
+			Where(entities.BlacklistSource{ID: s.ID}).
 			Assign(entities.BlacklistSource{Name: s.Name, Description: s.Description}).
 			FirstOrCreate(&s).
 			Error
@@ -67,7 +67,7 @@ func migrateBlacklistSources(database *gorm.DB) error {
 func migrateUserRoles(database *gorm.DB) error {
 	for _, r := range entities.DefaultUserRoles {
 		err := database.
-			Where(entities.PlatformUserRole{Model: gorm.Model{ID: r.ID}}).
+			Where(entities.PlatformUserRole{ID: r.ID}).
 			Assign(entities.PlatformUserRole{Name: r.Name, Description: r.Description}).
 			FirstOrCreate(&r).
 			Error
