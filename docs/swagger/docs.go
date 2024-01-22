@@ -179,7 +179,7 @@ const docTemplate = `{
                         },
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
-                        "name": "source_ids",
+                        "name": "source_ids[]",
                         "in": "query"
                     },
                     {
@@ -281,7 +281,7 @@ const docTemplate = `{
                         },
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
-                        "name": "source_id",
+                        "name": "source_id[]",
                         "in": "query"
                     },
                     {
@@ -786,11 +786,11 @@ const docTemplate = `{
                 "Description": {
                     "type": "string"
                 },
+                "ID": {
+                    "type": "integer"
+                },
                 "Name": {
                     "type": "string"
-                },
-                "UUID": {
-                    "type": "integer"
                 },
                 "UpdatedAt": {
                     "type": "string"
@@ -848,6 +848,9 @@ const docTemplate = `{
                 },
                 "SourceID": {
                     "type": "integer"
+                },
+                "Status": {
+                    "type": "string"
                 },
                 "Type": {
                     "description": "domain, url or IP",
@@ -986,6 +989,35 @@ const docTemplate = `{
         "routing.BlacklistedStatistics": {
             "type": "object",
             "properties": {
+                "ByDate": {
+                    "type": "object",
+                    "properties": {
+                        "Dates": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "Domains": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "IPs": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "URLs": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
                 "LastEval": {
                     "type": "string"
                 },

@@ -7,20 +7,30 @@ import (
 )
 
 type BlacklistedHost struct {
-	UUID pgtype.UUID `json:"UUID"`
+	UUID pgtype.UUID `json:"UUID" gorm:"primaryKey"`
 
-	Type        string `json:"Type"` // domain, url or IP
-	Host        string `json:"Host"`
-	Description string `json:"Description"`
+	Type        string     `json:"Type" gorm:"column:type"` // domain, url or IP
+	Host        string     `json:"Host" gorm:"column:host"`
+	Description string     `json:"Description" gorm:"column:description"`
+	Status      HostStatus `json:"Status" gorm:"-"`
 
 	// Defines source from where blacklisted host was added
 	Source   *BlacklistSource `json:"Source,omitempty"`
-	SourceID uint64           `json:"SourceID"`
+	SourceID uint64           `json:"SourceID" gorm:"column:source_id"`
 
-	CreatedAt time.Time      `json:"CreatedAt"`
-	UpdatedAt time.Time      `json:"UpdatedAt"`
-	DeletedAt gorm.DeletedAt `json:"DeletedAt,omitempty"`
+	CreatedAt time.Time      `json:"CreatedAt" gorm:"column:created_at"`
+	UpdatedAt time.Time      `json:"UpdatedAt" gorm:"column:updated_at"`
+	DeletedAt gorm.DeletedAt `json:"DeletedAt,omitempty" gorm:"column:deleted_at"`
 }
+
+type HostStatus string
+
+const (
+	HostStatusNew     HostStatus = "new"
+	HostStatusUpdated            = "updated"
+	HostStatusDefault            = "default"
+	HostStatusDeleted            = "deleted"
+)
 
 func (h *BlacklistedHost) FromIP(ip BlacklistedIP) {
 	h.Host = ip.IPAddress.IPNet.String()
@@ -35,6 +45,8 @@ func (h *BlacklistedHost) FromIP(ip BlacklistedIP) {
 	h.CreatedAt = ip.CreatedAt
 	h.UpdatedAt = ip.UpdatedAt
 	h.DeletedAt = ip.DeletedAt
+
+	h.Status = h.GetStatus()
 }
 
 func (h *BlacklistedHost) FromDomain(ip BlacklistedDomain) {
@@ -49,6 +61,8 @@ func (h *BlacklistedHost) FromDomain(ip BlacklistedDomain) {
 	h.CreatedAt = ip.CreatedAt
 	h.UpdatedAt = ip.UpdatedAt
 	h.DeletedAt = ip.DeletedAt
+
+	h.Status = h.GetStatus()
 }
 
 func (h *BlacklistedHost) FromURL(ip BlacklistedURL) {
@@ -63,4 +77,25 @@ func (h *BlacklistedHost) FromURL(ip BlacklistedURL) {
 	h.CreatedAt = ip.CreatedAt
 	h.UpdatedAt = ip.UpdatedAt
 	h.DeletedAt = ip.DeletedAt
+
+	h.Status = h.GetStatus()
+}
+
+func (h *BlacklistedHost) GetStatus() HostStatus {
+	now := time.Now()
+	threshold := now.Add(-2 * time.Hour)
+
+	if !h.DeletedAt.Time.IsZero() {
+		return HostStatusDeleted
+	}
+
+	if h.CreatedAt.After(threshold) {
+		return HostStatusNew
+	}
+
+	if h.UpdatedAt.After(threshold) {
+		return HostStatusUpdated
+	}
+
+	return HostStatusDefault
 }

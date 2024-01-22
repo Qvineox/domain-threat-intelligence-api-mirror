@@ -7,7 +7,7 @@ import (
 
 // BlacklistSource defined original sources of indicators
 type BlacklistSource struct {
-	ID uint64 `json:"UUID" gorm:"primaryKey"`
+	ID uint64 `json:"ID" gorm:"primaryKey"`
 
 	Name        string `json:"Name" gorm:"column:name;not_null;unique"`
 	Description string `json:"Description" gorm:"column:description;size:512;default:No description."`

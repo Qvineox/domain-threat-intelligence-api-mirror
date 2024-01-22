@@ -3,6 +3,7 @@ package core
 import (
 	"domain_threat_intelligence_api/cmd/core/entities"
 	"github.com/jackc/pgtype"
+	"time"
 )
 
 type IBlacklistsService interface {
@@ -26,7 +27,8 @@ type IBlacklistsService interface {
 	ExportToJSON(entities.BlacklistExportFilter) ([]byte, error)
 	ExportToCSV(entities.BlacklistExportFilter) ([]byte, error)
 
-	RetrieveStatistics() (ips int64, urls int64, domains int64)
+	RetrieveTotalStatistics() (ips int64, urls int64, domains int64)
+	RetrieveByDateStatistics(startDate, endDate time.Time) ([]entities.BlacklistedByDate, error)
 
 	RetrieveAllSources() ([]entities.BlacklistSource, error)
 }
@@ -44,7 +46,10 @@ type IBlacklistsRepo interface {
 	SaveURLs([]entities.BlacklistedURL) (int64, error)
 	DeleteURL(uuid pgtype.UUID) (int64, error)
 
+	SelectHostsUnionByFilter(filter entities.BlacklistSearchFilter) ([]entities.BlacklistedHost, error)
+
 	CountStatistics() (ips int64, urls int64, domains int64)
+	SelectByDateStatistics(startDate, endDate time.Time) ([]entities.BlacklistedByDate, error)
 
 	SelectAllSources() ([]entities.BlacklistSource, error)
 }

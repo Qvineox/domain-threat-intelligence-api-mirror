@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"time"
 )
 
@@ -33,6 +34,12 @@ type BlacklistedStatistics struct {
 	TotalURLs    int64      `json:"TotalURLs"`
 	TotalDomains int64      `json:"TotalDomains"`
 	TotalIPs     int64      `json:"TotalIPs"`
+	ByDate       struct {
+		Dates   []string `json:"Dates"`
+		IPs     []uint64 `json:"IPs"`
+		Domains []uint64 `json:"Domains"`
+		URLs    []uint64 `json:"URLs"`
+	} `json:"ByDate"`
 }
 
 func NewBlacklistsRouter(service core.IBlacklistsService, path *gin.RouterGroup) *BlacklistsRouter {
@@ -88,7 +95,7 @@ func NewBlacklistsRouter(service core.IBlacklistsService, path *gin.RouterGroup)
 // @Description Gets list of blacklisted hosts (all types) by filter
 // @Tags        Blacklists
 // @Router      /blacklists/hosts [get]
-// @Param       source_id      query    []uint64 false "Source type IDs" collectionFormat(multi)
+// @Param       source_id[]    query    []uint64 false "Source type IDs" collectionFormat(multi)
 // @Param       is_active      query    bool     false "Is active"
 // @Param       created_after  query    string   false "Created timestamp is after"
 // @Param       created_before query    string   false "Created timestamp is before"
@@ -104,6 +111,11 @@ func (r *BlacklistsRouter) GetBlackListedHostsByFilter(c *gin.Context) {
 	if err != nil {
 		error.ParamsErrorResponse(c, err)
 		return
+	}
+
+	if params.CreatedBefore != nil && !params.CreatedBefore.IsZero() {
+		var d = params.CreatedBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.CreatedBefore = &d
 	}
 
 	hosts, err := r.service.RetrieveHostsByFilter(params)
@@ -137,6 +149,11 @@ func (r *BlacklistsRouter) GetBlackListedIPsByFilter(c *gin.Context) {
 	if err != nil {
 		error.ParamsErrorResponse(c, err)
 		return
+	}
+
+	if params.CreatedBefore != nil && !params.CreatedBefore.IsZero() {
+		var d = params.CreatedBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.CreatedBefore = &d
 	}
 
 	// check if search string is IP or IP with mask
@@ -179,6 +196,11 @@ func (r *BlacklistsRouter) GetBlackListedDomainsByFilter(c *gin.Context) {
 		return
 	}
 
+	if params.CreatedBefore != nil && !params.CreatedBefore.IsZero() {
+		var d = params.CreatedBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.CreatedBefore = &d
+	}
+
 	domains, err := r.service.RetrieveDomainsByFilter(params)
 	if err != nil {
 		error.DatabaseErrorResponse(c, err)
@@ -210,6 +232,11 @@ func (r *BlacklistsRouter) GetBlackListedURLsByFilter(c *gin.Context) {
 	if err != nil {
 		error.ParamsErrorResponse(c, err)
 		return
+	}
+
+	if params.CreatedBefore != nil && !params.CreatedBefore.IsZero() {
+		var d = params.CreatedBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.CreatedBefore = &d
 	}
 
 	urls, err := r.service.RetrieveURLsByFilter(params)
@@ -562,6 +589,11 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 				return
 			}
 
+			if len(bundle.ID) == 0 {
+				error.FileDecodingErrorResponse(c, errors.New("bundles not found"))
+				return
+			}
+
 			bundles = append(bundles, bundle)
 		default:
 			error.FileExtensionNotSupportedErrorResponse(c, errors.New("file extension not supported"))
@@ -591,7 +623,7 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 // @Description Accepts filters and returns exported blacklisted hosts in CSV
 // @Tags        Blacklists, Export
 // @Router      /blacklists/export/csv [post]
-// @Param       source_ids     query []uint64 false "Source type IDs" collectionFormat(multi)
+// @Param       source_ids[]   query []uint64 false "Source type IDs" collectionFormat(multi)
 // @Param       created_after  query string   true  "Created timestamp is after"
 // @Param       created_before query string   true  "Created timestamp is before"
 // @Produce     application/csv
@@ -604,6 +636,11 @@ func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
 	if err != nil {
 		error.ParamsErrorResponse(c, err)
 		return
+	}
+
+	if params.CreatedBefore != nil && !params.CreatedBefore.IsZero() {
+		var d = params.CreatedBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.CreatedBefore = &d
 	}
 
 	jsonBytes, err := r.service.ExportToCSV(params)
@@ -648,6 +685,11 @@ func (r *BlacklistsRouter) PostExportBlacklistsToJSON(c *gin.Context) {
 	if err != nil {
 		error.ParamsErrorResponse(c, err)
 		return
+	}
+
+	if params.CreatedBefore != nil && !params.CreatedBefore.IsZero() {
+		var d = params.CreatedBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.CreatedBefore = &d
 	}
 
 	jsonBytes, err := r.service.ExportToJSON(params)
@@ -713,5 +755,49 @@ func (r *BlacklistsRouter) recountStatistics() {
 	now := time.Now()
 	r.cachedValues.stats.LastEval = &now
 
-	r.cachedValues.stats.TotalIPs, r.cachedValues.stats.TotalURLs, r.cachedValues.stats.TotalDomains = r.service.RetrieveStatistics()
+	r.cachedValues.stats.TotalIPs, r.cachedValues.stats.TotalURLs, r.cachedValues.stats.TotalDomains = r.service.RetrieveTotalStatistics()
+
+	//var byDate = make(map[string]*[3]uint64)
+
+	statistics, err := r.service.RetrieveByDateStatistics(now.Add(-time.Hour*24*31*6), now)
+	if err != nil {
+		return
+	}
+
+	var stats = struct {
+		Dates   []string `json:"Dates"`
+		IPs     []uint64 `json:"IPs"`
+		Domains []uint64 `json:"Domains"`
+		URLs    []uint64 `json:"URLs"`
+	}{
+		Dates:   make([]string, 0),
+		IPs:     make([]uint64, 0),
+		Domains: make([]uint64, 0),
+		URLs:    make([]uint64, 0),
+	}
+
+	for _, v := range statistics {
+		date := v.Date.Format("02.01.2006")
+
+		index := slices.Index(stats.Dates, date)
+		if index == -1 {
+			stats.Dates = append(stats.Dates, date)
+			index = len(stats.Dates) - 1
+
+			stats.URLs = append(stats.URLs, 0)
+			stats.IPs = append(stats.IPs, 0)
+			stats.Domains = append(stats.Domains, 0)
+		}
+
+		switch v.Type {
+		case "url":
+			stats.URLs[index] = v.Count
+		case "ip":
+			stats.IPs[index] = v.Count
+		case "domain":
+			stats.Domains[index] = v.Count
+		}
+	}
+
+	r.cachedValues.stats.ByDate = stats
 }
