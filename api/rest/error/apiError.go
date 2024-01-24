@@ -26,6 +26,7 @@ const (
 	FileExtensionNotSupportedErrorCode
 	NotImplementedErrorCode
 	FileProcessingErrorCode
+	InternalUnidentifiedErrorCode
 )
 
 func ParamsErrorResponse(c *gin.Context, err error) {
@@ -102,5 +103,14 @@ func FileProcessingErrorResponse(c *gin.Context, err error) {
 		ErrorCode:    FileProcessingErrorCode,
 		ErrorMessage: err.Error(),
 		ErrorModule:  "file processing",
+	})
+}
+
+func InternalErrorResponse(c *gin.Context, err error) {
+	c.JSON(http.StatusInternalServerError, APIError{
+		StatusCode:   http.StatusInternalServerError,
+		ErrorCode:    InternalUnidentifiedErrorCode,
+		ErrorMessage: err.Error(),
+		ErrorModule:  "internal process",
 	})
 }

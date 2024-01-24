@@ -58,5 +58,6 @@ func (s *HTTPServer) Start() error {
 }
 
 type Services struct {
-	BlacklistService core.IBlacklistsService
+	BlacklistService   core.IBlacklistsService
+	SystemStateService core.ISystemStateService
 }

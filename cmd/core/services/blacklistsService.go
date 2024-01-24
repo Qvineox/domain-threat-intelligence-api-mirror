@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"crypto/md5"
 	"domain_threat_intelligence_api/cmd/core"
-	"domain_threat_intelligence_api/cmd/core/entities"
+	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
 	"encoding/csv"
 	"encoding/hex"
 	"encoding/json"
@@ -20,11 +20,11 @@ type BlackListsServiceImpl struct {
 	repo core.IBlacklistsRepo
 }
 
-func (s *BlackListsServiceImpl) RetrieveURLsByFilter(filter entities.BlacklistSearchFilter) ([]entities.BlacklistedURL, error) {
+func (s *BlackListsServiceImpl) RetrieveURLsByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedURL, error) {
 	return s.repo.SelectURLsByFilter(filter)
 }
 
-func (s *BlackListsServiceImpl) SaveURLs(urls []entities.BlacklistedURL) (int64, error) {
+func (s *BlackListsServiceImpl) SaveURLs(urls []blacklistEntities.BlacklistedURL) (int64, error) {
 	if len(urls) == 0 {
 		return 0, nil
 	}
@@ -48,11 +48,11 @@ func NewBlackListsServiceImpl(repo core.IBlacklistsRepo) *BlackListsServiceImpl 
 	return &BlackListsServiceImpl{repo: repo}
 }
 
-func (s *BlackListsServiceImpl) RetrieveIPsByFilter(filter entities.BlacklistSearchFilter) ([]entities.BlacklistedIP, error) {
+func (s *BlackListsServiceImpl) RetrieveIPsByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedIP, error) {
 	return s.repo.SelectIPsByFilter(filter)
 }
 
-func (s *BlackListsServiceImpl) SaveIPs(ips []entities.BlacklistedIP) (int64, error) {
+func (s *BlackListsServiceImpl) SaveIPs(ips []blacklistEntities.BlacklistedIP) (int64, error) {
 	if len(ips) == 0 {
 		return 0, nil
 	}
@@ -64,11 +64,11 @@ func (s *BlackListsServiceImpl) DeleteIP(uuid pgtype.UUID) (int64, error) {
 	return s.repo.DeleteIP(uuid)
 }
 
-func (s *BlackListsServiceImpl) RetrieveDomainsByFilter(filter entities.BlacklistSearchFilter) ([]entities.BlacklistedDomain, error) {
+func (s *BlackListsServiceImpl) RetrieveDomainsByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedDomain, error) {
 	return s.repo.SelectDomainsByFilter(filter)
 }
 
-func (s *BlackListsServiceImpl) SaveDomains(domains []entities.BlacklistedDomain) (int64, error) {
+func (s *BlackListsServiceImpl) SaveDomains(domains []blacklistEntities.BlacklistedDomain) (int64, error) {
 	if len(domains) == 0 {
 		return 0, nil
 	}
@@ -80,7 +80,7 @@ func (s *BlackListsServiceImpl) DeleteDomain(uuid pgtype.UUID) (int64, error) {
 	return s.repo.DeleteDomain(uuid)
 }
 
-func (s *BlackListsServiceImpl) RetrieveHostsByFilter(filter entities.BlacklistSearchFilter) ([]entities.BlacklistedHost, error) {
+func (s *BlackListsServiceImpl) RetrieveHostsByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedHost, error) {
 	//wg := sync.WaitGroup{}
 	//wg.Add(3)
 	//
@@ -161,10 +161,10 @@ func (s *BlackListsServiceImpl) RetrieveHostsByFilter(filter entities.BlacklistS
 	//return hosts, nil
 }
 
-func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []entities.STIX2Bundle) (int64, []error) {
-	var ipMap = make(map[string]*entities.BlacklistedIP)
-	var domainMap = make(map[string]*entities.BlacklistedDomain)
-	var urlMap = make(map[string]*entities.BlacklistedURL)
+func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []blacklistEntities.STIX2Bundle) (int64, []error) {
+	var ipMap = make(map[string]*blacklistEntities.BlacklistedIP)
+	var domainMap = make(map[string]*blacklistEntities.BlacklistedDomain)
+	var urlMap = make(map[string]*blacklistEntities.BlacklistedURL)
 
 	var errors_ []error
 
@@ -199,7 +199,7 @@ func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []entities.STIX2Bundle) 
 	wg.Add(3)
 
 	go func() {
-		var ips = make([]entities.BlacklistedIP, 0, len(ipMap))
+		var ips = make([]blacklistEntities.BlacklistedIP, 0, len(ipMap))
 		for _, v := range ipMap {
 			ips = append(ips, *v)
 		}
@@ -214,7 +214,7 @@ func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []entities.STIX2Bundle) 
 	}()
 
 	go func() {
-		var urls = make([]entities.BlacklistedURL, 0, len(urlMap))
+		var urls = make([]blacklistEntities.BlacklistedURL, 0, len(urlMap))
 		for _, v := range urlMap {
 			urls = append(urls, *v)
 		}
@@ -229,7 +229,7 @@ func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []entities.STIX2Bundle) 
 	}()
 
 	go func() {
-		var domains = make([]entities.BlacklistedDomain, 0, len(domainMap))
+		var domains = make([]blacklistEntities.BlacklistedDomain, 0, len(domainMap))
 		for _, v := range domainMap {
 			domains = append(domains, *v)
 		}
@@ -249,9 +249,9 @@ func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []entities.STIX2Bundle) 
 }
 
 func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string) (int64, []error) {
-	var ipMap = make(map[string]*entities.BlacklistedIP)
-	var domainMap = make(map[string]*entities.BlacklistedDomain)
-	var urlMap = make(map[string]*entities.BlacklistedURL)
+	var ipMap = make(map[string]*blacklistEntities.BlacklistedIP)
+	var domainMap = make(map[string]*blacklistEntities.BlacklistedDomain)
+	var urlMap = make(map[string]*blacklistEntities.BlacklistedURL)
 
 	var errors_ []error
 
@@ -262,20 +262,20 @@ func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string) (int64, []error) 
 		var source uint64
 		switch s_ {
 		case "Vendor-Kaspersky":
-			source = entities.SourceKaspersky
+			source = blacklistEntities.SourceKaspersky
 		case "Vendor-DRWEB":
-			source = entities.SourceDrWeb
+			source = blacklistEntities.SourceDrWeb
 		case "FinCERT":
-			source = entities.SourceFinCERT
+			source = blacklistEntities.SourceFinCERT
 		default:
-			source = entities.SourceUnknown
+			source = blacklistEntities.SourceUnknown
 		}
 
 		comment := strings.Trim(c, "\"")
 
 		switch t {
 		case "Domain":
-			domainMap[v] = &entities.BlacklistedDomain{
+			domainMap[v] = &blacklistEntities.BlacklistedDomain{
 				URN:         v,
 				Description: comment,
 				SourceID:    source,
@@ -288,13 +288,13 @@ func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string) (int64, []error) 
 				continue
 			}
 
-			ipMap[ip.IPNet.String()] = &entities.BlacklistedIP{
+			ipMap[ip.IPNet.String()] = &blacklistEntities.BlacklistedIP{
 				IPAddress:   ip,
 				Description: comment,
 				SourceID:    source,
 			}
 		case "URL":
-			urlMap[v] = &entities.BlacklistedURL{
+			urlMap[v] = &blacklistEntities.BlacklistedURL{
 				URL:         v,
 				Description: comment,
 				SourceID:    source,
@@ -308,7 +308,7 @@ func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string) (int64, []error) 
 	wg.Add(3)
 
 	go func() {
-		var ips = make([]entities.BlacklistedIP, 0, len(ipMap))
+		var ips = make([]blacklistEntities.BlacklistedIP, 0, len(ipMap))
 		for _, v := range ipMap {
 			ips = append(ips, *v)
 		}
@@ -323,7 +323,7 @@ func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string) (int64, []error) 
 	}()
 
 	go func() {
-		var urls = make([]entities.BlacklistedURL, 0, len(urlMap))
+		var urls = make([]blacklistEntities.BlacklistedURL, 0, len(urlMap))
 		for _, v := range urlMap {
 			urls = append(urls, *v)
 		}
@@ -338,7 +338,7 @@ func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string) (int64, []error) 
 	}()
 
 	go func() {
-		var domains = make([]entities.BlacklistedDomain, 0, len(domainMap))
+		var domains = make([]blacklistEntities.BlacklistedDomain, 0, len(domainMap))
 		for _, v := range domainMap {
 			domains = append(domains, *v)
 		}
@@ -357,8 +357,8 @@ func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string) (int64, []error) 
 	return rowsTotal, errors_
 }
 
-func (s *BlackListsServiceImpl) ExportToJSON(filter entities.BlacklistExportFilter) ([]byte, error) {
-	hosts, err := s.repo.SelectHostsUnionByFilter(entities.BlacklistSearchFilter{
+func (s *BlackListsServiceImpl) ExportToJSON(filter blacklistEntities.BlacklistExportFilter) ([]byte, error) {
+	hosts, err := s.repo.SelectHostsUnionByFilter(blacklistEntities.BlacklistSearchFilter{
 		SourceIDs:     filter.SourceIDs,
 		IsActive:      filter.IsActive,
 		CreatedAfter:  filter.CreatedAfter,
@@ -376,8 +376,8 @@ func (s *BlackListsServiceImpl) ExportToJSON(filter entities.BlacklistExportFilt
 	return bytes_, nil
 }
 
-func (s *BlackListsServiceImpl) ExportToCSV(filter entities.BlacklistExportFilter) ([]byte, error) {
-	hosts, err := s.repo.SelectHostsUnionByFilter(entities.BlacklistSearchFilter{
+func (s *BlackListsServiceImpl) ExportToCSV(filter blacklistEntities.BlacklistExportFilter) ([]byte, error) {
+	hosts, err := s.repo.SelectHostsUnionByFilter(blacklistEntities.BlacklistSearchFilter{
 		SourceIDs:     filter.SourceIDs,
 		IsActive:      filter.IsActive,
 		CreatedAfter:  filter.CreatedAfter,
@@ -411,16 +411,16 @@ func (s *BlackListsServiceImpl) RetrieveTotalStatistics() (int64, int64, int64) 
 	return s.repo.CountStatistics()
 }
 
-func (s *BlackListsServiceImpl) RetrieveByDateStatistics(startDate, endDate time.Time) ([]entities.BlacklistedByDate, error) {
+func (s *BlackListsServiceImpl) RetrieveByDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error) {
 	return s.repo.SelectByDateStatistics(startDate, endDate)
 }
 
 type BlacklistedBundle struct {
-	IPs     []entities.BlacklistedIP     `json:"blacklisted_ip_addresses"`
-	Domains []entities.BlacklistedDomain `json:"blacklisted_domains"`
-	URLs    []entities.BlacklistedURL    `json:"blacklisted_urls"`
+	IPs     []blacklistEntities.BlacklistedIP     `json:"blacklisted_ip_addresses"`
+	Domains []blacklistEntities.BlacklistedDomain `json:"blacklisted_domains"`
+	URLs    []blacklistEntities.BlacklistedURL    `json:"blacklisted_urls"`
 }
 
-func (s *BlackListsServiceImpl) RetrieveAllSources() ([]entities.BlacklistSource, error) {
+func (s *BlackListsServiceImpl) RetrieveAllSources() ([]blacklistEntities.BlacklistSource, error) {
 	return s.repo.SelectAllSources()
 }

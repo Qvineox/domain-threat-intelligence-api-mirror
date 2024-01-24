@@ -1,4 +1,4 @@
-package entities
+package blacklistEntities
 
 import (
 	"github.com/jackc/pgtype"

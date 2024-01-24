@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-type Config struct {
+type StaticConfig struct {
 	Database struct {
 		Host     string `env-required:"true" env:"db_host" json:"host"`
 		Port     uint64 `env-required:"true" env:"db_port" json:"port"`
@@ -29,14 +29,14 @@ type Config struct {
 	} `json:"log"`
 }
 
-func NewStaticConfig() (Config, error) {
+func NewStaticConfig() (StaticConfig, error) {
 	slog.Info("loading static configuration...")
 
-	var cfg Config
+	var cfg StaticConfig
 
 	currentDir, err := os.Getwd()
 	if err != nil {
-		return Config{}, err
+		return StaticConfig{}, err
 	}
 
 	// if config file not find tries to get configuration parameters from environment
@@ -44,7 +44,7 @@ func NewStaticConfig() (Config, error) {
 	if err != nil {
 		err = cleanenv.ReadEnv(&cfg)
 
-		return Config{}, err
+		return StaticConfig{}, err
 	}
 
 	slog.Info("static configuration loaded")

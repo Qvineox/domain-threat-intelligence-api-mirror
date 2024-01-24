@@ -1,7 +1,7 @@
 package repos
 
 import (
-	"domain_threat_intelligence_api/cmd/core/entities"
+	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
 	"github.com/jackc/pgtype"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -14,8 +14,8 @@ type BlacklistsRepoImpl struct {
 	*gorm.DB
 }
 
-func (r *BlacklistsRepoImpl) SelectURLsByFilter(filter entities.BlacklistSearchFilter) ([]entities.BlacklistedURL, error) {
-	query := r.Model(&entities.BlacklistedURL{})
+func (r *BlacklistsRepoImpl) SelectURLsByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedURL, error) {
+	query := r.Model(&blacklistEntities.BlacklistedURL{})
 
 	if filter.IsActive != nil && *filter.IsActive == true {
 		query = query.Unscoped()
@@ -41,13 +41,13 @@ func (r *BlacklistsRepoImpl) SelectURLsByFilter(filter entities.BlacklistSearchF
 		query = query.Limit(filter.Limit)
 	}
 
-	var result []entities.BlacklistedURL
+	var result []blacklistEntities.BlacklistedURL
 	err := query.Preload("Source").Offset(filter.Offset).Order("created_at DESC, updated_at DESC, UUID DESC").Find(&result).Error
 
 	return result, err
 }
 
-func (r *BlacklistsRepoImpl) SaveURLs(urls []entities.BlacklistedURL) (int64, error) {
+func (r *BlacklistsRepoImpl) SaveURLs(urls []blacklistEntities.BlacklistedURL) (int64, error) {
 	query := r.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "md5"}, {Name: "source_id"}},
 		DoUpdates: clause.Assignments(map[string]interface{}{"updated_at": time.Now(), "deleted_at": nil}),
@@ -57,7 +57,7 @@ func (r *BlacklistsRepoImpl) SaveURLs(urls []entities.BlacklistedURL) (int64, er
 }
 
 func (r *BlacklistsRepoImpl) DeleteURL(uuid pgtype.UUID) (int64, error) {
-	query := r.Delete(&entities.BlacklistedURL{
+	query := r.Delete(&blacklistEntities.BlacklistedURL{
 		UUID: uuid,
 	})
 
@@ -68,8 +68,8 @@ func NewBlacklistsRepoImpl(DB *gorm.DB) *BlacklistsRepoImpl {
 	return &BlacklistsRepoImpl{DB: DB}
 }
 
-func (r *BlacklistsRepoImpl) SelectIPsByFilter(filter entities.BlacklistSearchFilter) ([]entities.BlacklistedIP, error) {
-	query := r.Model(&entities.BlacklistedIP{})
+func (r *BlacklistsRepoImpl) SelectIPsByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedIP, error) {
+	query := r.Model(&blacklistEntities.BlacklistedIP{})
 
 	if filter.IsActive != nil && *filter.IsActive == true {
 		query = query.Unscoped()
@@ -95,7 +95,7 @@ func (r *BlacklistsRepoImpl) SelectIPsByFilter(filter entities.BlacklistSearchFi
 		query = query.Limit(filter.Limit)
 	}
 
-	var result []entities.BlacklistedIP
+	var result []blacklistEntities.BlacklistedIP
 	err := query.Preload("Source").Offset(filter.Offset).Order("created_at DESC, updated_at DESC, UUID DESC").Find(&result).Error
 
 	return result, err
@@ -103,7 +103,7 @@ func (r *BlacklistsRepoImpl) SelectIPsByFilter(filter entities.BlacklistSearchFi
 
 // SaveIPs saves ip records to database. If ip with specific source not presented, creates one.
 // If defined combination already in database, updates it and makes it active.
-func (r *BlacklistsRepoImpl) SaveIPs(ips []entities.BlacklistedIP) (int64, error) {
+func (r *BlacklistsRepoImpl) SaveIPs(ips []blacklistEntities.BlacklistedIP) (int64, error) {
 	query := r.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "ip_address"}, {Name: "source_id"}},
 		DoUpdates: clause.Assignments(map[string]interface{}{"updated_at": time.Now(), "deleted_at": nil}),
@@ -113,15 +113,15 @@ func (r *BlacklistsRepoImpl) SaveIPs(ips []entities.BlacklistedIP) (int64, error
 }
 
 func (r *BlacklistsRepoImpl) DeleteIP(uuid pgtype.UUID) (int64, error) {
-	query := r.Delete(&entities.BlacklistedIP{
+	query := r.Delete(&blacklistEntities.BlacklistedIP{
 		UUID: uuid,
 	})
 
 	return query.RowsAffected, query.Error
 }
 
-func (r *BlacklistsRepoImpl) SelectDomainsByFilter(filter entities.BlacklistSearchFilter) ([]entities.BlacklistedDomain, error) {
-	query := r.Model(&entities.BlacklistedDomain{})
+func (r *BlacklistsRepoImpl) SelectDomainsByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedDomain, error) {
+	query := r.Model(&blacklistEntities.BlacklistedDomain{})
 
 	if filter.IsActive != nil && *filter.IsActive == true {
 		query = query.Unscoped()
@@ -147,7 +147,7 @@ func (r *BlacklistsRepoImpl) SelectDomainsByFilter(filter entities.BlacklistSear
 		query = query.Limit(filter.Limit)
 	}
 
-	var result []entities.BlacklistedDomain
+	var result []blacklistEntities.BlacklistedDomain
 	err := query.Preload("Source").Offset(filter.Offset).Order("created_at DESC, updated_at DESC, UUID DESC").Find(&result).Error
 
 	return result, err
@@ -155,7 +155,7 @@ func (r *BlacklistsRepoImpl) SelectDomainsByFilter(filter entities.BlacklistSear
 
 // SaveDomains saves domain records to database. If domain with specific source not presented, creates one.
 // If defined combination already in database, updates it and makes it active.
-func (r *BlacklistsRepoImpl) SaveDomains(domains []entities.BlacklistedDomain) (int64, error) {
+func (r *BlacklistsRepoImpl) SaveDomains(domains []blacklistEntities.BlacklistedDomain) (int64, error) {
 	query := r.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "urn"}, {Name: "source_id"}},
 		DoUpdates: clause.Assignments(map[string]interface{}{"updated_at": time.Now(), "deleted_at": nil}),
@@ -165,7 +165,7 @@ func (r *BlacklistsRepoImpl) SaveDomains(domains []entities.BlacklistedDomain) (
 }
 
 func (r *BlacklistsRepoImpl) DeleteDomain(uuid pgtype.UUID) (int64, error) {
-	query := r.Delete(&entities.BlacklistedDomain{
+	query := r.Delete(&blacklistEntities.BlacklistedDomain{
 		UUID: uuid,
 	})
 
@@ -175,15 +175,15 @@ func (r *BlacklistsRepoImpl) DeleteDomain(uuid pgtype.UUID) (int64, error) {
 func (r *BlacklistsRepoImpl) CountStatistics() (int64, int64, int64) {
 	var ipCount, urlCount, domainCount int64
 
-	r.Model(&entities.BlacklistedIP{}).Count(&ipCount)
-	r.Model(&entities.BlacklistedURL{}).Count(&urlCount)
-	r.Model(&entities.BlacklistedDomain{}).Count(&domainCount)
+	r.Model(&blacklistEntities.BlacklistedIP{}).Count(&ipCount)
+	r.Model(&blacklistEntities.BlacklistedURL{}).Count(&urlCount)
+	r.Model(&blacklistEntities.BlacklistedDomain{}).Count(&domainCount)
 
 	return ipCount, urlCount, domainCount
 }
 
-func (r *BlacklistsRepoImpl) SelectAllSources() ([]entities.BlacklistSource, error) {
-	var sources []entities.BlacklistSource
+func (r *BlacklistsRepoImpl) SelectAllSources() ([]blacklistEntities.BlacklistSource, error) {
+	var sources []blacklistEntities.BlacklistSource
 
 	err := r.Find(&sources).Error
 	if err != nil {
@@ -193,13 +193,13 @@ func (r *BlacklistsRepoImpl) SelectAllSources() ([]entities.BlacklistSource, err
 	return sources, err
 }
 
-func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter entities.BlacklistSearchFilter) ([]entities.BlacklistedHost, error) {
-	var hosts []entities.BlacklistedHost
+func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedHost, error) {
+	var hosts []blacklistEntities.BlacklistedHost
 	var err error
 
-	ipQuery := r.Model(&entities.BlacklistedIP{}).Select("uuid, abbrev(ip_address) AS host, 'ip' AS type, description, source_id, created_at, updated_at, deleted_at")
-	urlQuery := r.Model(&entities.BlacklistedURL{}).Select("uuid, url AS host, 'url' AS type, description, source_id, created_at, updated_at, deleted_at")
-	domainQuery := r.Model(&entities.BlacklistedDomain{}).Select("uuid, urn AS host, 'domain' AS type, description, source_id, created_at, updated_at, deleted_at")
+	ipQuery := r.Model(&blacklistEntities.BlacklistedIP{}).Select("uuid, abbrev(ip_address) AS host, 'ip' AS type, description, source_id, created_at, updated_at, deleted_at")
+	urlQuery := r.Model(&blacklistEntities.BlacklistedURL{}).Select("uuid, url AS host, 'url' AS type, description, source_id, created_at, updated_at, deleted_at")
+	domainQuery := r.Model(&blacklistEntities.BlacklistedDomain{}).Select("uuid, urn AS host, 'domain' AS type, description, source_id, created_at, updated_at, deleted_at")
 
 	if filter.IsActive != nil && *filter.IsActive == false {
 		ipQuery = ipQuery.Unscoped()
@@ -282,16 +282,16 @@ func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter entities.BlacklistS
 		hosts[i].Status = h.GetStatus()
 
 		switch h.SourceID {
-		case entities.SourceManual:
-			hosts[i].Source = &entities.DefaultSources[0]
-		case entities.SourceFinCERT:
-			hosts[i].Source = &entities.DefaultSources[1]
-		case entities.SourceKaspersky:
-			hosts[i].Source = &entities.DefaultSources[2]
-		case entities.SourceDrWeb:
-			hosts[i].Source = &entities.DefaultSources[3]
-		case entities.SourceUnknown:
-			hosts[i].Source = &entities.DefaultSources[4]
+		case blacklistEntities.SourceManual:
+			hosts[i].Source = &blacklistEntities.DefaultSources[0]
+		case blacklistEntities.SourceFinCERT:
+			hosts[i].Source = &blacklistEntities.DefaultSources[1]
+		case blacklistEntities.SourceKaspersky:
+			hosts[i].Source = &blacklistEntities.DefaultSources[2]
+		case blacklistEntities.SourceDrWeb:
+			hosts[i].Source = &blacklistEntities.DefaultSources[3]
+		case blacklistEntities.SourceUnknown:
+			hosts[i].Source = &blacklistEntities.DefaultSources[4]
 		}
 
 	}
@@ -299,12 +299,12 @@ func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter entities.BlacklistS
 	return hosts, err
 }
 
-func (r *BlacklistsRepoImpl) SelectByDateStatistics(startDate, endDate time.Time) ([]entities.BlacklistedByDate, error) {
-	var byDate []entities.BlacklistedByDate
+func (r *BlacklistsRepoImpl) SelectByDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error) {
+	var byDate []blacklistEntities.BlacklistedByDate
 
-	ipQuery := r.Model(&entities.BlacklistedIP{}).Select("date(created_at) AS date, count(*), 'ip' AS type").Group("date(created_at)")
-	urlQuery := r.Model(&entities.BlacklistedURL{}).Select("date(created_at) AS date, count(*), 'url' AS type").Group("date(created_at)")
-	domainQuery := r.Model(&entities.BlacklistedDomain{}).Select("date(created_at) AS date, count(*), 'domain' AS type").Group("date(created_at)")
+	ipQuery := r.Model(&blacklistEntities.BlacklistedIP{}).Select("date(created_at) AS date, count(*), 'ip' AS type").Group("date(created_at)")
+	urlQuery := r.Model(&blacklistEntities.BlacklistedURL{}).Select("date(created_at) AS date, count(*), 'url' AS type").Group("date(created_at)")
+	domainQuery := r.Model(&blacklistEntities.BlacklistedDomain{}).Select("date(created_at) AS date, count(*), 'domain' AS type").Group("date(created_at)")
 
 	if !startDate.IsZero() {
 		ipQuery = ipQuery.Where("created_at > ?", startDate)

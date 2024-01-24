@@ -1,4 +1,4 @@
-package entities
+package networkEntities
 
 import (
 	"database/sql"

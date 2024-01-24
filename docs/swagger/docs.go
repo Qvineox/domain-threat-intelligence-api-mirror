@@ -115,7 +115,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/entities.BlacklistedDomain"
+                                "$ref": "#/definitions/blacklistEntities.BlacklistedDomain"
                             }
                         }
                     },
@@ -328,7 +328,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/entities.BlacklistedHost"
+                                "$ref": "#/definitions/blacklistEntities.BlacklistedHost"
                             }
                         }
                     },
@@ -506,7 +506,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/entities.BlacklistedIP"
+                                "$ref": "#/definitions/blacklistEntities.BlacklistedIP"
                             }
                         }
                     },
@@ -567,7 +567,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/entities.BlacklistSource"
+                                "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                             }
                         }
                     },
@@ -702,7 +702,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/entities.BlacklistedURL"
+                                "$ref": "#/definitions/blacklistEntities.BlacklistedURL"
                             }
                         }
                     },
@@ -747,18 +747,18 @@ const docTemplate = `{
                 }
             }
         },
-        "/maintenance/ping": {
+        "/system/dynamic": {
             "get": {
-                "description": "Gets info about application availability and status",
+                "description": "Gets info about current dynamic application config",
                 "tags": [
-                    "Maintenance"
+                    "Configuration"
                 ],
-                "summary": "application availability and status",
+                "summary": "application dynamic config",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entities.AppStatus"
+                            "$ref": "#/definitions/systemStateEntities.DynamicConfigState"
                         }
                     }
                 }
@@ -766,15 +766,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "entities.AppStatus": {
-            "type": "object",
-            "properties": {
-                "Status": {
-                    "type": "string"
-                }
-            }
-        },
-        "entities.BlacklistSource": {
+        "blacklistEntities.BlacklistSource": {
             "type": "object",
             "properties": {
                 "CreatedAt": {
@@ -797,7 +789,7 @@ const docTemplate = `{
                 }
             }
         },
-        "entities.BlacklistedDomain": {
+        "blacklistEntities.BlacklistedDomain": {
             "type": "object",
             "properties": {
                 "CreatedAt": {
@@ -811,7 +803,7 @@ const docTemplate = `{
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/entities.BlacklistSource"
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -827,7 +819,7 @@ const docTemplate = `{
                 }
             }
         },
-        "entities.BlacklistedHost": {
+        "blacklistEntities.BlacklistedHost": {
             "type": "object",
             "properties": {
                 "CreatedAt": {
@@ -844,7 +836,7 @@ const docTemplate = `{
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/entities.BlacklistSource"
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -864,7 +856,7 @@ const docTemplate = `{
                 }
             }
         },
-        "entities.BlacklistedIP": {
+        "blacklistEntities.BlacklistedIP": {
             "type": "object",
             "properties": {
                 "CreatedAt": {
@@ -881,7 +873,7 @@ const docTemplate = `{
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/entities.BlacklistSource"
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -894,7 +886,7 @@ const docTemplate = `{
                 }
             }
         },
-        "entities.BlacklistedURL": {
+        "blacklistEntities.BlacklistedURL": {
             "type": "object",
             "properties": {
                 "CreatedAt": {
@@ -911,7 +903,7 @@ const docTemplate = `{
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/entities.BlacklistSource"
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1084,6 +1076,37 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "type": "string"
+                    }
+                }
+            }
+        },
+        "systemStateEntities.DynamicConfigState": {
+            "type": "object",
+            "properties": {
+                "NaumenClientID": {
+                    "type": "string"
+                },
+                "NaumenClientKey": {
+                    "type": "string"
+                },
+                "SMTP": {
+                    "type": "object",
+                    "properties": {
+                        "Host": {
+                            "type": "string"
+                        },
+                        "Password": {
+                            "type": "string"
+                        },
+                        "Sender": {
+                            "type": "string"
+                        },
+                        "UseTLS": {
+                            "type": "string"
+                        },
+                        "User": {
+                            "type": "string"
+                        }
                     }
                 }
             }

@@ -1,7 +1,10 @@
 package app
 
 import (
-	"domain_threat_intelligence_api/cmd/core/entities"
+	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
+	"domain_threat_intelligence_api/cmd/core/entities/networkEntities"
+	"domain_threat_intelligence_api/cmd/core/entities/scanEntities"
+	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"gorm.io/gorm"
 	"log/slog"
 )
@@ -10,17 +13,17 @@ func runMigrations(database *gorm.DB) error {
 	slog.Info("running migrations...")
 
 	err := database.AutoMigrate(
-		entities.BlacklistSource{},
-		entities.BlacklistedDomain{},
-		entities.BlacklistedIP{},
-		entities.BlacklistedURL{},
-		entities.NetworkNodeType{},
-		entities.NetworkNode{},
-		entities.NetworkNodeScan{},
-		entities.NetworkNodeLink{},
-		entities.PlatformUserRole{},
-		entities.PlatformUser{},
-		entities.ScanAgent{},
+		blacklistEntities.BlacklistSource{},
+		blacklistEntities.BlacklistedDomain{},
+		blacklistEntities.BlacklistedIP{},
+		blacklistEntities.BlacklistedURL{},
+		networkEntities.NetworkNodeType{},
+		networkEntities.NetworkNode{},
+		networkEntities.NetworkNodeScan{},
+		networkEntities.NetworkNodeLink{},
+		userEntities.PlatformUserRole{},
+		userEntities.PlatformUser{},
+		scanEntities.ScanAgent{},
 	)
 
 	if err != nil {
@@ -48,10 +51,10 @@ func runMigrations(database *gorm.DB) error {
 }
 
 func migrateBlacklistSources(database *gorm.DB) error {
-	for _, s := range entities.DefaultSources {
+	for _, s := range blacklistEntities.DefaultSources {
 		err := database.
-			Where(entities.BlacklistSource{ID: s.ID}).
-			Assign(entities.BlacklistSource{Name: s.Name, Description: s.Description}).
+			Where(blacklistEntities.BlacklistSource{ID: s.ID}).
+			Assign(blacklistEntities.BlacklistSource{Name: s.Name, Description: s.Description}).
 			FirstOrCreate(&s).
 			Error
 
@@ -65,10 +68,10 @@ func migrateBlacklistSources(database *gorm.DB) error {
 }
 
 func migrateUserRoles(database *gorm.DB) error {
-	for _, r := range entities.DefaultUserRoles {
+	for _, r := range userEntities.DefaultUserRoles {
 		err := database.
-			Where(entities.PlatformUserRole{ID: r.ID}).
-			Assign(entities.PlatformUserRole{Name: r.Name, Description: r.Description}).
+			Where(userEntities.PlatformUserRole{ID: r.ID}).
+			Assign(userEntities.PlatformUserRole{Name: r.Name, Description: r.Description}).
 			FirstOrCreate(&r).
 			Error
 
@@ -82,18 +85,18 @@ func migrateUserRoles(database *gorm.DB) error {
 }
 
 func createRootUser(database *gorm.DB) error {
-	rootUser := entities.PlatformUser{
+	rootUser := userEntities.PlatformUser{
 		FullName:     "Root User",
 		Login:        "root",
 		PasswordHash: "missing_hash_value",
 		IsActive:     true,
 		DeletedAt:    gorm.DeletedAt{},
-		Roles:        entities.DefaultUserRoles,
+		Roles:        userEntities.DefaultUserRoles,
 	}
 
 	err := database.
-		Where(entities.PlatformUser{Login: rootUser.Login}).
-		Assign(entities.PlatformUser{IsActive: rootUser.IsActive, Roles: rootUser.Roles}).
+		Where(userEntities.PlatformUser{Login: rootUser.Login}).
+		Assign(userEntities.PlatformUser{IsActive: rootUser.IsActive, Roles: rootUser.Roles}).
 		FirstOrCreate(&rootUser).
 		Error
 

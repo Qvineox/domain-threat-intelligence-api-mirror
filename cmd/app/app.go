@@ -11,12 +11,12 @@ import (
 	"log/slog"
 )
 
-func StartApp(cfg configs.Config) error {
+func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfig) error {
 	slog.Info("application starting...")
 	slog.Info("establishing database connection...")
 
 	// prepare database and run migrations
-	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s database=%s sslmode=disable TimeZone=%s", cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Password, cfg.Database.Name, cfg.Database.Timezone)
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s database=%s sslmode=disable TimeZone=%s", staticCfg.Database.Host, staticCfg.Database.Port, staticCfg.Database.User, staticCfg.Database.Password, staticCfg.Database.Name, staticCfg.Database.Timezone)
 	dbConn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		slog.Error("failed to connect database: " + err.Error())
@@ -32,12 +32,13 @@ func StartApp(cfg configs.Config) error {
 
 	// creating repositories and services
 	domainServices := rest.Services{
-		BlacklistService: services.NewBlackListsServiceImpl(repos.NewBlacklistsRepoImpl(dbConn)),
+		BlacklistService:   services.NewBlackListsServiceImpl(repos.NewBlacklistsRepoImpl(dbConn)),
+		SystemStateService: services.NewSystemStateServiceImpl(dynamicCfg),
 	}
 
 	slog.Info("web server starting...")
 
-	webServer, err := rest.NewHTTPServer(cfg.WebServer.Host, cfg.WebServer.Port, cfg.WebServer.Swagger, domainServices, []string{cfg.WebServer.AllowedOrigin})
+	webServer, err := rest.NewHTTPServer(staticCfg.WebServer.Host, staticCfg.WebServer.Port, staticCfg.WebServer.Swagger, domainServices, []string{staticCfg.WebServer.AllowedOrigin})
 	err = webServer.Start()
 	if err != nil {
 		slog.Info("web server stopped with error: " + err.Error())

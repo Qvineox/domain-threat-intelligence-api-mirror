@@ -3,7 +3,7 @@ package services
 import (
 	"crypto/sha512"
 	"domain_threat_intelligence_api/cmd/core"
-	"domain_threat_intelligence_api/cmd/core/entities"
+	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"encoding/hex"
 	"errors"
 	"github.com/jackc/pgtype"
@@ -25,7 +25,7 @@ func (s *UsersServiceImpl) CreateUser(login, password, fullName, email string) (
 
 	hashedPass := hasher.Sum(nil)
 
-	newUser := entities.PlatformUser{
+	newUser := userEntities.PlatformUser{
 		FullName:     fullName,
 		Login:        login,
 		PasswordHash: hex.EncodeToString(hashedPass),
@@ -35,7 +35,7 @@ func (s *UsersServiceImpl) CreateUser(login, password, fullName, email string) (
 	return s.repo.InsertUser(newUser)
 }
 
-func (s *UsersServiceImpl) SaveUser(user entities.PlatformUser) (pgtype.UUID, error) {
+func (s *UsersServiceImpl) SaveUser(user userEntities.PlatformUser) (pgtype.UUID, error) {
 	return s.repo.UpdateUser(user)
 }
 
@@ -43,14 +43,14 @@ func (s *UsersServiceImpl) DeleteUser(uuid pgtype.UUID) error {
 	return s.repo.DeleteUser(uuid)
 }
 
-func (s *UsersServiceImpl) RetrieveUsers() ([]entities.PlatformUser, error) {
+func (s *UsersServiceImpl) RetrieveUsers() ([]userEntities.PlatformUser, error) {
 	return s.repo.SelectUsers()
 }
-func (s *UsersServiceImpl) RetrieveUser(uuid pgtype.UUID) (entities.PlatformUser, error) {
+func (s *UsersServiceImpl) RetrieveUser(uuid pgtype.UUID) (userEntities.PlatformUser, error) {
 	return s.repo.SelectUser(uuid)
 }
 
-func (s *UsersServiceImpl) RetrieveRoles() ([]entities.PlatformUserRole, error) {
+func (s *UsersServiceImpl) RetrieveRoles() ([]userEntities.PlatformUserRole, error) {
 	return s.repo.SelectRoles()
 }
 

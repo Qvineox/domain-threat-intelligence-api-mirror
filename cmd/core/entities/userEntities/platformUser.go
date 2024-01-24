@@ -1,4 +1,4 @@
-package entities
+package userEntities
 
 import (
 	"github.com/jackc/pgtype"

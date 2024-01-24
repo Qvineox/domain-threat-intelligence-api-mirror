@@ -1,10 +1,10 @@
 package routing
 
 import (
-	"domain_threat_intelligence_api/api/rest/error"
+	error "domain_threat_intelligence_api/api/rest/error"
 	"domain_threat_intelligence_api/api/rest/success"
 	"domain_threat_intelligence_api/cmd/core"
-	"domain_threat_intelligence_api/cmd/core/entities"
+	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
 	"encoding/csv"
 	"encoding/json"
 	"errors"
@@ -102,10 +102,10 @@ func NewBlacklistsRouter(service core.IBlacklistsService, path *gin.RouterGroup)
 // @Param       search_string  query    string   false "value to search"
 // @Param       limit          query    int      true  "Query limit"
 // @Param       offset         query    int      false "Query offset"
-// @Success     200            {object} []entities.BlacklistedHost
+// @Success     200            {object} []blacklistEntities.BlacklistedHost
 // @Failure     400            {object} error.APIError
 func (r *BlacklistsRouter) GetBlackListedHostsByFilter(c *gin.Context) {
-	params := entities.BlacklistSearchFilter{}
+	params := blacklistEntities.BlacklistSearchFilter{}
 
 	err := c.ShouldBindQuery(&params)
 	if err != nil {
@@ -140,10 +140,10 @@ func (r *BlacklistsRouter) GetBlackListedHostsByFilter(c *gin.Context) {
 // @Param       search_string  query    string   false "CIDR to search (must include IP/MASK)"
 // @Param       limit          query    int      true  "Query limit"
 // @Param       offset         query    int      false "Query offset"
-// @Success     200            {object} []entities.BlacklistedIP
+// @Success     200            {object} []blacklistEntities.BlacklistedIP
 // @Failure     400            {object} error.APIError
 func (r *BlacklistsRouter) GetBlackListedIPsByFilter(c *gin.Context) {
-	params := entities.BlacklistSearchFilter{}
+	params := blacklistEntities.BlacklistSearchFilter{}
 
 	err := c.ShouldBindQuery(&params)
 	if err != nil {
@@ -185,10 +185,10 @@ func (r *BlacklistsRouter) GetBlackListedIPsByFilter(c *gin.Context) {
 // @Param       search_string  query    string   false "Substring to search"
 // @Param       limit          query    int      true  "Query limit"
 // @Param       offset         query    int      false "Query offset"
-// @Success     200            {object} []entities.BlacklistedDomain
+// @Success     200            {object} []blacklistEntities.BlacklistedDomain
 // @Failure     400            {object} error.APIError
 func (r *BlacklistsRouter) GetBlackListedDomainsByFilter(c *gin.Context) {
-	params := entities.BlacklistSearchFilter{}
+	params := blacklistEntities.BlacklistSearchFilter{}
 
 	err := c.ShouldBindQuery(&params)
 	if err != nil {
@@ -223,10 +223,10 @@ func (r *BlacklistsRouter) GetBlackListedDomainsByFilter(c *gin.Context) {
 // @Param       search_string  query    string   false "Substring to search"
 // @Param       limit          query    int      true  "Query limit"
 // @Param       offset         query    int      false "Query offset"
-// @Success     200            {object} []entities.BlacklistedURL
+// @Success     200            {object} []blacklistEntities.BlacklistedURL
 // @Failure     400            {object} error.APIError
 func (r *BlacklistsRouter) GetBlackListedURLsByFilter(c *gin.Context) {
-	params := entities.BlacklistSearchFilter{}
+	params := blacklistEntities.BlacklistSearchFilter{}
 
 	err := c.ShouldBindQuery(&params)
 	if err != nil {
@@ -266,9 +266,9 @@ func (r *BlacklistsRouter) PutBlackListedDomains(c *gin.Context) {
 		return
 	}
 
-	var domains []entities.BlacklistedDomain
+	var domains []blacklistEntities.BlacklistedDomain
 	for _, h := range params.Hosts {
-		domains = append(domains, entities.BlacklistedDomain{
+		domains = append(domains, blacklistEntities.BlacklistedDomain{
 			URN:         h.Host,
 			Description: h.Description,
 			SourceID:    h.SourceID,
@@ -302,7 +302,7 @@ func (r *BlacklistsRouter) PutBlackListedIPs(c *gin.Context) {
 		return
 	}
 
-	var ips []entities.BlacklistedIP
+	var ips []blacklistEntities.BlacklistedIP
 	for _, h := range params.Hosts {
 		var ipAddress = pgtype.Inet{}
 
@@ -312,7 +312,7 @@ func (r *BlacklistsRouter) PutBlackListedIPs(c *gin.Context) {
 			return
 		}
 
-		ips = append(ips, entities.BlacklistedIP{
+		ips = append(ips, blacklistEntities.BlacklistedIP{
 			IPAddress:   ipAddress,
 			Description: h.Description,
 			SourceID:    h.SourceID,
@@ -346,9 +346,9 @@ func (r *BlacklistsRouter) PutBlackListedURLs(c *gin.Context) {
 		return
 	}
 
-	var urls []entities.BlacklistedURL
+	var urls []blacklistEntities.BlacklistedURL
 	for _, h := range params.Hosts {
-		urls = append(urls, entities.BlacklistedURL{
+		urls = append(urls, blacklistEntities.BlacklistedURL{
 			URL:         h.Host,
 			Description: h.Description,
 			SourceID:    h.SourceID,
@@ -564,10 +564,10 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 		return
 	}
 
-	var bundles []entities.STIX2Bundle
+	var bundles []blacklistEntities.STIX2Bundle
 
 	for _, f := range files {
-		var bundle entities.STIX2Bundle
+		var bundle blacklistEntities.STIX2Bundle
 
 		openedFile, err := f.Open()
 		if err != nil {
@@ -630,7 +630,7 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 // @Success     200 {file}   file
 // @Failure     400 {object} error.APIError
 func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
-	params := entities.BlacklistExportFilter{}
+	params := blacklistEntities.BlacklistExportFilter{}
 
 	err := c.ShouldBindQuery(&params)
 	if err != nil {
@@ -679,7 +679,7 @@ func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
 // @Success     200 {file}   file
 // @Failure     400 {object} error.APIError
 func (r *BlacklistsRouter) PostExportBlacklistsToJSON(c *gin.Context) {
-	params := entities.BlacklistExportFilter{}
+	params := blacklistEntities.BlacklistExportFilter{}
 
 	err := c.ShouldBindQuery(&params)
 	if err != nil {
@@ -739,7 +739,7 @@ func (r *BlacklistsRouter) GetStatistics(c *gin.Context) {
 // @Tags        Blacklists
 // @Router      /blacklists/sources [get]
 // @Produce     application/json
-// @Success     200 {object} []entities.BlacklistSource
+// @Success     200 {object} []blacklistEntities.BlacklistSource
 // @Failure     400 {object} error.APIError
 func (r *BlacklistsRouter) GetBlackListSources(c *gin.Context) {
 	sources, err := r.service.RetrieveAllSources()

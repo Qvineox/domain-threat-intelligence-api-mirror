@@ -1,6 +1,7 @@
-package entities
+package scanEntities
 
 import (
+	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"github.com/jackc/pgtype"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -18,8 +19,8 @@ type ScanAgent struct {
 	Description string      `json:"Description" gorm:"column:description;size:512;default:No description."`
 
 	// Defines who is the owner of agent.
-	Owner     *PlatformUser `json:"Owner,omitempty" gorm:"foreignKey:OwnerUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	OwnerUUID pgtype.UUID   `json:"OwnerUUID"`
+	Owner     *userEntities.PlatformUser `json:"Owner,omitempty" gorm:"foreignKey:OwnerUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	OwnerUUID pgtype.UUID                `json:"OwnerUUID"`
 
 	// Private agents can only be used by their owners.
 	IsPrivate bool `json:"IsPrivate" gorm:"column:is_private;default:true"`

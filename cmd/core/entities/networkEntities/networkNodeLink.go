@@ -1,4 +1,4 @@
-package entities
+package networkEntities
 
 import "github.com/jackc/pgtype"
 
