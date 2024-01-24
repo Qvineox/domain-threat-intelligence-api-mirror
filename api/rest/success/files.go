@@ -6,8 +6,8 @@ import (
 )
 
 type FilesResponse struct {
-	StatusCode uint64   `json:"status_code"`
-	FileFields []string `json:"file_fields"`
+	StatusCode uint64   `json:"StatusCode"`
+	FileFields []string `json:"FileFields"`
 }
 
 func FilesServedResponse(c *gin.Context, fields []string) {

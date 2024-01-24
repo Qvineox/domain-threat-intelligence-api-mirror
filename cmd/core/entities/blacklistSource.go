@@ -7,10 +7,14 @@ import (
 
 // BlacklistSource defined original sources of indicators
 type BlacklistSource struct {
+	ID uint64 `json:"ID" gorm:"primaryKey"`
+
 	Name        string `json:"Name" gorm:"column:name;not_null;unique"`
 	Description string `json:"Description" gorm:"column:description;size:512;default:No description."`
 
-	gorm.Model
+	CreatedAt time.Time      `json:"CreatedAt"`
+	UpdatedAt time.Time      `json:"UpdatedAt"`
+	DeletedAt gorm.DeletedAt `json:"DeletedAt,omitempty" gorm:"index"`
 }
 
 const (
@@ -24,43 +28,33 @@ const (
 // DefaultSources describes predefined sources of blacklists and IoCs. Always updates on migration.
 var DefaultSources = [5]BlacklistSource{
 	{
+		ID:          SourceManual,
+		UpdatedAt:   time.Now(),
 		Name:        "Manual",
 		Description: "Ручной ввод пользователями системы",
-		Model: gorm.Model{
-			ID:        uint(SourceManual),
-			UpdatedAt: time.Now(),
-		},
 	},
 	{
+		ID:          SourceFinCERT,
+		UpdatedAt:   time.Now(),
 		Name:        "FinCERT",
 		Description: "Центр взаимодействия и реагирования Департамента информационной безопасности, специальное структурное подразделение Банка России.",
-		Model: gorm.Model{
-			ID:        uint(SourceFinCERT),
-			UpdatedAt: time.Now(),
-		},
 	},
 	{
+		ID:          SourceKaspersky,
+		UpdatedAt:   time.Now(),
 		Name:        "Kaspersky",
 		Description: "Автоматический импорт индикаторов от Kaspersky.",
-		Model: gorm.Model{
-			ID:        uint(SourceKaspersky),
-			UpdatedAt: time.Now(),
-		},
 	},
 	{
+		ID:          SourceDrWeb,
+		UpdatedAt:   time.Now(),
 		Name:        "DrWEB",
 		Description: "Автоматический импорт индикаторов от DrWeb.",
-		Model: gorm.Model{
-			ID:        uint(SourceDrWeb),
-			UpdatedAt: time.Now(),
-		},
 	},
 	{
+		ID:          SourceUnknown,
+		UpdatedAt:   time.Now(),
 		Name:        "Unknown",
 		Description: "Автоматический импорт индикаторов из неопределенного источника.",
-		Model: gorm.Model{
-			ID:        uint(SourceUnknown),
-			UpdatedAt: time.Now(),
-		},
 	},
 }
