@@ -2,6 +2,7 @@ package configs
 
 import (
 	"github.com/ilyakaznacheev/cleanenv"
+	"log/slog"
 	"os"
 	"path/filepath"
 )
@@ -28,7 +29,9 @@ type Config struct {
 	} `json:"log"`
 }
 
-func ReadConfig() (Config, error) {
+func NewStaticConfig() (Config, error) {
+	slog.Info("loading static configuration...")
+
 	var cfg Config
 
 	currentDir, err := os.Getwd()
@@ -44,5 +47,6 @@ func ReadConfig() (Config, error) {
 		return Config{}, err
 	}
 
+	slog.Info("static configuration loaded")
 	return cfg, nil
 }
