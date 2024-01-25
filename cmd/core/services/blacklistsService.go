@@ -11,6 +11,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jackc/pgtype"
+	"log/slog"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -171,57 +173,109 @@ func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []blacklistEntities.STIX
 	return rowsTotal, errors_
 }
 
-func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string) (int64, []error) {
+func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string, discoveredAt time.Time) (int64, []error) {
 	var ipMap = make(map[string]*blacklistEntities.BlacklistedIP)
 	var domainMap = make(map[string]*blacklistEntities.BlacklistedDomain)
 	var urlMap = make(map[string]*blacklistEntities.BlacklistedURL)
 
 	var errors_ []error
 
+	var headerIndexes = struct {
+		TypeIOC   int
+		Value     int
+		Source    int
+		FirstSeen int
+		Comment   int
+	}{
+		TypeIOC:   slices.Index(data[0], "Type_IOC"),
+		Value:     slices.Index(data[0], "Value"),
+		Source:    slices.Index(data[0], "Source"),
+		FirstSeen: slices.Index(data[0], "First Seen"),
+		Comment:   slices.Index(data[0], "Comment"),
+	}
+
 	// read all lines, remove header
-	for _, r := range data[1:] {
-		t, v, s_, c := r[0], r[1], r[6], r[9]
+	for _, row := range data[1:] {
+		var IoCType string
+		if headerIndexes.TypeIOC != -1 {
+			IoCType = strings.ToLower(row[headerIndexes.TypeIOC])
+		} else {
+			slog.Warn("value not defined")
+			continue
+		}
+
+		var value string
+		if headerIndexes.Value != -1 {
+			value = row[headerIndexes.Value]
+		} else {
+			slog.Warn("value not defined")
+			continue
+		}
 
 		var source uint64
-		switch s_ {
-		case "Vendor-Kaspersky":
-			source = blacklistEntities.SourceKaspersky
-		case "Vendor-DRWEB":
-			source = blacklistEntities.SourceDrWeb
-		case "FinCERT":
-			source = blacklistEntities.SourceFinCERT
-		default:
+		if headerIndexes.Source != -1 {
+			switch row[headerIndexes.Source] {
+			case "Vendor-Kaspersky":
+				source = blacklistEntities.SourceKaspersky
+			case "Vendor-DRWEB":
+				source = blacklistEntities.SourceDrWeb
+			case "FinCERT", "Vendor":
+				source = blacklistEntities.SourceFinCERT
+			default:
+				source = blacklistEntities.SourceUnknown
+			}
+		} else {
 			source = blacklistEntities.SourceUnknown
 		}
 
-		comment := strings.Trim(c, "\"")
+		var comment string
+		if headerIndexes.Comment != -1 {
+			comment = strings.Trim(row[headerIndexes.Comment], "\"")
+		}
 
-		switch t {
-		case "Domain":
-			domainMap[v] = &blacklistEntities.BlacklistedDomain{
-				URN:         v,
-				Description: comment,
-				SourceID:    source,
+		var discoveryDate time.Time
+		if headerIndexes.FirstSeen != -1 {
+			var err error
+
+			discoveryDate, err = time.Parse("02.01.2006", row[headerIndexes.FirstSeen])
+			if err != nil {
+				discoveryDate = discoveredAt
 			}
-		case "IP-addres":
+		} else {
+			discoveryDate = discoveredAt
+		}
+
+		switch IoCType {
+		case "domain":
+			domainMap[value] = &blacklistEntities.BlacklistedDomain{
+				URN:          value,
+				Description:  comment,
+				SourceID:     source,
+				DiscoveredAt: discoveryDate,
+			}
+		case "url":
+			urlMap[value] = &blacklistEntities.BlacklistedURL{
+				URL:          value,
+				Description:  comment,
+				SourceID:     source,
+				DiscoveredAt: discoveryDate,
+			}
+		case "ip", "ip-addres", "ip-address":
 			ip := pgtype.Inet{}
-			err := ip.Set(v)
+			err := ip.Set(value)
 			if err != nil {
 				errors_ = append(errors_, err)
 				continue
 			}
 
 			ipMap[ip.IPNet.String()] = &blacklistEntities.BlacklistedIP{
-				IPAddress:   ip,
-				Description: comment,
-				SourceID:    source,
+				IPAddress:    ip,
+				Description:  comment,
+				SourceID:     source,
+				DiscoveredAt: discoveryDate,
 			}
-		case "URL":
-			urlMap[v] = &blacklistEntities.BlacklistedURL{
-				URL:         v,
-				Description: comment,
-				SourceID:    source,
-			}
+		default:
+			slog.Warn("ioc type not defined, skipping row...")
 		}
 	}
 

@@ -118,6 +118,11 @@ func (r *BlacklistsRouter) GetBlackListedHostsByFilter(c *gin.Context) {
 		params.CreatedBefore = &d
 	}
 
+	if params.DiscoveredBefore != nil && !params.DiscoveredBefore.IsZero() {
+		var d = params.DiscoveredBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.DiscoveredBefore = &d
+	}
+
 	hosts, err := r.service.RetrieveHostsByFilter(params)
 	if err != nil {
 		error.DatabaseErrorResponse(c, err)
@@ -154,6 +159,11 @@ func (r *BlacklistsRouter) GetBlackListedIPsByFilter(c *gin.Context) {
 	if params.CreatedBefore != nil && !params.CreatedBefore.IsZero() {
 		var d = params.CreatedBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
 		params.CreatedBefore = &d
+	}
+
+	if params.DiscoveredBefore != nil && !params.DiscoveredBefore.IsZero() {
+		var d = params.DiscoveredBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.DiscoveredBefore = &d
 	}
 
 	// check if search string is IP or IP with mask
@@ -201,6 +211,11 @@ func (r *BlacklistsRouter) GetBlackListedDomainsByFilter(c *gin.Context) {
 		params.CreatedBefore = &d
 	}
 
+	if params.DiscoveredBefore != nil && !params.DiscoveredBefore.IsZero() {
+		var d = params.DiscoveredBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.DiscoveredBefore = &d
+	}
+
 	domains, err := r.service.RetrieveDomainsByFilter(params)
 	if err != nil {
 		error.DatabaseErrorResponse(c, err)
@@ -237,6 +252,11 @@ func (r *BlacklistsRouter) GetBlackListedURLsByFilter(c *gin.Context) {
 	if params.CreatedBefore != nil && !params.CreatedBefore.IsZero() {
 		var d = params.CreatedBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
 		params.CreatedBefore = &d
+	}
+
+	if params.DiscoveredBefore != nil && !params.DiscoveredBefore.IsZero() {
+		var d = params.DiscoveredBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.DiscoveredBefore = &d
 	}
 
 	urls, err := r.service.RetrieveURLsByFilter(params)
@@ -484,9 +504,10 @@ type blacklistDeleteParams struct {
 //	@Description	Accepts and imports blacklisted hosts from CSV file
 //	@Tags			Blacklists, Import
 //	@Router			/blacklists/import/csv [post]
-//	@Param			file_upload	formData	file	true	"file to import"
-//	@Success		201			{object}	success.DatabaseResponse
-//	@Failure		400			{object}	error.APIError
+//	@Param			file_upload		formData	file	true	"file to import"
+//	@Param			discovered_at	formData	string	true	"discovery date"
+//	@Success		201				{object}	success.DatabaseResponse
+//	@Failure		400				{object}	error.APIError
 func (r *BlacklistsRouter) PostImportBlacklistsFromCSVFile(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -495,6 +516,17 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromCSVFile(c *gin.Context) {
 	}
 
 	files := form.File["file_upload"]
+
+	var discoveredAt time.Time
+	if len(form.Value["discovered_at"]) == 1 {
+		discoveredAt, err = time.Parse("2006-01-02", form.Value["discovered_at"][0])
+		if err != nil {
+			error.ParamsErrorResponse(c, err)
+			return
+		}
+	} else {
+		discoveredAt = time.Now()
+	}
 
 	if len(files) == 0 {
 		error.ParamsErrorResponse(c, errors.New("files not provided"))
@@ -518,7 +550,7 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromCSVFile(c *gin.Context) {
 				return
 			}
 
-			rows_, errs := r.service.ImportFromCSV(data)
+			rows_, errs := r.service.ImportFromCSV(data, discoveredAt)
 			if len(errs) > 0 {
 				if rows == 0 {
 					error.DatabaseMultipleErrorsResponse(c, errs)
@@ -643,6 +675,11 @@ func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
 		params.CreatedBefore = &d
 	}
 
+	if params.DiscoveredBefore != nil && !params.DiscoveredBefore.IsZero() {
+		var d = params.DiscoveredBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.DiscoveredBefore = &d
+	}
+
 	jsonBytes, err := r.service.ExportToCSV(params)
 	if err != nil {
 		error.FileProcessingErrorResponse(c, err)
@@ -690,6 +727,11 @@ func (r *BlacklistsRouter) PostExportBlacklistsToJSON(c *gin.Context) {
 	if params.CreatedBefore != nil && !params.CreatedBefore.IsZero() {
 		var d = params.CreatedBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
 		params.CreatedBefore = &d
+	}
+
+	if params.DiscoveredBefore != nil && !params.DiscoveredBefore.IsZero() {
+		var d = params.DiscoveredBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.DiscoveredBefore = &d
 	}
 
 	jsonBytes, err := r.service.ExportToJSON(params)

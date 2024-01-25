@@ -355,6 +355,13 @@ const docTemplate = `{
                         "name": "file_upload",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "discovery date",
+                        "name": "discovered_at",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -752,10 +759,47 @@ const docTemplate = `{
                 "tags": [
                     "Configuration"
                 ],
-                "summary": "application dynamic config",
+                "summary": "view application dynamic config",
                 "responses": {
                     "200": {
                         "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/dynamic/variable": {
+            "post": {
+                "description": "Updates dynamic application config variable",
+                "tags": [
+                    "Configuration"
+                ],
+                "summary": "update dynamic config variable",
+                "parameters": [
+                    {
+                        "description": "variable to update",
+                        "name": "variable",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.dynamicConfigUpdateParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
@@ -1139,6 +1183,20 @@ const docTemplate = `{
                             }
                         }
                     }
+                }
+            }
+        },
+        "routing.dynamicConfigUpdateParams": {
+            "type": "object",
+            "required": [
+                "DynamicConfigVariable"
+            ],
+            "properties": {
+                "DynamicConfigValue": {
+                    "type": "string"
+                },
+                "DynamicConfigVariable": {
+                    "type": "string"
                 }
             }
         },

@@ -178,6 +178,11 @@ func (c *DynamicConfig) SetValue(key string, value string) error {
 		return errors.New("configuration parameter not found")
 	}
 
+	err := c.config.WriteConfig()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
