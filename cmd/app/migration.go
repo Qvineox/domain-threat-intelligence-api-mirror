@@ -13,6 +13,7 @@ func runMigrations(database *gorm.DB) error {
 	slog.Info("running migrations...")
 
 	err := database.AutoMigrate(
+		blacklistEntities.BlacklistImportEvent{},
 		blacklistEntities.BlacklistSource{},
 		blacklistEntities.BlacklistedDomain{},
 		blacklistEntities.BlacklistedIP{},

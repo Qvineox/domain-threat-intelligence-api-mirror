@@ -23,3 +23,11 @@ type BlacklistExportFilter struct {
 	DiscoveredAfter  *time.Time `json:"DiscoveredAfter" form:"discovered_after" time_format:"2006-01-02"`
 	DiscoveredBefore *time.Time `json:"DiscoveredBefore" form:"discovered_before" time_format:"2006-01-02"`
 }
+
+type BlacklistImportEventFilter struct {
+	Offset        int        `json:"Offset" form:"offset"`
+	Limit         int        `json:"Limit" form:"limit" binding:"required"`
+	Type          string     `json:"Type" form:"type"`
+	CreatedAfter  *time.Time `json:"CreatedAfter" form:"created_after" time_format:"2006-01-02"`
+	CreatedBefore *time.Time `json:"CreatedBefore" form:"created_before" time_format:"2006-01-02"`
+}

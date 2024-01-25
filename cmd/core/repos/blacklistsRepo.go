@@ -196,6 +196,117 @@ func (r *BlacklistsRepoImpl) DeleteDomain(uuid pgtype.UUID) (int64, error) {
 	return query.RowsAffected, query.Error
 }
 
+func (r *BlacklistsRepoImpl) SelectEmailsByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedEmail, error) {
+	query := r.Model(&blacklistEntities.BlacklistedEmail{})
+
+	if filter.IsActive != nil && *filter.IsActive == true {
+		query = query.Unscoped()
+	}
+
+	if filter.CreatedAfter != nil {
+		query = query.Where("created_at > ?", filter.CreatedAfter)
+	}
+
+	if filter.CreatedBefore != nil {
+		query = query.Where("created_at < ?", filter.CreatedBefore)
+	}
+
+	if filter.DiscoveredAfter != nil {
+		query = query.Where("discovered_at > ?", filter.DiscoveredAfter)
+	}
+
+	if filter.DiscoveredBefore != nil {
+		query = query.Where("discovered_at < ?", filter.DiscoveredBefore)
+	}
+
+	if len(filter.SearchString) > 0 {
+		query = query.Where("URN LIKE ?", "%"+filter.SearchString+"%")
+	}
+
+	if len(filter.SourceIDs) > 0 {
+		query = query.Where("source_id IN ?", filter.SourceIDs)
+	}
+
+	if filter.Limit != 0 {
+		query = query.Limit(filter.Limit)
+	}
+
+	var result []blacklistEntities.BlacklistedEmail
+	err := query.Preload("Source").Offset(filter.Offset).Order("created_at DESC, updated_at DESC, UUID DESC").Find(&result).Error
+
+	return result, err
+}
+
+func (r *BlacklistsRepoImpl) SaveEmails(emails []blacklistEntities.BlacklistedEmail) (int64, error) {
+	query := r.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "email"}, {Name: "source_id"}},
+		DoUpdates: clause.Assignments(map[string]interface{}{"updated_at": time.Now(), "deleted_at": nil}),
+	}).CreateInBatches(&emails, 100)
+
+	return query.RowsAffected, query.Error
+}
+
+func (r *BlacklistsRepoImpl) DeleteEmail(uuid pgtype.UUID) (int64, error) {
+	query := r.Delete(&blacklistEntities.BlacklistedEmail{
+		UUID: uuid,
+	})
+
+	return query.RowsAffected, query.Error
+}
+
+func (r *BlacklistsRepoImpl) CreateImportEvent(event blacklistEntities.BlacklistImportEvent) (blacklistEntities.BlacklistImportEvent, error) {
+	err := r.Save(&event).Error
+	if err != nil {
+		return blacklistEntities.BlacklistImportEvent{}, err
+	}
+
+	return event, nil
+}
+
+func (r *BlacklistsRepoImpl) SelectImportEventsByFilter(filter blacklistEntities.BlacklistImportEventFilter) ([]blacklistEntities.BlacklistImportEvent, error) {
+	query := r.Model(&blacklistEntities.BlacklistImportEventFilter{})
+
+	if filter.CreatedAfter != nil {
+		query = query.Where("created_at > ?", filter.CreatedAfter)
+	}
+
+	if filter.CreatedBefore != nil {
+		query = query.Where("created_at < ?", filter.CreatedBefore)
+	}
+
+	if len(filter.Type) > 0 {
+		query = query.Where("type = ?", filter.Type)
+	}
+
+	if filter.Limit != 0 {
+		query = query.Limit(filter.Limit)
+	}
+
+	var result []blacklistEntities.BlacklistImportEvent
+	err := query.Offset(filter.Offset).Order("created_at DESC, updated_at DESC, UUID DESC").Find(&result).Error
+
+	return result, err
+}
+
+func (r *BlacklistsRepoImpl) SelectImportEvent(id uint64) (blacklistEntities.BlacklistImportEvent, error) {
+	event := blacklistEntities.BlacklistImportEvent{}
+
+	err := r.Find(&event, id).Error
+	if err != nil {
+		return blacklistEntities.BlacklistImportEvent{}, err
+	}
+
+	return event, nil
+}
+
+func (r *BlacklistsRepoImpl) DeleteImportEvent(id uint64) (int64, error) {
+	query := r.Delete(&blacklistEntities.BlacklistImportEvent{
+		ID: id,
+	})
+
+	return query.RowsAffected, query.Error
+}
+
 func (r *BlacklistsRepoImpl) CountStatistics() (int64, int64, int64) {
 	var ipCount, urlCount, domainCount int64
 

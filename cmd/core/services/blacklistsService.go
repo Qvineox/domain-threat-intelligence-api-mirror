@@ -86,6 +86,30 @@ func (s *BlackListsServiceImpl) RetrieveHostsByFilter(filter blacklistEntities.B
 	return s.repo.SelectHostsUnionByFilter(filter)
 }
 
+func (s *BlackListsServiceImpl) RetrieveEmailsByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedEmail, error) {
+	return s.repo.SelectEmailsByFilter(filter)
+}
+
+func (s *BlackListsServiceImpl) SaveEmails(emails []blacklistEntities.BlacklistedEmail) (int64, error) {
+	return s.repo.SaveEmails(emails)
+}
+
+func (s *BlackListsServiceImpl) DeleteEmail(uuid pgtype.UUID) (int64, error) {
+	return s.repo.DeleteEmail(uuid)
+}
+
+func (s *BlackListsServiceImpl) RetrieveImportEventsByFilter(filter blacklistEntities.BlacklistImportEventFilter) ([]blacklistEntities.BlacklistImportEvent, error) {
+	return s.repo.SelectImportEventsByFilter(filter)
+}
+
+func (s *BlackListsServiceImpl) RetrieveImportEvent(id uint64) (blacklistEntities.BlacklistImportEvent, error) {
+	return s.repo.SelectImportEvent(id)
+}
+
+func (s *BlackListsServiceImpl) DeleteImportEvent(id uint64) (int64, error) {
+	return s.repo.DeleteImportEvent(id)
+}
+
 func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []blacklistEntities.STIX2Bundle) (int64, []error) {
 	var ipMap = make(map[string]*blacklistEntities.BlacklistedIP)
 	var domainMap = make(map[string]*blacklistEntities.BlacklistedDomain)

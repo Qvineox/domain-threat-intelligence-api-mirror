@@ -20,6 +20,14 @@ type IBlacklistsService interface {
 	SaveURLs([]blacklistEntities.BlacklistedURL) (int64, error)
 	DeleteURL(uuid pgtype.UUID) (int64, error)
 
+	RetrieveEmailsByFilter(blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedEmail, error)
+	SaveEmails([]blacklistEntities.BlacklistedEmail) (int64, error)
+	DeleteEmail(uuid pgtype.UUID) (int64, error)
+
+	RetrieveImportEventsByFilter(filter blacklistEntities.BlacklistImportEventFilter) ([]blacklistEntities.BlacklistImportEvent, error)
+	RetrieveImportEvent(id uint64) (blacklistEntities.BlacklistImportEvent, error)
+	DeleteImportEvent(id uint64) (int64, error)
+
 	RetrieveHostsByFilter(blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedHost, error)
 
 	ImportFromSTIX2(bundles []blacklistEntities.STIX2Bundle) (int64, []error)
@@ -46,6 +54,15 @@ type IBlacklistsRepo interface {
 	SelectURLsByFilter(blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedURL, error)
 	SaveURLs([]blacklistEntities.BlacklistedURL) (int64, error)
 	DeleteURL(uuid pgtype.UUID) (int64, error)
+
+	SelectEmailsByFilter(blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedEmail, error)
+	SaveEmails([]blacklistEntities.BlacklistedEmail) (int64, error)
+	DeleteEmail(uuid pgtype.UUID) (int64, error)
+
+	CreateImportEvent(event blacklistEntities.BlacklistImportEvent) (blacklistEntities.BlacklistImportEvent, error)
+	SelectImportEventsByFilter(filter blacklistEntities.BlacklistImportEventFilter) ([]blacklistEntities.BlacklistImportEvent, error)
+	SelectImportEvent(id uint64) (blacklistEntities.BlacklistImportEvent, error)
+	DeleteImportEvent(id uint64) (int64, error)
 
 	SelectHostsUnionByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedHost, error)
 
