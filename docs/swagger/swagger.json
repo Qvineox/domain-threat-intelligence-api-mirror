@@ -749,10 +749,7 @@
                 "summary": "application dynamic config",
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/systemStateEntities.DynamicConfigState"
-                        }
+                        "description": "OK"
                     }
                 }
             }
@@ -794,9 +791,17 @@
                 "Description": {
                     "type": "string"
                 },
+                "DiscoveredAt": {
+                    "description": "DiscoveredAt sets date of discovery, provided by source or inserted automatically on create",
+                    "type": "string"
+                },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -824,18 +829,26 @@
                 "Description": {
                     "type": "string"
                 },
+                "DiscoveredAt": {
+                    "description": "DiscoveredAt sets date of discovery, provided by source or inserted automatically on create",
+                    "type": "string"
+                },
                 "Host": {
                     "type": "string"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
                 },
                 "Status": {
-                    "type": "string"
+                    "$ref": "#/definitions/blacklistEntities.HostStatus"
                 },
                 "Type": {
                     "description": "domain, url or IP",
@@ -861,12 +874,20 @@
                 "Description": {
                     "type": "string"
                 },
+                "DiscoveredAt": {
+                    "description": "DiscoveredAt sets date of discovery, provided by source or inserted automatically on create",
+                    "type": "string"
+                },
                 "IPAddress": {
                     "$ref": "#/definitions/pgtype.Inet"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -891,12 +912,20 @@
                 "Description": {
                     "type": "string"
                 },
+                "DiscoveredAt": {
+                    "description": "DiscoveredAt sets date of discovery, provided by source or inserted automatically on create",
+                    "type": "string"
+                },
                 "MD5": {
                     "type": "string"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -912,11 +941,20 @@
                 }
             }
         },
+        "blacklistEntities.HostStatus": {
+            "type": "string",
+            "enum": [
+                "new"
+            ],
+            "x-enum-varnames": [
+                "HostStatusNew"
+            ]
+        },
         "error.APIError": {
             "type": "object",
             "properties": {
                 "ErrorCode": {
-                    "type": "integer"
+                    "$ref": "#/definitions/error.CodeError"
                 },
                 "ErrorMessage": {
                     "type": "string"
@@ -928,6 +966,35 @@
                     "type": "integer"
                 }
             }
+        },
+        "error.CodeError": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11
+            ],
+            "x-enum-varnames": [
+                "EncodingErrorCode",
+                "DecodingErrorCode",
+                "IncorrectParamsErrorCode",
+                "InsufficientParamsErrorCode",
+                "DatabaseErrorCode",
+                "FileDecodingErrorCode",
+                "FileReadingErrorCode",
+                "FileExtensionNotSupportedErrorCode",
+                "NotImplementedErrorCode",
+                "FileProcessingErrorCode",
+                "InternalUnidentifiedErrorCode"
+            ]
         },
         "gorm.DeletedAt": {
             "type": "object",
@@ -967,9 +1034,22 @@
                     "$ref": "#/definitions/net.IPNet"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/pgtype.Status"
                 }
             }
+        },
+        "pgtype.Status": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "Undefined",
+                "Null",
+                "Present"
+            ]
         },
         "routing.BlacklistedStatistics": {
             "type": "object",
@@ -1069,37 +1149,6 @@
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
-                }
-            }
-        },
-        "systemStateEntities.DynamicConfigState": {
-            "type": "object",
-            "properties": {
-                "NaumenClientID": {
-                    "type": "string"
-                },
-                "NaumenClientKey": {
-                    "type": "string"
-                },
-                "SMTP": {
-                    "type": "object",
-                    "properties": {
-                        "Host": {
-                            "type": "string"
-                        },
-                        "Password": {
-                            "type": "string"
-                        },
-                        "Sender": {
-                            "type": "string"
-                        },
-                        "UseTLS": {
-                            "type": "string"
-                        },
-                        "User": {
-                            "type": "string"
-                        }
                     }
                 }
             }

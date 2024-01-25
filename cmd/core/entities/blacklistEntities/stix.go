@@ -106,9 +106,10 @@ func (s *STIX2Object) ToBlacklisted() (*BlacklistedIP, *BlacklistedDomain, *Blac
 	dstValue := findIP(s.Pattern)
 	if len(dstValue) != 0 {
 		ip_ = &BlacklistedIP{
-			IPAddress:   pgtype.Inet{},
-			Description: s.Description,
-			SourceID:    sourceID,
+			IPAddress:    pgtype.Inet{},
+			Description:  s.Description,
+			SourceID:     sourceID,
+			DiscoveredAt: s.ValidFrom,
 		}
 
 		err := ip_.IPAddress.Set(dstValue)
@@ -119,9 +120,10 @@ func (s *STIX2Object) ToBlacklisted() (*BlacklistedIP, *BlacklistedDomain, *Blac
 
 	if slices.Contains(s.Labels, "misp:type=\"url\"") {
 		url_ = &BlacklistedURL{
-			URL:         extractURLFromPattern(s.Pattern),
-			Description: s.Description,
-			SourceID:    sourceID,
+			URL:          extractURLFromPattern(s.Pattern),
+			Description:  s.Description,
+			SourceID:     sourceID,
+			DiscoveredAt: s.ValidFrom,
 		}
 
 		// domain should be ejected only if IP not provided
@@ -137,9 +139,10 @@ func (s *STIX2Object) ToBlacklisted() (*BlacklistedIP, *BlacklistedDomain, *Blac
 				}
 
 				domain_ = &BlacklistedDomain{
-					URN:         domain.Hostname(),
-					Description: s.Description,
-					SourceID:    sourceID,
+					URN:          domain.Hostname(),
+					Description:  s.Description,
+					SourceID:     sourceID,
+					DiscoveredAt: s.ValidFrom,
 				}
 			} else {
 				slog.Warn(fmt.Sprintf("failed to parse hostname from URL '%s', error: %s", url_.URL, err.Error()))

@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"domain_threat_intelligence_api/cmd/core/entities/systemStateEntities"
 	"encoding/json"
 	"errors"
 	"github.com/fsnotify/fsnotify"
@@ -98,9 +97,52 @@ func (c *DynamicConfig) GetVariable(key DynamicVariables) (string, error) {
 	return "", errors.New("malformed dynamic config value")
 }
 
+func (c *DynamicConfig) GetNaumenURL() (url string, err error) {
+	url = c.config.GetString(string(NaumenURL))
+
+	if len(url) == 0 {
+		return "", errors.New("url not defined")
+	}
+
+	return url, nil
+}
+
+func (c *DynamicConfig) GetNaumenCredentials() (clientKey, clientID, clientGroupID string, err error) {
+	clientKey = c.config.GetString(string(NaumenClientKey))
+	clientID = c.config.GetString(string(NaumenClientID))
+	clientGroupID = c.config.GetString(string(NaumenClientGroupID))
+
+	// TODO: check if group required
+
+	if len(clientKey) == 0 || len(clientID) == 0 {
+		return "", "", clientGroupID, errors.New("credentials not defined")
+	}
+
+	return clientKey, clientID, clientGroupID, nil
+}
+
+func (c *DynamicConfig) GetSMTPCredentials() (host, user, password, sender string, useTLS bool, err error) {
+	host = c.config.GetString(string(SMTPHost))
+
+	if len(host) == 0 {
+		return "", "", "", "", false, errors.New("smtp host not defined")
+	}
+
+	user = c.config.GetString(string(SMTPUser))
+	password = c.config.GetString(string(SMTPPassword))
+
+	sender = c.config.GetString(string(SMTPSender))
+
+	useTLS = c.config.GetBool(string(SMTPUseTLS))
+
+	return host, user, password, sender, useTLS, nil
+}
+
 func (c *DynamicConfig) SetDefaultValues() error {
+	c.config.SetDefault(string(NaumenURL), "")
 	c.config.SetDefault(string(NaumenClientKey), "")
 	c.config.SetDefault(string(NaumenClientID), "")
+	c.config.SetDefault(string(NaumenClientGroupID), "")
 
 	c.config.SetDefault(string(SMTPHost), "")
 	c.config.SetDefault(string(SMTPUser), "")
@@ -114,8 +156,12 @@ func (c *DynamicConfig) SetDefaultValues() error {
 func (c *DynamicConfig) SetValue(key string, value string) error {
 
 	switch key {
+	case string(NaumenURL):
+		c.config.Set(string(NaumenURL), value)
 	case string(NaumenClientKey):
 		c.config.Set(string(NaumenClientKey), value)
+	case string(NaumenClientGroupID):
+		c.config.Set(string(NaumenClientGroupID), value)
 	case string(NaumenClientID):
 		c.config.Set(string(NaumenClientID), value)
 	case string(SMTPHost):
@@ -136,17 +182,10 @@ func (c *DynamicConfig) SetValue(key string, value string) error {
 }
 
 func (c *DynamicConfig) GetCurrentState() ([]byte, error) {
-	var config systemStateEntities.DynamicConfigState
-
 	settings := c.config.AllSettings()
 	slog.Info(strconv.Itoa(len(settings)))
 
 	bytes, err := json.Marshal(settings)
-	if err != nil {
-		return nil, err
-	}
-
-	err = c.config.Unmarshal(&config)
 	if err != nil {
 		return nil, err
 	}
@@ -157,11 +196,13 @@ func (c *DynamicConfig) GetCurrentState() ([]byte, error) {
 type DynamicVariables string
 
 const (
-	NaumenClientKey DynamicVariables = "integrations.naumen.client_key"
-	NaumenClientID  DynamicVariables = "integrations.naumen.client_id"
-	SMTPHost        DynamicVariables = "smtp.host"
-	SMTPUser        DynamicVariables = "smtp.user"
-	SMTPSender      DynamicVariables = "smtp.sender"
-	SMTPPassword    DynamicVariables = "smtp.password"
-	SMTPUseTLS      DynamicVariables = "smtp.use_tls"
+	NaumenURL           DynamicVariables = "integrations.naumen.url"
+	NaumenClientKey     DynamicVariables = "integrations.naumen.client_key"
+	NaumenClientID      DynamicVariables = "integrations.naumen.client_id"
+	NaumenClientGroupID DynamicVariables = "integrations.naumen.client_group_id"
+	SMTPHost            DynamicVariables = "smtp.host"
+	SMTPUser            DynamicVariables = "smtp.user"
+	SMTPSender          DynamicVariables = "smtp.sender"
+	SMTPPassword        DynamicVariables = "smtp.password"
+	SMTPUseTLS          DynamicVariables = "smtp.use_tls"
 )

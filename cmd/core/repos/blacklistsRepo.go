@@ -29,6 +29,14 @@ func (r *BlacklistsRepoImpl) SelectURLsByFilter(filter blacklistEntities.Blackli
 		query = query.Where("created_at < ?", filter.CreatedBefore)
 	}
 
+	if filter.DiscoveredAfter != nil {
+		query = query.Where("discovered_at > ?", filter.DiscoveredAfter)
+	}
+
+	if filter.DiscoveredBefore != nil {
+		query = query.Where("discovered_at < ?", filter.DiscoveredBefore)
+	}
+
 	if len(filter.SearchString) > 0 {
 		query = query.Where("URL LIKE ?", "%"+filter.SearchString+"%")
 	}
@@ -83,6 +91,14 @@ func (r *BlacklistsRepoImpl) SelectIPsByFilter(filter blacklistEntities.Blacklis
 		query = query.Where("created_at < ?", filter.CreatedBefore)
 	}
 
+	if filter.DiscoveredAfter != nil {
+		query = query.Where("discovered_at > ?", filter.DiscoveredAfter)
+	}
+
+	if filter.DiscoveredBefore != nil {
+		query = query.Where("discovered_at < ?", filter.DiscoveredBefore)
+	}
+
 	if len(filter.SearchString) > 0 {
 		query = query.Where("ip_address <<= ?", filter.SearchString)
 	}
@@ -133,6 +149,14 @@ func (r *BlacklistsRepoImpl) SelectDomainsByFilter(filter blacklistEntities.Blac
 
 	if filter.CreatedBefore != nil {
 		query = query.Where("created_at < ?", filter.CreatedBefore)
+	}
+
+	if filter.DiscoveredAfter != nil {
+		query = query.Where("discovered_at > ?", filter.DiscoveredAfter)
+	}
+
+	if filter.DiscoveredBefore != nil {
+		query = query.Where("discovered_at < ?", filter.DiscoveredBefore)
 	}
 
 	if len(filter.SearchString) > 0 {

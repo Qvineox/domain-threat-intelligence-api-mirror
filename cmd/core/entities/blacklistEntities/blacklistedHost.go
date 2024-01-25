@@ -18,6 +18,9 @@ type BlacklistedHost struct {
 	Source   *BlacklistSource `json:"Source,omitempty"`
 	SourceID uint64           `json:"SourceID" gorm:"column:source_id"`
 
+	// DiscoveredAt sets date of discovery, provided by source or inserted automatically on create
+	DiscoveredAt time.Time `json:"DiscoveredAt" gorm:"autoCreateTime"`
+
 	CreatedAt time.Time      `json:"CreatedAt" gorm:"column:created_at"`
 	UpdatedAt time.Time      `json:"UpdatedAt" gorm:"column:updated_at"`
 	DeletedAt gorm.DeletedAt `json:"DeletedAt,omitempty" gorm:"column:deleted_at"`

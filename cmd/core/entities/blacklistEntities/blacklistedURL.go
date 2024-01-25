@@ -17,6 +17,9 @@ type BlacklistedURL struct {
 	Source   *BlacklistSource `json:"Source,omitempty" gorm:"foreignKey:SourceID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	SourceID uint64           `json:"SourceID" gorm:"uniqueIndex:idx_url"`
 
+	// DiscoveredAt sets date of discovery, provided by source or inserted automatically on create
+	DiscoveredAt time.Time `json:"DiscoveredAt" gorm:"autoCreateTime"`
+
 	CreatedAt time.Time      `json:"CreatedAt"`
 	UpdatedAt time.Time      `json:"UpdatedAt"`
 	DeletedAt gorm.DeletedAt `json:"DeletedAt,omitempty" gorm:"index"`

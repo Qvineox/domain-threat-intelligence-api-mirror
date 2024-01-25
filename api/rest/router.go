@@ -9,13 +9,13 @@ import (
 
 // CreateRouter initializes application routing and all route groups
 //
-// @title        Domain Threat Intelligence API
-// @version      0.0.3
-// @description  API provided by DTI project
-// @contact.name Yaroslav Lysak
-// @contact.url  https://t.me/Qvineox
-// @host         localhost:7090
-// @BasePath     /api/v1
+//	@title			Domain Threat Intelligence API
+//	@version		0.0.3
+//	@description	API provided by DTI project
+//	@contact.name	Yaroslav Lysak
+//	@contact.url	https://t.me/Qvineox
+//	@host			localhost:7090
+//	@BasePath		/api/v1
 func CreateRouter(services Services, allowedOrigins []string) *gin.Engine {
 	router := gin.Default()
 

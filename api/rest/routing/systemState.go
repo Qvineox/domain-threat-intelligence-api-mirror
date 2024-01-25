@@ -26,11 +26,11 @@ func NewSystemStateRouter(service core.ISystemStateService, path *gin.RouterGrou
 
 // GetDynamicConfig returns info about current dynamic application config
 //
-// @Summary     application dynamic config
-// @Description Gets info about current dynamic application config
-// @Tags        Configuration
-// @Router      /system/dynamic [get]
-// @Success     200 {object} systemStateEntities.DynamicConfigState
+//	@Summary		application dynamic config
+//	@Description	Gets info about current dynamic application config
+//	@Tags			Configuration
+//	@Router			/system/dynamic [get]
+//	@Success		200
 func (r *SystemStateRouter) GetDynamicConfig(c *gin.Context) {
 	config, err := r.service.RetrieveDynamicConfig()
 	if err != nil {
