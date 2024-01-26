@@ -11,7 +11,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jackc/pgtype"
+	"gorm.io/datatypes"
 	"log/slog"
+	"net/url"
 	"slices"
 	"strings"
 	"sync"
@@ -98,6 +100,10 @@ func (s *BlackListsServiceImpl) DeleteEmail(uuid pgtype.UUID) (int64, error) {
 	return s.repo.DeleteEmail(uuid)
 }
 
+func (s *BlackListsServiceImpl) SaveImportEvent(event blacklistEntities.BlacklistImportEvent) (blacklistEntities.BlacklistImportEvent, error) {
+	return s.repo.SaveImportEvent(event)
+}
+
 func (s *BlackListsServiceImpl) RetrieveImportEventsByFilter(filter blacklistEntities.BlacklistImportEventFilter) ([]blacklistEntities.BlacklistImportEvent, error) {
 	return s.repo.SelectImportEventsByFilter(filter)
 }
@@ -110,20 +116,35 @@ func (s *BlackListsServiceImpl) DeleteImportEvent(id uint64) (int64, error) {
 	return s.repo.DeleteImportEvent(id)
 }
 
-func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []blacklistEntities.STIX2Bundle) (int64, []error) {
+func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []blacklistEntities.STIX2Bundle, extractAll bool) (int64, []error) {
 	var ipMap = make(map[string]*blacklistEntities.BlacklistedIP)
 	var domainMap = make(map[string]*blacklistEntities.BlacklistedDomain)
 	var urlMap = make(map[string]*blacklistEntities.BlacklistedURL)
+	var emailMap = make(map[string]*blacklistEntities.BlacklistedEmail)
 
 	var errors_ []error
+
+	var summary = blacklistEntities.BlacklistImportEventSummary{}
+	event, err := s.SaveImportEvent(blacklistEntities.BlacklistImportEvent{
+		Type:       "stix",
+		IsComplete: false,
+		CreatedAt:  time.Now(),
+	})
+
+	if err != nil {
+		return 0, []error{err}
+	} else if event.ID == 0 {
+		return 0, []error{errors.New("import event was not created")}
+	}
 
 	for bIndex, b := range bundles {
 		for iIndex, object := range b.Objects {
 			if object.Type != "indicator" { // skip all other object types
+				summary.Skipped++
 				continue
 			}
 
-			i, d, u, err := object.ToBlacklisted()
+			i, d, u, e, err := object.ToBlacklisted(extractAll)
 			if err != nil {
 				errors_ = append(errors_, errors.New(fmt.Sprintf("error in bundle #%d, value #%d; error: %s", bIndex, iIndex, err.Error())))
 			}
@@ -139,17 +160,21 @@ func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []blacklistEntities.STIX
 			if u != nil {
 				urlMap[u.URL] = u
 			}
+
+			if e != nil {
+				emailMap[e.Email] = e
+			}
 		}
 	}
 
 	// async saving of all host types
-	var rowsTotal int64 = 0
 	wg := sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(4)
 
 	go func() {
 		var ips = make([]blacklistEntities.BlacklistedIP, 0, len(ipMap))
 		for _, v := range ipMap {
+			v.ImportEventID = &event.ID
 			ips = append(ips, *v)
 		}
 
@@ -158,13 +183,14 @@ func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []blacklistEntities.STIX
 			errors_ = append(errors_, err)
 		}
 
-		rowsTotal += rows
+		summary.Imported.IPs = rows
 		wg.Done()
 	}()
 
 	go func() {
 		var urls = make([]blacklistEntities.BlacklistedURL, 0, len(urlMap))
 		for _, v := range urlMap {
+			v.ImportEventID = &event.ID
 			urls = append(urls, *v)
 		}
 
@@ -173,13 +199,14 @@ func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []blacklistEntities.STIX
 			errors_ = append(errors_, err)
 		}
 
-		rowsTotal += rows
+		summary.Imported.URLs = rows
 		wg.Done()
 	}()
 
 	go func() {
 		var domains = make([]blacklistEntities.BlacklistedDomain, 0, len(domainMap))
 		for _, v := range domainMap {
+			v.ImportEventID = &event.ID
 			domains = append(domains, *v)
 		}
 
@@ -188,21 +215,62 @@ func (s *BlackListsServiceImpl) ImportFromSTIX2(bundles []blacklistEntities.STIX
 			errors_ = append(errors_, err)
 		}
 
-		rowsTotal += rows
+		summary.Imported.Domains = rows
+		wg.Done()
+	}()
+
+	go func() {
+		var emails = make([]blacklistEntities.BlacklistedEmail, 0, len(emailMap))
+		for _, v := range emailMap {
+			v.ImportEventID = &event.ID
+			emails = append(emails, *v)
+		}
+
+		rows, err := s.SaveEmails(emails)
+		if err != nil {
+			errors_ = append(errors_, err)
+		}
+
+		summary.Imported.Emails = rows
 		wg.Done()
 	}()
 
 	wg.Wait()
 
-	return rowsTotal, errors_
+	// saving import event updates
+	summary.Imported.Total = summary.Imported.IPs + summary.Imported.Domains + summary.Imported.URLs + summary.Imported.Emails
+
+	event.Summary = datatypes.NewJSONType(summary)
+	event.IsComplete = true
+
+	_, err = s.SaveImportEvent(event)
+	if err != nil {
+		errors_ = append(errors_, err)
+	}
+
+	return summary.Imported.Total, errors_
 }
 
-func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string, discoveredAt time.Time) (int64, []error) {
+func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string, discoveredAt time.Time, extractAll bool) (int64, []error) {
 	var ipMap = make(map[string]*blacklistEntities.BlacklistedIP)
 	var domainMap = make(map[string]*blacklistEntities.BlacklistedDomain)
 	var urlMap = make(map[string]*blacklistEntities.BlacklistedURL)
+	var emailMap = make(map[string]*blacklistEntities.BlacklistedEmail)
 
 	var errors_ []error
+
+	var summary = blacklistEntities.BlacklistImportEventSummary{}
+	event, err := s.SaveImportEvent(blacklistEntities.BlacklistImportEvent{
+		Type:       "csv",
+		IsComplete: false,
+		CreatedAt:  time.Now(),
+	})
+
+	if err != nil {
+		return 0, []error{err}
+	} else if event.ID == 0 {
+		return 0, []error{errors.New("import event was not created")}
+	}
 
 	var headerIndexes = struct {
 		TypeIOC   int
@@ -272,17 +340,81 @@ func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string, discoveredAt time
 		switch IoCType {
 		case "domain":
 			domainMap[value] = &blacklistEntities.BlacklistedDomain{
-				URN:          value,
-				Description:  comment,
-				SourceID:     source,
-				DiscoveredAt: discoveryDate,
+				URN:           value,
+				Description:   comment,
+				SourceID:      source,
+				ImportEventID: &event.ID,
+				DiscoveredAt:  discoveryDate,
+			}
+		case "email":
+			emailMap[value] = &blacklistEntities.BlacklistedEmail{
+				Email:         value,
+				Description:   comment,
+				SourceID:      source,
+				ImportEventID: &event.ID,
+				DiscoveredAt:  discoveryDate,
+			}
+
+			if !extractAll {
+				break
+			}
+
+			p := strings.Split("@", value)
+			if len(p) > 1 {
+				domain := p[len(p)]
+				if len(domain) > 0 {
+					domainMap[domain] = &blacklistEntities.BlacklistedDomain{
+						URN:           domain,
+						Description:   comment,
+						SourceID:      source,
+						ImportEventID: &event.ID,
+						DiscoveredAt:  discoveryDate,
+					}
+				}
 			}
 		case "url":
 			urlMap[value] = &blacklistEntities.BlacklistedURL{
-				URL:          value,
-				Description:  comment,
-				SourceID:     source,
-				DiscoveredAt: discoveryDate,
+				URL:           value,
+				Description:   comment,
+				SourceID:      source,
+				ImportEventID: &event.ID,
+				DiscoveredAt:  discoveryDate,
+			}
+
+			if !extractAll {
+				break
+			}
+
+			// find IP address in URL or extract domain name
+			p := blacklistEntities.ExtractIPFromPattern(value)
+			if len(p) > 0 {
+				ip := pgtype.Inet{}
+				err = ip.Set(p)
+				if err == nil {
+					ipMap[ip.IPNet.String()] = &blacklistEntities.BlacklistedIP{
+						IPAddress:     ip,
+						Description:   comment,
+						SourceID:      source,
+						ImportEventID: &event.ID,
+						DiscoveredAt:  discoveryDate,
+					}
+				}
+			} else {
+				d := value
+				if !strings.Contains(value, "http") {
+					d = "//" + value
+				}
+
+				domain, err := url.Parse(d)
+				if err == nil {
+					domainMap[domain.Hostname()] = &blacklistEntities.BlacklistedDomain{
+						URN:           value,
+						Description:   comment,
+						SourceID:      source,
+						ImportEventID: &event.ID,
+						DiscoveredAt:  discoveryDate,
+					}
+				}
 			}
 		case "ip", "ip-addres", "ip-address":
 			ip := pgtype.Inet{}
@@ -293,20 +425,20 @@ func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string, discoveredAt time
 			}
 
 			ipMap[ip.IPNet.String()] = &blacklistEntities.BlacklistedIP{
-				IPAddress:    ip,
-				Description:  comment,
-				SourceID:     source,
-				DiscoveredAt: discoveryDate,
+				IPAddress:     ip,
+				Description:   comment,
+				SourceID:      source,
+				ImportEventID: &event.ID,
+				DiscoveredAt:  discoveryDate,
 			}
 		default:
-			slog.Warn("ioc type not defined, skipping row...")
+			summary.Skipped += 1 // sha values skipped
 		}
 	}
 
 	// async saving of all host types
-	var rowsTotal int64 = 0
 	wg := sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(4)
 
 	go func() {
 		var ips = make([]blacklistEntities.BlacklistedIP, 0, len(ipMap))
@@ -319,7 +451,7 @@ func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string, discoveredAt time
 			errors_ = append(errors_, err)
 		}
 
-		rowsTotal += rows
+		summary.Imported.IPs += rows
 		wg.Done()
 	}()
 
@@ -334,7 +466,7 @@ func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string, discoveredAt time
 			errors_ = append(errors_, err)
 		}
 
-		rowsTotal += rows
+		summary.Imported.URLs += rows
 		wg.Done()
 	}()
 
@@ -349,13 +481,39 @@ func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string, discoveredAt time
 			errors_ = append(errors_, err)
 		}
 
-		rowsTotal += rows
+		summary.Imported.Domains += rows
+		wg.Done()
+	}()
+
+	go func() {
+		var emails = make([]blacklistEntities.BlacklistedEmail, 0, len(emailMap))
+		for _, v := range emailMap {
+			emails = append(emails, *v)
+		}
+
+		rows, err := s.SaveEmails(emails)
+		if err != nil {
+			errors_ = append(errors_, err)
+		}
+
+		summary.Imported.Emails += rows
 		wg.Done()
 	}()
 
 	wg.Wait()
 
-	return rowsTotal, errors_
+	// saving import event updates
+	summary.Imported.Total = summary.Imported.IPs + summary.Imported.Domains + summary.Imported.URLs + summary.Imported.Emails
+
+	event.Summary = datatypes.NewJSONType(summary)
+	event.IsComplete = true
+
+	_, err = s.SaveImportEvent(event)
+	if err != nil {
+		errors_ = append(errors_, err)
+	}
+
+	return summary.Imported.Total, errors_
 }
 
 func (s *BlackListsServiceImpl) ExportToJSON(filter blacklistEntities.BlacklistExportFilter) ([]byte, error) {

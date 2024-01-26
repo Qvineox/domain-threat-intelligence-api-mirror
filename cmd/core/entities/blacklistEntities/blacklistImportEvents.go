@@ -9,8 +9,9 @@ import (
 type BlacklistImportEvent struct {
 	ID uint64 `json:"ID" gorm:"primaryKey"`
 
-	Summary datatypes.JSONType[BlacklistImportEventSummary] `json:"Summary" gorm:"column:summary"`
-	Type    string                                          `json:"Type" gorm:"column:type"`
+	Summary    datatypes.JSONType[BlacklistImportEventSummary] `json:"Summary" gorm:"column:summary"`
+	Type       string                                          `json:"Type" gorm:"column:type"`
+	IsComplete bool                                            `json:"IsComplete" gorm:"column:is_complete"`
 
 	// TODO: add CreatedBy field
 
@@ -19,10 +20,12 @@ type BlacklistImportEvent struct {
 }
 
 type BlacklistImportEventSummary struct {
-	TotalHosts uint64 `json:"AddedHosts"`
-
-	AddedURLs    uint64 `json:"AddedURLs"`
-	AddedIPs     uint64 `json:"AddedIPs"`
-	AddedDomains uint64 `json:"AddedDomains"`
-	AddedEmails  uint64 `json:"AddedEmails"`
+	Skipped  int64 `json:"Skipped"`
+	Imported struct {
+		Total   int64 `json:"Total"`
+		IPs     int64 `json:"IPs"`
+		URLs    int64 `json:"URLs"`
+		Domains int64 `json:"Domains"`
+		Emails  int64 `json:"Emails"`
+	} `json:"Imported"`
 }

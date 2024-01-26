@@ -18,6 +18,7 @@ func runMigrations(database *gorm.DB) error {
 		blacklistEntities.BlacklistedDomain{},
 		blacklistEntities.BlacklistedIP{},
 		blacklistEntities.BlacklistedURL{},
+		blacklistEntities.BlacklistedEmail{},
 		networkEntities.NetworkNodeType{},
 		networkEntities.NetworkNode{},
 		networkEntities.NetworkNodeScan{},

@@ -254,7 +254,7 @@ func (r *BlacklistsRepoImpl) DeleteEmail(uuid pgtype.UUID) (int64, error) {
 	return query.RowsAffected, query.Error
 }
 
-func (r *BlacklistsRepoImpl) CreateImportEvent(event blacklistEntities.BlacklistImportEvent) (blacklistEntities.BlacklistImportEvent, error) {
+func (r *BlacklistsRepoImpl) SaveImportEvent(event blacklistEntities.BlacklistImportEvent) (blacklistEntities.BlacklistImportEvent, error) {
 	err := r.Save(&event).Error
 	if err != nil {
 		return blacklistEntities.BlacklistImportEvent{}, err

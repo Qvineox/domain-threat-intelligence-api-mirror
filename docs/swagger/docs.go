@@ -362,6 +362,13 @@ const docTemplate = `{
                         "name": "discovered_at",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "other types extraction",
+                        "name": "extract_all",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -394,8 +401,22 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "files to import",
+                        "description": "file to import",
                         "name": "file_upload",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "discovery date",
+                        "name": "discovered_at",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "other types extraction",
+                        "name": "extract_all",
                         "in": "formData",
                         "required": true
                     }
@@ -806,6 +827,29 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "blacklistEntities.BlacklistImportEvent": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "ID": {
+                    "type": "integer"
+                },
+                "IsComplete": {
+                    "type": "boolean"
+                },
+                "Summary": {
+                    "$ref": "#/definitions/datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary"
+                },
+                "Type": {
+                    "type": "string"
+                }
+            }
+        },
         "blacklistEntities.BlacklistSource": {
             "type": "object",
             "properties": {
@@ -844,6 +888,17 @@ const docTemplate = `{
                 "DiscoveredAt": {
                     "description": "DiscoveredAt sets date of discovery, provided by source or inserted automatically on create",
                     "type": "string"
+                },
+                "ImportEvent": {
+                    "description": "ImportEvent describes import session from where blacklisted host was added",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
+                },
+                "ImportEventID": {
+                    "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
@@ -886,8 +941,19 @@ const docTemplate = `{
                 "Host": {
                     "type": "string"
                 },
+                "ImportEvent": {
+                    "description": "ImportEvent describes import session from where blacklisted host was added",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
+                },
+                "ImportEventID": {
+                    "type": "integer"
+                },
                 "Source": {
-                    "description": "Defines source from where blacklisted host was added",
+                    "description": "Source defines source from where blacklisted host was added",
                     "allOf": [
                         {
                             "$ref": "#/definitions/blacklistEntities.BlacklistSource"
@@ -931,6 +997,17 @@ const docTemplate = `{
                 "IPAddress": {
                     "$ref": "#/definitions/pgtype.Inet"
                 },
+                "ImportEvent": {
+                    "description": "ImportEvent describes import session from where blacklisted host was added",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
+                },
+                "ImportEventID": {
+                    "type": "integer"
+                },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
                     "allOf": [
@@ -966,6 +1043,17 @@ const docTemplate = `{
                     "description": "DiscoveredAt sets date of discovery, provided by source or inserted automatically on create",
                     "type": "string"
                 },
+                "ImportEvent": {
+                    "description": "ImportEvent describes import session from where blacklisted host was added",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
+                },
+                "ImportEventID": {
+                    "type": "integer"
+                },
                 "MD5": {
                     "type": "string"
                 },
@@ -999,6 +1087,9 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "HostStatusNew"
             ]
+        },
+        "datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary": {
+            "type": "object"
         },
         "error.APIError": {
             "type": "object",

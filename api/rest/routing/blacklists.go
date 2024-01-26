@@ -506,6 +506,7 @@ type blacklistDeleteParams struct {
 //	@Router			/blacklists/import/csv [post]
 //	@Param			file_upload		formData	file	true	"file to import"
 //	@Param			discovered_at	formData	string	true	"discovery date"
+//	@Param			extract_all		formData	string	true	"other types extraction"
 //	@Success		201				{object}	success.DatabaseResponse
 //	@Failure		400				{object}	error.APIError
 func (r *BlacklistsRouter) PostImportBlacklistsFromCSVFile(c *gin.Context) {
@@ -526,6 +527,12 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromCSVFile(c *gin.Context) {
 		}
 	} else {
 		discoveredAt = time.Now()
+	}
+
+	extractAll := false
+	e := form.Value["extract_all"]
+	if len(e) == 1 && e[0] == "true" {
+		extractAll = true
 	}
 
 	if len(files) == 0 {
@@ -550,7 +557,7 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromCSVFile(c *gin.Context) {
 				return
 			}
 
-			rows_, errs := r.service.ImportFromCSV(data, discoveredAt)
+			rows_, errs := r.service.ImportFromCSV(data, discoveredAt, extractAll)
 			if len(errs) > 0 {
 				if rows == 0 {
 					error.DatabaseMultipleErrorsResponse(c, errs)
@@ -580,9 +587,11 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromCSVFile(c *gin.Context) {
 //	@Tags			Blacklists, Import
 //	@Accept			mpfd
 //	@Router			/blacklists/import/stix [post]
-//	@Param			file_upload	formData	file	true	"files to import"
-//	@Success		201			{object}	success.DatabaseResponse
-//	@Failure		400			{object}	error.APIError
+//	@Param			file_upload		formData	file	true	"file to import"
+//	@Param			discovered_at	formData	string	true	"discovery date"
+//	@Param			extract_all		formData	string	true	"other types extraction"
+//	@Success		201				{object}	success.DatabaseResponse
+//	@Failure		400				{object}	error.APIError
 func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -594,6 +603,12 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 	if len(files) == 0 {
 		error.ParamsErrorResponse(c, errors.New("files not provided"))
 		return
+	}
+
+	extractAll := false
+	e := form.Value["extract_all"]
+	if len(e) == 1 && e[0] == "true" {
+		extractAll = true
 	}
 
 	var bundles []blacklistEntities.STIX2Bundle
@@ -633,7 +648,7 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 		}
 	}
 
-	rows, errs := r.service.ImportFromSTIX2(bundles)
+	rows, errs := r.service.ImportFromSTIX2(bundles, extractAll)
 	if len(errs) > 0 {
 		if rows == 0 {
 			error.DatabaseMultipleErrorsResponse(c, errs)
