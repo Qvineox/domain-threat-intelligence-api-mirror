@@ -17,6 +17,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"time"
 )
 
@@ -33,6 +34,7 @@ type BlacklistedStatistics struct {
 	LastEval     *time.Time `json:"LastEval"`
 	TotalURLs    int64      `json:"TotalURLs"`
 	TotalDomains int64      `json:"TotalDomains"`
+	TotalEmails  int64      `json:"TotalEmails"`
 	TotalIPs     int64      `json:"TotalIPs"`
 	ByDate       struct {
 		Dates   []string `json:"Dates"`
@@ -72,6 +74,9 @@ func NewBlacklistsRouter(service core.IBlacklistsService, path *gin.RouterGroup)
 	{
 		blacklistImportGroup.POST("/csv", router.PostImportBlacklistsFromCSVFile)
 		blacklistImportGroup.POST("/stix", router.PostImportBlacklistsFromSTIXFile)
+		blacklistImportGroup.GET("/events", router.GetImportEventByFilter)
+		blacklistImportGroup.GET("/events/:event_id", router.GetImportEvent)
+		blacklistImportGroup.DELETE("/events", router.DeleteImportEvent)
 	}
 
 	blacklistExportGroup := blacklistsGroup.Group("/export")
@@ -398,11 +403,11 @@ type blacklistInsertParams struct {
 //	@Description	Accepts and deletes single blacklisted IP
 //	@Tags			Blacklists
 //	@Router			/blacklists/ip [delete]
-//	@Param			id	body		blacklistDeleteParams	true	"record UUID to delete"
+//	@Param			id	body		deleteByUUIDParams	true	"record UUID to delete"
 //	@Success		200	{object}	success.DatabaseResponse
 //	@Failure		400	{object}	error.APIError
 func (r *BlacklistsRouter) DeleteBlackListedIP(c *gin.Context) {
-	var params blacklistDeleteParams
+	var params deleteByUUIDParams
 
 	err := c.ShouldBindJSON(&params)
 	if err != nil {
@@ -432,11 +437,11 @@ func (r *BlacklistsRouter) DeleteBlackListedIP(c *gin.Context) {
 //	@Description	Accepts and deletes single blacklisted domain
 //	@Tags			Blacklists
 //	@Router			/blacklists/domain [delete]
-//	@Param			id	body		blacklistDeleteParams	true	"record UUID to delete"
+//	@Param			id	body		deleteByUUIDParams	true	"record UUID to delete"
 //	@Success		200	{object}	success.DatabaseResponse
 //	@Failure		400	{object}	error.APIError
 func (r *BlacklistsRouter) DeleteBlackListedDomain(c *gin.Context) {
-	var params blacklistDeleteParams
+	var params deleteByUUIDParams
 
 	err := c.ShouldBindJSON(&params)
 	if err != nil {
@@ -466,11 +471,11 @@ func (r *BlacklistsRouter) DeleteBlackListedDomain(c *gin.Context) {
 //	@Description	Accepts and deletes single blacklisted URL
 //	@Tags			Blacklists
 //	@Router			/blacklists/url [delete]
-//	@Param			id	body		blacklistDeleteParams	true	"record UUID to delete"
+//	@Param			id	body		deleteByUUIDParams	true	"record UUID to delete"
 //	@Success		200	{object}	success.DatabaseResponse
 //	@Failure		400	{object}	error.APIError
 func (r *BlacklistsRouter) DeleteBlackListedURL(c *gin.Context) {
-	var params blacklistDeleteParams
+	var params deleteByUUIDParams
 
 	err := c.ShouldBindJSON(&params)
 	if err != nil {
@@ -494,8 +499,12 @@ func (r *BlacklistsRouter) DeleteBlackListedURL(c *gin.Context) {
 	success.DeletedResponse(c, rows)
 }
 
-type blacklistDeleteParams struct {
-	UUID string `json:"uuid" binding:"uuid4"`
+type deleteByUUIDParams struct {
+	UUID string `json:"UUID" binding:"uuid4;required"`
+}
+
+type deleteByIDParams struct {
+	ID uint64 `json:"ID" binding:"required"`
 }
 
 // PostImportBlacklistsFromCSVFile accepts and imports blacklisted hosts from CSV file
@@ -664,6 +673,93 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 	success.SavedResponse(c, rows)
 }
 
+// GetImportEvent returns import event data with all included blacklisted hosts
+//
+//	@Summary		get import event
+//	@Description	Returns import event data with all included blacklisted hosts
+//	@Tags			Blacklists, Import
+//	@Router			/blacklists/import/events/{event_id} [get]
+//	@Param			event_id	path		int	true	"Event ID"
+//	@Success		200			{object}	blacklistEntities.BlacklistImportEvent
+//	@Failure		400			{object}	error.APIError
+func (r *BlacklistsRouter) GetImportEvent(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("event_id"), 10, 64)
+	if err != nil {
+		error.ParamsErrorResponse(c, err)
+		return
+	}
+
+	event, err := r.service.RetrieveImportEvent(id)
+	if err != nil {
+		error.DatabaseErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, event)
+}
+
+// GetImportEventByFilter returns import events without data
+//
+//	@Summary		get import events list
+//	@Description	Returns import events without data
+//	@Tags			Blacklists, Import
+//	@Router			/blacklists/import/events [get]
+//	@Param			created_after	query		string	false	"Created timestamp is after"
+//	@Param			created_before	query		string	false	"Created timestamp is before"
+//	@Param			type			query		string	false	"Type to search"
+//	@Param			limit			query		int		true	"Query limit"
+//	@Param			offset			query		int		false	"Query offset"
+//	@Success		200				{object}	[]blacklistEntities.BlacklistImportEvent
+//	@Failure		400				{object}	error.APIError
+func (r *BlacklistsRouter) GetImportEventByFilter(c *gin.Context) {
+	var params blacklistEntities.BlacklistImportEventFilter
+
+	err := c.ShouldBindQuery(&params)
+	if err != nil {
+		error.ParamsErrorResponse(c, err)
+		return
+	}
+
+	if params.CreatedBefore != nil && !params.CreatedBefore.IsZero() {
+		var d = params.CreatedBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.CreatedBefore = &d
+	}
+
+	events, err := r.service.RetrieveImportEventsByFilter(params)
+	if err != nil {
+		error.DatabaseErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, events)
+}
+
+// DeleteImportEvent accepts and deletes single blacklist import event
+//
+//	@Summary		delete blacklist import event
+//	@Description	Accepts and deletes single blacklist import event
+//	@Tags			Blacklists, Import
+//	@Router			/blacklists/import/events [delete]
+//	@Param			id	body		deleteByIDParams	true	"record ID to delete"
+//	@Success		200	{object}	success.DatabaseResponse
+//	@Failure		400	{object}	error.APIError
+func (r *BlacklistsRouter) DeleteImportEvent(c *gin.Context) {
+	var params deleteByIDParams
+
+	err := c.ShouldBindJSON(&params)
+	if err != nil {
+		error.ParamsErrorResponse(c, err)
+		return
+	}
+
+	rows, err := r.service.DeleteImportEvent(params.ID)
+	if err != nil {
+		return
+	}
+
+	success.DeletedResponse(c, rows)
+}
+
 // PostExportBlacklistsToCSV accepts filters and returns exported blacklisted hosts in CSV
 //
 //	@Summary		exports blacklisted hosts into CSV
@@ -812,7 +908,7 @@ func (r *BlacklistsRouter) recountStatistics() {
 	now := time.Now()
 	r.cachedValues.stats.LastEval = &now
 
-	r.cachedValues.stats.TotalIPs, r.cachedValues.stats.TotalURLs, r.cachedValues.stats.TotalDomains = r.service.RetrieveTotalStatistics()
+	r.cachedValues.stats.TotalIPs, r.cachedValues.stats.TotalURLs, r.cachedValues.stats.TotalDomains, r.cachedValues.stats.TotalEmails = r.service.RetrieveTotalStatistics()
 
 	//var byDate = make(map[string]*[3]uint64)
 

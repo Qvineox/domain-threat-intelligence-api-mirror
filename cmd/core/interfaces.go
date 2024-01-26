@@ -37,7 +37,7 @@ type IBlacklistsService interface {
 	ExportToJSON(blacklistEntities.BlacklistExportFilter) ([]byte, error)
 	ExportToCSV(blacklistEntities.BlacklistExportFilter) ([]byte, error)
 
-	RetrieveTotalStatistics() (ips int64, urls int64, domains int64)
+	RetrieveTotalStatistics() (ips int64, urls int64, domains int64, emails int64)
 	RetrieveByDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error)
 
 	RetrieveAllSources() ([]blacklistEntities.BlacklistSource, error)
@@ -67,7 +67,7 @@ type IBlacklistsRepo interface {
 
 	SelectHostsUnionByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedHost, error)
 
-	CountStatistics() (ips int64, urls int64, domains int64)
+	CountStatistics() (ips int64, urls int64, domains int64, emails int64)
 	SelectByDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error)
 
 	SelectAllSources() ([]blacklistEntities.BlacklistSource, error)

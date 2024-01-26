@@ -566,7 +566,7 @@ func (s *BlackListsServiceImpl) ExportToCSV(filter blacklistEntities.BlacklistEx
 	return buf.Bytes(), nil
 }
 
-func (s *BlackListsServiceImpl) RetrieveTotalStatistics() (int64, int64, int64) {
+func (s *BlackListsServiceImpl) RetrieveTotalStatistics() (int64, int64, int64, int64) {
 	return s.repo.CountStatistics()
 }
 

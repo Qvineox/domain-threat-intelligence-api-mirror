@@ -32,7 +32,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.blacklistDeleteParams"
+                            "$ref": "#/definitions/routing.deleteByUUIDParams"
                         }
                     }
                 ],
@@ -387,6 +387,132 @@ const docTemplate = `{
                 }
             }
         },
+        "/blacklists/import/events": {
+            "get": {
+                "description": "Returns import events without data",
+                "tags": [
+                    "Blacklists",
+                    "Import"
+                ],
+                "summary": "get import events list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is after",
+                        "name": "created_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is before",
+                        "name": "created_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Type to search",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Accepts and deletes single blacklist import event",
+                "tags": [
+                    "Blacklists",
+                    "Import"
+                ],
+                "summary": "delete blacklist import event",
+                "parameters": [
+                    {
+                        "description": "record ID to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.deleteByIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/import/events/{event_id}": {
+            "get": {
+                "description": "Returns import event data with all included blacklisted hosts",
+                "tags": [
+                    "Blacklists",
+                    "Import"
+                ],
+                "summary": "get import event",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Event ID",
+                        "name": "event_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/blacklists/import/stix": {
             "post": {
                 "description": "Accepts and imports blacklisted hosts from STIX 2.0 file",
@@ -451,7 +577,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.blacklistDeleteParams"
+                            "$ref": "#/definitions/routing.deleteByUUIDParams"
                         }
                     }
                 ],
@@ -647,7 +773,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.blacklistDeleteParams"
+                            "$ref": "#/definitions/routing.deleteByUUIDParams"
                         }
                     }
                 ],
@@ -1230,19 +1356,14 @@ const docTemplate = `{
                 "TotalDomains": {
                     "type": "integer"
                 },
+                "TotalEmails": {
+                    "type": "integer"
+                },
                 "TotalIPs": {
                     "type": "integer"
                 },
                 "TotalURLs": {
                     "type": "integer"
-                }
-            }
-        },
-        "routing.blacklistDeleteParams": {
-            "type": "object",
-            "properties": {
-                "uuid": {
-                    "type": "string"
                 }
             }
         },
@@ -1274,6 +1395,25 @@ const docTemplate = `{
                             }
                         }
                     }
+                }
+            }
+        },
+        "routing.deleteByIDParams": {
+            "type": "object",
+            "required": [
+                "ID"
+            ],
+            "properties": {
+                "ID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "routing.deleteByUUIDParams": {
+            "type": "object",
+            "properties": {
+                "UUID": {
+                    "type": "string"
                 }
             }
         },
