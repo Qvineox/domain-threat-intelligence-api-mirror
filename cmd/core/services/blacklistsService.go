@@ -519,6 +519,7 @@ func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string, discoveredAt time
 func (s *BlackListsServiceImpl) ExportToJSON(filter blacklistEntities.BlacklistExportFilter) ([]byte, error) {
 	hosts, err := s.repo.SelectHostsUnionByFilter(blacklistEntities.BlacklistSearchFilter{
 		SourceIDs:     filter.SourceIDs,
+		ImportEventID: filter.ImportEventID,
 		IsActive:      filter.IsActive,
 		CreatedAfter:  filter.CreatedAfter,
 		CreatedBefore: filter.CreatedBefore,
@@ -538,6 +539,7 @@ func (s *BlackListsServiceImpl) ExportToJSON(filter blacklistEntities.BlacklistE
 func (s *BlackListsServiceImpl) ExportToCSV(filter blacklistEntities.BlacklistExportFilter) ([]byte, error) {
 	hosts, err := s.repo.SelectHostsUnionByFilter(blacklistEntities.BlacklistSearchFilter{
 		SourceIDs:     filter.SourceIDs,
+		ImportEventID: filter.ImportEventID,
 		IsActive:      filter.IsActive,
 		CreatedAfter:  filter.CreatedAfter,
 		CreatedBefore: filter.CreatedBefore,

@@ -41,6 +41,10 @@ func (r *BlacklistsRepoImpl) SelectURLsByFilter(filter blacklistEntities.Blackli
 		query = query.Where("URL LIKE ?", "%"+filter.SearchString+"%")
 	}
 
+	if filter.ImportEventID > 0 {
+		query = query.Where("import_event_id = ?", filter.ImportEventID)
+	}
+
 	if len(filter.SourceIDs) > 0 {
 		query = query.Where("source_id IN ?", filter.SourceIDs)
 	}
@@ -107,6 +111,10 @@ func (r *BlacklistsRepoImpl) SelectIPsByFilter(filter blacklistEntities.Blacklis
 		query = query.Where("source_id IN ?", filter.SourceIDs)
 	}
 
+	if filter.ImportEventID > 0 {
+		query = query.Where("import_event_id = ?", filter.ImportEventID)
+	}
+
 	if filter.Limit != 0 {
 		query = query.Limit(filter.Limit)
 	}
@@ -167,6 +175,10 @@ func (r *BlacklistsRepoImpl) SelectDomainsByFilter(filter blacklistEntities.Blac
 		query = query.Where("source_id IN ?", filter.SourceIDs)
 	}
 
+	if filter.ImportEventID > 0 {
+		query = query.Where("import_event_id = ?", filter.ImportEventID)
+	}
+
 	if filter.Limit != 0 {
 		query = query.Limit(filter.Limit)
 	}
@@ -225,6 +237,10 @@ func (r *BlacklistsRepoImpl) SelectEmailsByFilter(filter blacklistEntities.Black
 
 	if len(filter.SourceIDs) > 0 {
 		query = query.Where("source_id IN ?", filter.SourceIDs)
+	}
+
+	if filter.ImportEventID > 0 {
+		query = query.Where("import_event_id = ?", filter.ImportEventID)
 	}
 
 	if filter.Limit != 0 {
@@ -333,16 +349,16 @@ func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter blacklistEntities.B
 	var hosts []blacklistEntities.BlacklistedHost
 	var err error
 
-	ipQuery := r.Model(&blacklistEntities.BlacklistedIP{}).Select("uuid, abbrev(ip_address) AS host, 'ip' AS type, description, source_id, created_at, updated_at, deleted_at")
-	urlQuery := r.Model(&blacklistEntities.BlacklistedURL{}).Select("uuid, url AS host, 'url' AS type, description, source_id, created_at, updated_at, deleted_at")
-	domainQuery := r.Model(&blacklistEntities.BlacklistedDomain{}).Select("uuid, urn AS host, 'domain' AS type, description, source_id, created_at, updated_at, deleted_at")
-	emailQuery := r.Model(&blacklistEntities.BlacklistedEmail{}).Select("uuid, email AS host, 'email' AS type, description, source_id, created_at, updated_at, deleted_at")
+	ipQuery := r.Model(&blacklistEntities.BlacklistedIP{}).Select("uuid, abbrev(ip_address) AS host, 'ip' AS type, description, source_id, import_event_id, created_at, updated_at, deleted_at")
+	urlQuery := r.Model(&blacklistEntities.BlacklistedURL{}).Select("uuid, url AS host, 'url' AS type, description, source_id, import_event_id, created_at, updated_at, deleted_at")
+	domainQuery := r.Model(&blacklistEntities.BlacklistedDomain{}).Select("uuid, urn AS host, 'domain' AS type, description, import_event_id, source_id, created_at, updated_at, deleted_at")
+	emailQuery := r.Model(&blacklistEntities.BlacklistedEmail{}).Select("uuid, email AS host, 'email' AS type, description, import_event_id, source_id, created_at, updated_at, deleted_at")
 
 	if filter.IsActive != nil && *filter.IsActive == false {
-		ipQuery = ipQuery.Unscoped()
-		urlQuery = urlQuery.Unscoped()
-		domainQuery = domainQuery.Unscoped()
-		emailQuery = domainQuery.Unscoped()
+		ipQuery = ipQuery.Where("deleted_at IS NULL")
+		urlQuery = urlQuery.Where("deleted_at IS NULL")
+		domainQuery = domainQuery.Where("deleted_at IS NULL")
+		emailQuery = emailQuery.Where("deleted_at IS NULL")
 	}
 
 	if filter.CreatedAfter != nil {
@@ -385,6 +401,13 @@ func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter blacklistEntities.B
 		urlQuery = urlQuery.Where("source_id IN ?", filter.SourceIDs)
 		domainQuery = domainQuery.Where("source_id IN ?", filter.SourceIDs)
 		emailQuery = emailQuery.Where("source_id IN ?", filter.SourceIDs)
+	}
+
+	if filter.ImportEventID > 0 {
+		ipQuery = ipQuery.Where("import_event_id = ?", filter.ImportEventID)
+		urlQuery = urlQuery.Where("import_event_id = ?", filter.ImportEventID)
+		domainQuery = domainQuery.Where("import_event_id = ?", filter.ImportEventID)
+		emailQuery = emailQuery.Where("import_event_id = ?", filter.ImportEventID)
 	}
 
 	var query = "? UNION ? UNION ? UNION ? ORDER BY created_at DESC, updated_at DESC, UUID DESC OFFSET ?"

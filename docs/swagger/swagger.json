@@ -65,6 +65,12 @@
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
+                        "in": "query"
+                    },
+                    {
                         "type": "boolean",
                         "description": "Is active",
                         "name": "is_active",
@@ -129,6 +135,153 @@
                 "parameters": [
                     {
                         "description": "IPs to save",
+                        "name": "hosts",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.blacklistInsertParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/email": {
+            "delete": {
+                "description": "Accepts and deletes single blacklisted email",
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "delete blacklisted email",
+                "parameters": [
+                    {
+                        "description": "record UUID to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.deleteByUUIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/emails": {
+            "get": {
+                "description": "Gets list of blacklisted emails by filter",
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "blacklisted urls by filter",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Source type IDs",
+                        "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is active",
+                        "name": "is_active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is after",
+                        "name": "created_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is before",
+                        "name": "created_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Substring to search",
+                        "name": "search_string",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/blacklistEntities.BlacklistedEmail"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Accepts and saves list of blacklisted emails",
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "insert blacklisted emails",
+                "parameters": [
+                    {
+                        "description": "emails to save",
                         "name": "hosts",
                         "in": "body",
                         "required": true,
@@ -275,6 +428,12 @@
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
                         "name": "source_id[]",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
                         "in": "query"
                     },
                     {
@@ -610,6 +769,12 @@
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
+                        "in": "query"
+                    },
+                    {
                         "type": "boolean",
                         "description": "Is active",
                         "name": "is_active",
@@ -806,6 +971,12 @@
                         "in": "query"
                     },
                     {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
+                        "in": "query"
+                    },
+                    {
                         "type": "boolean",
                         "description": "Is active",
                         "name": "is_active",
@@ -963,7 +1134,7 @@
                     "type": "boolean"
                 },
                 "Summary": {
-                    "$ref": "#/definitions/datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary"
+                    "type": "object"
                 },
                 "Type": {
                     "type": "string"
@@ -1011,28 +1182,61 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
                 },
                 "URN": {
                     "type": "string"
+                },
+                "UUID": {
+                    "type": "string"
+                },
+                "UpdatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "blacklistEntities.BlacklistedEmail": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "Description": {
+                    "type": "string"
+                },
+                "DiscoveredAt": {
+                    "description": "DiscoveredAt sets date of discovery, provided by source or inserted automatically on create",
+                    "type": "string"
+                },
+                "Email": {
+                    "type": "string"
+                },
+                "ImportEvent": {
+                    "description": "ImportEvent describes import session from where blacklisted host was added",
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                },
+                "ImportEventID": {
+                    "type": "integer"
+                },
+                "Source": {
+                    "description": "Defines source from where blacklisted host was added",
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                },
+                "SourceID": {
+                    "type": "integer"
                 },
                 "UUID": {
                     "type": "string"
@@ -1063,28 +1267,20 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Source defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
                 },
                 "Status": {
-                    "$ref": "#/definitions/blacklistEntities.HostStatus"
+                    "type": "string"
                 },
                 "Type": {
                     "description": "domain, url or IP",
@@ -1119,22 +1315,14 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1165,11 +1353,7 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                 },
                 "ImportEventID": {
                     "type": "integer"
@@ -1179,11 +1363,7 @@
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1199,23 +1379,11 @@
                 }
             }
         },
-        "blacklistEntities.HostStatus": {
-            "type": "string",
-            "enum": [
-                "new"
-            ],
-            "x-enum-varnames": [
-                "HostStatusNew"
-            ]
-        },
-        "datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary": {
-            "type": "object"
-        },
         "error.APIError": {
             "type": "object",
             "properties": {
                 "ErrorCode": {
-                    "$ref": "#/definitions/error.CodeError"
+                    "type": "integer"
                 },
                 "ErrorMessage": {
                     "type": "string"
@@ -1227,35 +1395,6 @@
                     "type": "integer"
                 }
             }
-        },
-        "error.CodeError": {
-            "type": "integer",
-            "enum": [
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11
-            ],
-            "x-enum-varnames": [
-                "EncodingErrorCode",
-                "DecodingErrorCode",
-                "IncorrectParamsErrorCode",
-                "InsufficientParamsErrorCode",
-                "DatabaseErrorCode",
-                "FileDecodingErrorCode",
-                "FileReadingErrorCode",
-                "FileExtensionNotSupportedErrorCode",
-                "NotImplementedErrorCode",
-                "FileProcessingErrorCode",
-                "InternalUnidentifiedErrorCode"
-            ]
         },
         "gorm.DeletedAt": {
             "type": "object",
@@ -1295,22 +1434,9 @@
                     "$ref": "#/definitions/net.IPNet"
                 },
                 "status": {
-                    "$ref": "#/definitions/pgtype.Status"
+                    "type": "integer"
                 }
             }
-        },
-        "pgtype.Status": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2
-            ],
-            "x-enum-varnames": [
-                "Undefined",
-                "Null",
-                "Present"
-            ]
         },
         "routing.BlacklistedStatistics": {
             "type": "object",
@@ -1325,6 +1451,12 @@
                             }
                         },
                         "Domains": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "Emails": {
                             "type": "array",
                             "items": {
                                 "type": "integer"
@@ -1405,6 +1537,9 @@
         },
         "routing.deleteByUUIDParams": {
             "type": "object",
+            "required": [
+                "UUID"
+            ],
             "properties": {
                 "UUID": {
                     "type": "string"
