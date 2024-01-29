@@ -31,8 +31,8 @@ type IBlacklistsService interface {
 
 	RetrieveHostsByFilter(blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedHost, error)
 
-	ImportFromSTIX2(bundles []blacklistEntities.STIX2Bundle, extractAll bool) (int64, []error)
-	ImportFromCSV(data [][]string, discoveredAt time.Time, extractAll bool) (int64, []error)
+	ImportFromSTIX2(bundles []blacklistEntities.STIX2Bundle, extractAll bool) (blacklistEntities.BlacklistImportEvent, error)
+	ImportFromCSV(data [][]string, discoveredAt time.Time, extractAll bool) (blacklistEntities.BlacklistImportEvent, error)
 
 	ExportToJSON(blacklistEntities.BlacklistExportFilter) ([]byte, error)
 	ExportToCSV(blacklistEntities.BlacklistExportFilter) ([]byte, error)

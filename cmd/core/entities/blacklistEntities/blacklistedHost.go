@@ -88,20 +88,22 @@ func (h *BlacklistedHost) FromURL(ip BlacklistedURL) {
 	h.Status = h.GetStatus()
 }
 
+var statusThreshold = 2 * time.Hour
+
 func (h *BlacklistedHost) GetStatus() HostStatus {
 	now := time.Now()
-	threshold := now.Add(-2 * time.Hour)
+	threshold := now.Add(-statusThreshold)
 
 	if !h.DeletedAt.Time.IsZero() {
 		return HostStatusDeleted
 	}
 
-	if h.CreatedAt.After(threshold) {
-		return HostStatusNew
-	}
-
 	if h.UpdatedAt.After(threshold) {
 		return HostStatusUpdated
+	}
+
+	if h.CreatedAt.After(threshold) {
+		return HostStatusNew
 	}
 
 	return HostStatusDefault
