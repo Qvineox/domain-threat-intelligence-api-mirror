@@ -346,22 +346,38 @@ const docTemplate = `{
                         },
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
-                        "name": "source_ids[]",
+                        "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is active",
+                        "name": "is_active",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "Created timestamp is after",
                         "name": "created_after",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "Created timestamp is before",
                         "name": "created_before",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Substring to search",
+                        "name": "search_string",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -400,22 +416,38 @@ const docTemplate = `{
                         },
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
-                        "name": "source_ids",
+                        "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is active",
+                        "name": "is_active",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "Created timestamp is after",
                         "name": "created_after",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "Created timestamp is before",
                         "name": "created_before",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Substring to search",
+                        "name": "search_string",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -423,6 +455,75 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/export/naumen": {
+            "post": {
+                "description": "Sends service call to Naumen Service Desk with hosts selected to block by filter",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blacklists",
+                    "Export"
+                ],
+                "summary": "Send hosts to Naumen Service Desk",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Source type IDs",
+                        "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is active",
+                        "name": "is_active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is after",
+                        "name": "created_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is before",
+                        "name": "created_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Substring to search",
+                        "name": "search_string",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/serviceDeskEntities.ServiceDeskTicket"
                         }
                     },
                     "400": {
@@ -1714,6 +1815,36 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "DynamicConfigVariable": {
+                    "type": "string"
+                }
+            }
+        },
+        "serviceDeskEntities.ServiceDeskTicket": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "Data": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "ID": {
+                    "type": "integer"
+                },
+                "System": {
+                    "type": "string"
+                },
+                "TicketID": {
+                    "description": "TicketID is issued by service desk",
+                    "type": "string"
+                },
+                "UpdatedAt": {
                     "type": "string"
                 }
             }

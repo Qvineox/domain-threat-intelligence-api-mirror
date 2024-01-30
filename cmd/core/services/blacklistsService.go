@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"domain_threat_intelligence_api/cmd/core"
 	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
+	"domain_threat_intelligence_api/cmd/core/entities/serviceDeskEntities"
 	"encoding/csv"
 	"encoding/hex"
 	"encoding/json"
@@ -22,6 +23,11 @@ import (
 
 type BlackListsServiceImpl struct {
 	repo core.IBlacklistsRepo
+	desk core.IServiceDeskService
+}
+
+func NewBlackListsServiceImpl(repo core.IBlacklistsRepo, desk core.IServiceDeskService) *BlackListsServiceImpl {
+	return &BlackListsServiceImpl{repo: repo, desk: desk}
 }
 
 func (s *BlackListsServiceImpl) RetrieveURLsByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedURL, error) {
@@ -46,10 +52,6 @@ func (s *BlackListsServiceImpl) SaveURLs(urls []blacklistEntities.BlacklistedURL
 
 func (s *BlackListsServiceImpl) DeleteURL(uuid pgtype.UUID) (int64, error) {
 	return s.repo.DeleteURL(uuid)
-}
-
-func NewBlackListsServiceImpl(repo core.IBlacklistsRepo) *BlackListsServiceImpl {
-	return &BlackListsServiceImpl{repo: repo}
 }
 
 func (s *BlackListsServiceImpl) RetrieveIPsByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedIP, error) {
@@ -543,14 +545,8 @@ func (s *BlackListsServiceImpl) ImportFromCSV(data [][]string, discoveredAt time
 	return s.SaveImportEvent(event)
 }
 
-func (s *BlackListsServiceImpl) ExportToJSON(filter blacklistEntities.BlacklistExportFilter) ([]byte, error) {
-	hosts, err := s.repo.SelectHostsUnionByFilter(blacklistEntities.BlacklistSearchFilter{
-		SourceIDs:     filter.SourceIDs,
-		ImportEventID: filter.ImportEventID,
-		IsActive:      filter.IsActive,
-		CreatedAfter:  filter.CreatedAfter,
-		CreatedBefore: filter.CreatedBefore,
-	})
+func (s *BlackListsServiceImpl) ExportToJSON(filter blacklistEntities.BlacklistSearchFilter) ([]byte, error) {
+	hosts, err := s.repo.SelectHostsUnionByFilter(filter)
 	if err != nil {
 		return nil, err
 	}
@@ -563,14 +559,8 @@ func (s *BlackListsServiceImpl) ExportToJSON(filter blacklistEntities.BlacklistE
 	return bytes_, nil
 }
 
-func (s *BlackListsServiceImpl) ExportToCSV(filter blacklistEntities.BlacklistExportFilter) ([]byte, error) {
-	hosts, err := s.repo.SelectHostsUnionByFilter(blacklistEntities.BlacklistSearchFilter{
-		SourceIDs:     filter.SourceIDs,
-		ImportEventID: filter.ImportEventID,
-		IsActive:      filter.IsActive,
-		CreatedAfter:  filter.CreatedAfter,
-		CreatedBefore: filter.CreatedBefore,
-	})
+func (s *BlackListsServiceImpl) ExportToCSV(filter blacklistEntities.BlacklistSearchFilter) ([]byte, error) {
+	hosts, err := s.repo.SelectHostsUnionByFilter(filter)
 
 	if err != nil {
 		return nil, err
@@ -593,6 +583,24 @@ func (s *BlackListsServiceImpl) ExportToCSV(filter blacklistEntities.BlacklistEx
 	}
 
 	return buf.Bytes(), nil
+}
+
+func (s *BlackListsServiceImpl) ExportToNaumen(filter blacklistEntities.BlacklistSearchFilter) (serviceDeskEntities.ServiceDeskTicket, error) {
+	if !s.desk.IsAvailable() {
+		return serviceDeskEntities.ServiceDeskTicket{}, errors.New("service desk not configured")
+	}
+
+	hosts, err := s.repo.SelectHostsUnionByFilter(filter)
+	if err != nil {
+		return serviceDeskEntities.ServiceDeskTicket{}, err
+	}
+
+	ticket, err := s.desk.SendBlacklistedHosts(hosts)
+	if err != nil {
+		return serviceDeskEntities.ServiceDeskTicket{}, err
+	}
+
+	return ticket, nil
 }
 
 func (s *BlackListsServiceImpl) RetrieveTotalStatistics() (int64, int64, int64, int64) {
