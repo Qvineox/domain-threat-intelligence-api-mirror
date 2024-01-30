@@ -155,7 +155,7 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 			ticket.TicketID = responseBody.UUID
 			slog.Info("sent naumen service desk ticket: " + ticket.TicketID)
 
-			marshalTicket, err := json.Marshal(ticket)
+			marshalTicket, err := json.Marshal(responseBody)
 			if err != nil {
 				slog.Error("failed to scan naumen response body: " + err.Error())
 			} else {

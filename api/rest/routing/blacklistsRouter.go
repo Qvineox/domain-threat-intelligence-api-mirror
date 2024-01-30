@@ -1027,7 +1027,7 @@ func (r *BlacklistsRouter) PostExportBlacklistsToJSON(c *gin.Context) {
 //	@Param			created_after	query		string		false	"Created timestamp is after"
 //	@Param			created_before	query		string		false	"Created timestamp is before"
 //	@Param			search_string	query		string		false	"Substring to search"
-//	@Success		200				{object}	serviceDeskEntities.ServiceDeskTicket
+//	@Success		201				{object}	serviceDeskEntities.ServiceDeskTicket
 //	@Failure		400				{object}	apiErrors.APIError
 func (r *BlacklistsRouter) PostExportBlacklistsToNaumen(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}

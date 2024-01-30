@@ -28,6 +28,7 @@ func (s *UsersServiceImpl) CreateUser(login, password, fullName, email string) (
 	newUser := userEntities.PlatformUser{
 		FullName:     fullName,
 		Login:        login,
+		Email:        email,
 		PasswordHash: hex.EncodeToString(hashedPass),
 		IsActive:     true,
 	}
