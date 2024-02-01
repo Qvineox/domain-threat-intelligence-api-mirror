@@ -77,11 +77,11 @@ type IBlacklistsRepo interface {
 
 type IUsersService interface {
 	// CreateUser creates only new entities.PlatformUser, returns error if user exists, ignores defined UUID
-	CreateUser(login, password, fullName, email string) (pgtype.UUID, error)
+	CreateUser(login, password, fullName, email string, roleIDs []uint64) (pgtype.UUID, error)
 
 	// SaveUser updates only existing entities.PlatformUser, returns error if user doesn't exist, UUID should be defined.
 	// This method doesn't update user password, use ResetPassword or ChangePassword
-	SaveUser(user userEntities.PlatformUser) (pgtype.UUID, error)
+	SaveUser(user userEntities.PlatformUser, roleIDs []uint64) (pgtype.UUID, error)
 
 	DeleteUser(uuid pgtype.UUID) error
 	RetrieveUsers() ([]userEntities.PlatformUser, error)
@@ -116,6 +116,7 @@ type IAuthService interface {
 	Login(login, password string) (accessToken, refreshToken string, err error)
 	Logout(uuid pgtype.UUID) error
 
+	Validate(token string) (isValid bool, err error)
 	Refresh(token string) (accessToken, refreshToken string, err error)
 }
 

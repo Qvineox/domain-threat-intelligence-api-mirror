@@ -794,6 +794,7 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 	event, err := r.service.ImportFromSTIX2(bundles, extractAll)
 	if err != nil {
 		apiErrors.FileProcessingErrorResponse(c, err)
+		return
 	}
 
 	go r.recountStatistics()

@@ -153,9 +153,12 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 			return serviceDeskEntities.ServiceDeskTicket{}, errors.New("missing naumen uuid")
 		} else {
 			ticket.TicketID = responseBody.UUID
+			data := newTicketDataFromResponse(responseBody)
+			data.FillPayload(hosts)
+
 			slog.Info("sent naumen service desk ticket: " + ticket.TicketID)
 
-			marshalTicket, err := json.Marshal(responseBody)
+			marshalTicket, err := json.Marshal(data)
 			if err != nil {
 				slog.Error("failed to scan naumen response body: " + err.Error())
 			} else {
@@ -183,62 +186,6 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 	}
 
 	return ticket, nil
-}
-
-type requestCreateResponseBody struct {
-	Agreement struct {
-		UUID      string `json:"UUID"`
-		Title     string `json:"title"`
-		MetaClass string `json:"metaClass"`
-	} `json:"agreement"`
-
-	// RespTe - request responsible team
-	RespTe struct {
-		UUID      string `json:"UUID"`
-		Title     string `json:"title"`
-		MetaClass string `json:"metaClass"`
-	} `json:"resp_te"`
-	Responsible struct {
-		UUID      string `json:"UUID"`
-		Title     string `json:"title"`
-		MetaClass string `json:"metaClass"`
-	} `json:"responsible"`
-
-	Registrar struct {
-		UUID      string `json:"UUID"`
-		Title     string `json:"title"`
-		MetaClass string `json:"metaClass"`
-	} `json:"registrar"`
-	ClientEmployee struct {
-		UUID      string `json:"UUID"`
-		Title     string `json:"title"`
-		MetaClass string `json:"metaClass"`
-	} `json:"clientEmployee"`
-	ClientOU struct {
-		UUID      string `json:"UUID"`
-		Title     string `json:"title"`
-		MetaClass string `json:"metaClass"`
-	} `json:"clientOU"`
-
-	Service struct {
-		UUID      string `json:"UUID"`
-		Title     string `json:"title"`
-		MetaClass string `json:"metaClass"`
-	} `json:"service"`
-	TypeService struct {
-		UUID      string `json:"UUID"`
-		Title     string `json:"title"`
-		MetaClass string `json:"metaClass"`
-		Code      string `json:"code"`
-	} `json:"typeService"`
-
-	Title  string `json:"title"` // Title - number of a request (example, IT-1234567)
-	Number uint   `json:"number"`
-
-	SubjectTicket    string `json:"subjectTicket"`    // SubjectTicket - main title of a request (example, "Блокирование УЗ - NSD")
-	DescriptionInRTF string `json:"descriptionInRTF"` // DescriptionInRTF - request description
-
-	UUID string `json:"UUID"`
 }
 
 func (s *ServiceDeskClient) buildHostsDescription(hosts []blacklistEntities.BlacklistedHost) (string, error) {

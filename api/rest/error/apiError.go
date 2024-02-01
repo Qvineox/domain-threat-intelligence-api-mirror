@@ -27,6 +27,7 @@ const (
 	NotImplementedErrorCode
 	FileProcessingErrorCode
 	InternalUnidentifiedErrorCode
+	AuthFailedErrorCode
 )
 
 func ParamsErrorResponse(c *gin.Context, err error) {
@@ -112,5 +113,14 @@ func InternalErrorResponse(c *gin.Context, err error) {
 		ErrorCode:    InternalUnidentifiedErrorCode,
 		ErrorMessage: err.Error(),
 		ErrorModule:  "internal process",
+	})
+}
+
+func AuthErrorResponse(c *gin.Context, err error) {
+	c.JSON(http.StatusUnauthorized, APIError{
+		StatusCode:   http.StatusUnauthorized,
+		ErrorCode:    AuthFailedErrorCode,
+		ErrorMessage: err.Error(),
+		ErrorModule:  "authorization",
 	})
 }
