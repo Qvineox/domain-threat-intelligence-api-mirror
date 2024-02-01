@@ -355,10 +355,10 @@ func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter blacklistEntities.B
 	emailQuery := r.Model(&blacklistEntities.BlacklistedEmail{}).Select("uuid, email AS host, 'email' AS type, description, import_event_id, source_id, created_at, updated_at, deleted_at")
 
 	if filter.IsActive != nil && *filter.IsActive == false {
-		ipQuery = ipQuery.Where("deleted_at IS NULL")
-		urlQuery = urlQuery.Where("deleted_at IS NULL")
-		domainQuery = domainQuery.Where("deleted_at IS NULL")
-		emailQuery = emailQuery.Where("deleted_at IS NULL")
+		ipQuery = ipQuery.Unscoped()
+		urlQuery = urlQuery.Unscoped()
+		domainQuery = domainQuery.Unscoped()
+		emailQuery = emailQuery.Unscoped()
 	}
 
 	if filter.CreatedAfter != nil {
@@ -445,8 +445,19 @@ func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter blacklistEntities.B
 	//	"LIMIT ? OFFSET ?;", filter.Limit, filter.Offset).
 	//	Scan(&hosts)
 
+	now := time.Now()
+	threshold := now.Add(-2 * time.Hour)
+
 	for i, h := range hosts {
-		hosts[i].Status = h.GetStatus()
+		hosts[i].Status = blacklistEntities.HostStatusDefault
+
+		if !h.DeletedAt.Time.IsZero() {
+			hosts[i].Status = blacklistEntities.HostStatusDeleted
+		} else if h.CreatedAt.After(threshold) {
+			hosts[i].Status = blacklistEntities.HostStatusNew
+		} else if h.UpdatedAt.After(threshold) {
+			hosts[i].Status = blacklistEntities.HostStatusUpdated
+		}
 
 		switch h.SourceID {
 		case blacklistEntities.SourceManual:

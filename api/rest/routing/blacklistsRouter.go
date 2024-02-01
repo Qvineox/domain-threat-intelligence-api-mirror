@@ -821,6 +821,9 @@ func (r *BlacklistsRouter) GetImportEvent(c *gin.Context) {
 	if err != nil {
 		apiErrors.DatabaseErrorResponse(c, err)
 		return
+	} else if event.ID == 0 {
+		apiErrors.DatabaseEntityNotFound(c)
+		return
 	}
 
 	c.JSON(http.StatusOK, event)
@@ -897,9 +900,11 @@ func (r *BlacklistsRouter) DeleteImportEvent(c *gin.Context) {
 //	@Tags			Blacklists, Export
 //	@Router			/blacklists/export/csv [post]
 //	@Produce		json
-//	@Param			source_ids[]	query	[]uint64	false	"Source type IDs"	collectionFormat(multi)
-//	@Param			created_after	query	string		true	"Created timestamp is after"
-//	@Param			created_before	query	string		true	"Created timestamp is before"
+//	@Param			source_id[]	query	[]uint64	false	"Source type IDs"	collectionFormat(multi)
+//	@Param			created_after	query	string		false	"Created timestamp is after"
+//	@Param			created_before	query	string		false	"Created timestamp is before"
+//	@Param			discovered_after	query	string		false	"Discovery timestamp is after"
+//	@Param			discovered_before	query	string		false	"Discovery timestamp is before"
 //	@Produce		application/csv
 //	@Success		200	{file}		file
 //	@Failure		400	{object}	apiErrors.APIError
@@ -959,9 +964,11 @@ func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
 //	@Tags			Blacklists, Export
 //	@Router			/blacklists/export/json [post]
 //	@Produce		json
-//	@Param			source_ids		query	[]uint64	false	"Source type IDs"	collectionFormat(multi)
-//	@Param			created_after	query	string		true	"Created timestamp is after"
-//	@Param			created_before	query	string		true	"Created timestamp is before"
+//	@Param			source_id[]	query	[]uint64	false	"Source type IDs"	collectionFormat(multi)
+//	@Param			created_after	query	string		false	"Created timestamp is after"
+//	@Param			created_before	query	string		false	"Created timestamp is before"
+//	@Param			discovered_after	query	string		false	"Discovery timestamp is after"
+//	@Param			discovered_before	query	string		false	"Discovery timestamp is before"
 //	@Produce		application/json
 //	@Success		200	{file}		file
 //	@Failure		400	{object}	apiErrors.APIError

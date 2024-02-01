@@ -21,6 +21,7 @@ const (
 	IncorrectParamsErrorCode
 	InsufficientParamsErrorCode
 	DatabaseErrorCode
+	DatabaseEntityNotFoundCode
 	FileDecodingErrorCode
 	FileReadingErrorCode
 	FileExtensionNotSupportedErrorCode
@@ -43,6 +44,15 @@ func DatabaseErrorResponse(c *gin.Context, err error) {
 		StatusCode:   http.StatusBadRequest,
 		ErrorCode:    DatabaseErrorCode,
 		ErrorMessage: err.Error(),
+		ErrorModule:  "database operations",
+	})
+}
+
+func DatabaseEntityNotFound(c *gin.Context) {
+	c.JSON(http.StatusNotFound, APIError{
+		StatusCode:   http.StatusNotFound,
+		ErrorCode:    DatabaseEntityNotFoundCode,
+		ErrorMessage: "entity not found",
 		ErrorModule:  "database operations",
 	})
 }

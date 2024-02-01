@@ -4,7 +4,7 @@ import "time"
 
 type BlacklistSearchFilter struct {
 	Offset           int        `json:"Offset" form:"offset"`
-	Limit            int        `json:"Limit" form:"limit" binding:"required"`
+	Limit            int        `json:"Limit" form:"limit"`
 	SourceIDs        []uint64   `json:"SourceId" form:"source_id[]" binding:"dive"`
 	ImportEventID    uint64     `json:"ImportEventID" form:"import_event_id"`
 	IsActive         *bool      `json:"IsActive" form:"is_active"  example:"true"`
