@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 )
@@ -99,9 +100,38 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 		return serviceDeskEntities.ServiceDeskTicket{}, err
 	}
 
+	// filter hosts to send by preconfigured types
+	types, err := s.dynamic.GetNaumenBlacklistTypes()
+	if err != nil {
+		return serviceDeskEntities.ServiceDeskTicket{}, err
+	}
+
+	var filteredHosts []blacklistEntities.BlacklistedHost
+	var stats = blacklistStats{}
+
+	for _, h := range hosts {
+		if slices.Contains(types, h.Type) {
+			switch h.Type {
+			case "ip":
+				stats.ip++
+			case "domain":
+				stats.domain++
+			case "url":
+				stats.url++
+			case "email":
+				stats.email++
+			default:
+				slog.Warn("unsupported host type found during ticket stats count: " + h.Type)
+				continue
+			}
+
+			filteredHosts = append(filteredHosts, h)
+		}
+	}
+
 	requestAttributes.SubjectTicket = "Заблокировать доступ к/от указанных адресов. Добавить в черный список ФинЦЕРТ."
 
-	description, err := s.buildHostsDescription(hosts)
+	description, err := s.buildHostsDescription(stats)
 	if err != nil {
 		return serviceDeskEntities.ServiceDeskTicket{}, errors.New("failed to create description: " + err.Error())
 	}
@@ -154,7 +184,7 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 		} else {
 			ticket.TicketID = responseBody.UUID
 			data := newTicketDataFromResponse(responseBody)
-			data.FillPayload(hosts)
+			data.FillPayload(filteredHosts)
 
 			slog.Info("sent naumen service desk ticket: " + ticket.TicketID)
 
@@ -167,7 +197,7 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 		}
 	}
 
-	file, err := s.buildHostsFile(hosts)
+	file, err := s.buildHostsFile(filteredHosts)
 	if err != nil {
 		return serviceDeskEntities.ServiceDeskTicket{}, err
 	}
@@ -188,49 +218,15 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 	return ticket, nil
 }
 
-func (s *ServiceDeskClient) buildHostsDescription(hosts []blacklistEntities.BlacklistedHost) (string, error) {
-	types, err := s.dynamic.GetNaumenBlacklistTypes()
-	if err != nil {
-		return "", err
-	}
+type blacklistStats struct {
+	total  int
+	ip     int
+	domain int
+	url    int
+	email  int
+}
 
-	var stats = struct {
-		total  int
-		ip     int
-		domain int
-		url    int
-		email  int
-	}{}
-
-	for _, v := range types {
-		switch v {
-		case "ip":
-			for _, h := range hosts {
-				if h.Type == "ip" {
-					stats.ip++
-				}
-			}
-		case "domain":
-			for _, h := range hosts {
-				if h.Type == "domain" {
-					stats.domain++
-				}
-			}
-		case "url":
-			for _, h := range hosts {
-				if h.Type == "url" {
-					stats.url++
-				}
-			}
-		case "email":
-			for _, h := range hosts {
-				if h.Type == "email" {
-					stats.email++
-				}
-			}
-		}
-	}
-
+func (s *ServiceDeskClient) buildHostsDescription(stats blacklistStats) (string, error) {
 	var desc = "<style>table{width:100%;border-collapse: collapse;} thead{background-color:#7f96b9; font-weight:bold;} td{border: 1px solid; text-align: center;}</style>"
 
 	desc += "<p>Добрый день!</p>"
@@ -265,11 +261,6 @@ func (s *ServiceDeskClient) buildHostsDescription(hosts []blacklistEntities.Blac
 }
 
 func (s *ServiceDeskClient) buildHostsFile(hosts []blacklistEntities.BlacklistedHost) (*os.File, error) {
-	types, err := s.dynamic.GetNaumenBlacklistTypes()
-	if err != nil {
-		return nil, err
-	}
-
 	pattern := fmt.Sprintf("hosts_%s.*.txt", time.Now().Format("02_01_06"))
 	file, err := os.CreateTemp("", pattern)
 	if err != nil {
@@ -277,38 +268,8 @@ func (s *ServiceDeskClient) buildHostsFile(hosts []blacklistEntities.Blacklisted
 	}
 
 	var writeValue string
-
-	for _, v := range types {
-		switch v {
-		case "ip":
-			for _, h := range hosts {
-				if h.Type == "ip" {
-					writeValue += fmt.Sprintf("%s\n", h.Host)
-				}
-			}
-			writeValue += "\n"
-		case "domain":
-			for _, h := range hosts {
-				if h.Type == "domain" {
-					writeValue += fmt.Sprintf("%s\n", h.Host)
-				}
-			}
-			writeValue += "\n"
-		case "url":
-			for _, h := range hosts {
-				if h.Type == "url" {
-					writeValue += fmt.Sprintf("%s\n", h.Host)
-				}
-			}
-			writeValue += "\n"
-		case "email":
-			for _, h := range hosts {
-				if h.Type == "email" {
-					writeValue += fmt.Sprintf("%s\n", h.Host)
-				}
-			}
-			writeValue += "\n"
-		}
+	for _, h := range hosts {
+		writeValue += fmt.Sprintf("%s\n", h.Host)
 	}
 
 	_, err = file.Write([]byte(writeValue))
