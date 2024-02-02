@@ -41,6 +41,10 @@ func (r *BlacklistsRepoImpl) SelectURLsByFilter(filter blacklistEntities.Blackli
 		query = query.Where("URL LIKE ?", "%"+filter.SearchString+"%")
 	}
 
+	if filter.ImportEventID > 0 {
+		query = query.Where("import_event_id = ?", filter.ImportEventID)
+	}
+
 	if len(filter.SourceIDs) > 0 {
 		query = query.Where("source_id IN ?", filter.SourceIDs)
 	}
@@ -107,6 +111,10 @@ func (r *BlacklistsRepoImpl) SelectIPsByFilter(filter blacklistEntities.Blacklis
 		query = query.Where("source_id IN ?", filter.SourceIDs)
 	}
 
+	if filter.ImportEventID > 0 {
+		query = query.Where("import_event_id = ?", filter.ImportEventID)
+	}
+
 	if filter.Limit != 0 {
 		query = query.Limit(filter.Limit)
 	}
@@ -167,6 +175,10 @@ func (r *BlacklistsRepoImpl) SelectDomainsByFilter(filter blacklistEntities.Blac
 		query = query.Where("source_id IN ?", filter.SourceIDs)
 	}
 
+	if filter.ImportEventID > 0 {
+		query = query.Where("import_event_id = ?", filter.ImportEventID)
+	}
+
 	if filter.Limit != 0 {
 		query = query.Limit(filter.Limit)
 	}
@@ -196,14 +208,130 @@ func (r *BlacklistsRepoImpl) DeleteDomain(uuid pgtype.UUID) (int64, error) {
 	return query.RowsAffected, query.Error
 }
 
-func (r *BlacklistsRepoImpl) CountStatistics() (int64, int64, int64) {
-	var ipCount, urlCount, domainCount int64
+func (r *BlacklistsRepoImpl) SelectEmailsByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedEmail, error) {
+	query := r.Model(&blacklistEntities.BlacklistedEmail{})
+
+	if filter.IsActive != nil && *filter.IsActive == true {
+		query = query.Unscoped()
+	}
+
+	if filter.CreatedAfter != nil {
+		query = query.Where("created_at > ?", filter.CreatedAfter)
+	}
+
+	if filter.CreatedBefore != nil {
+		query = query.Where("created_at < ?", filter.CreatedBefore)
+	}
+
+	if filter.DiscoveredAfter != nil {
+		query = query.Where("discovered_at > ?", filter.DiscoveredAfter)
+	}
+
+	if filter.DiscoveredBefore != nil {
+		query = query.Where("discovered_at < ?", filter.DiscoveredBefore)
+	}
+
+	if len(filter.SearchString) > 0 {
+		query = query.Where("URN LIKE ?", "%"+filter.SearchString+"%")
+	}
+
+	if len(filter.SourceIDs) > 0 {
+		query = query.Where("source_id IN ?", filter.SourceIDs)
+	}
+
+	if filter.ImportEventID > 0 {
+		query = query.Where("import_event_id = ?", filter.ImportEventID)
+	}
+
+	if filter.Limit != 0 {
+		query = query.Limit(filter.Limit)
+	}
+
+	var result []blacklistEntities.BlacklistedEmail
+	err := query.Preload("Source").Offset(filter.Offset).Order("created_at DESC, updated_at DESC, UUID DESC").Find(&result).Error
+
+	return result, err
+}
+
+func (r *BlacklistsRepoImpl) SaveEmails(emails []blacklistEntities.BlacklistedEmail) (int64, error) {
+	query := r.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "email"}, {Name: "source_id"}},
+		DoUpdates: clause.Assignments(map[string]interface{}{"updated_at": time.Now(), "deleted_at": nil}),
+	}).CreateInBatches(&emails, 100)
+
+	return query.RowsAffected, query.Error
+}
+
+func (r *BlacklistsRepoImpl) DeleteEmail(uuid pgtype.UUID) (int64, error) {
+	query := r.Delete(&blacklistEntities.BlacklistedEmail{
+		UUID: uuid,
+	})
+
+	return query.RowsAffected, query.Error
+}
+
+func (r *BlacklistsRepoImpl) SaveImportEvent(event blacklistEntities.BlacklistImportEvent) (blacklistEntities.BlacklistImportEvent, error) {
+	err := r.Save(&event).Error
+	if err != nil {
+		return blacklistEntities.BlacklistImportEvent{}, err
+	}
+
+	return event, nil
+}
+
+func (r *BlacklistsRepoImpl) SelectImportEventsByFilter(filter blacklistEntities.BlacklistImportEventFilter) ([]blacklistEntities.BlacklistImportEvent, error) {
+	query := r.Model(&blacklistEntities.BlacklistImportEvent{})
+
+	if filter.CreatedAfter != nil {
+		query = query.Where("created_at > ?", filter.CreatedAfter)
+	}
+
+	if filter.CreatedBefore != nil {
+		query = query.Where("created_at < ?", filter.CreatedBefore)
+	}
+
+	if len(filter.Type) > 0 {
+		query = query.Where("type = ?", filter.Type)
+	}
+
+	if filter.Limit != 0 {
+		query = query.Limit(filter.Limit)
+	}
+
+	var result []blacklistEntities.BlacklistImportEvent
+	err := query.Offset(filter.Offset).Order("created_at DESC, ID DESC").Find(&result).Error
+
+	return result, err
+}
+
+func (r *BlacklistsRepoImpl) SelectImportEvent(id uint64) (blacklistEntities.BlacklistImportEvent, error) {
+	event := blacklistEntities.BlacklistImportEvent{}
+
+	err := r.Find(&event, id).Error
+	if err != nil {
+		return blacklistEntities.BlacklistImportEvent{}, err
+	}
+
+	return event, nil
+}
+
+func (r *BlacklistsRepoImpl) DeleteImportEvent(id uint64) (int64, error) {
+	query := r.Delete(&blacklistEntities.BlacklistImportEvent{
+		ID: id,
+	})
+
+	return query.RowsAffected, query.Error
+}
+
+func (r *BlacklistsRepoImpl) CountStatistics() (int64, int64, int64, int64) {
+	var ipCount, urlCount, domainCount, emailCount int64
 
 	r.Model(&blacklistEntities.BlacklistedIP{}).Count(&ipCount)
 	r.Model(&blacklistEntities.BlacklistedURL{}).Count(&urlCount)
 	r.Model(&blacklistEntities.BlacklistedDomain{}).Count(&domainCount)
+	r.Model(&blacklistEntities.BlacklistedEmail{}).Count(&emailCount)
 
-	return ipCount, urlCount, domainCount
+	return ipCount, urlCount, domainCount, emailCount
 }
 
 func (r *BlacklistsRepoImpl) SelectAllSources() ([]blacklistEntities.BlacklistSource, error) {
@@ -221,26 +349,30 @@ func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter blacklistEntities.B
 	var hosts []blacklistEntities.BlacklistedHost
 	var err error
 
-	ipQuery := r.Model(&blacklistEntities.BlacklistedIP{}).Select("uuid, abbrev(ip_address) AS host, 'ip' AS type, description, source_id, created_at, updated_at, deleted_at")
-	urlQuery := r.Model(&blacklistEntities.BlacklistedURL{}).Select("uuid, url AS host, 'url' AS type, description, source_id, created_at, updated_at, deleted_at")
-	domainQuery := r.Model(&blacklistEntities.BlacklistedDomain{}).Select("uuid, urn AS host, 'domain' AS type, description, source_id, created_at, updated_at, deleted_at")
+	ipQuery := r.Model(&blacklistEntities.BlacklistedIP{}).Select("uuid, abbrev(ip_address) AS host, 'ip' AS type, description, source_id, import_event_id, discovered_at, created_at, updated_at, deleted_at")
+	urlQuery := r.Model(&blacklistEntities.BlacklistedURL{}).Select("uuid, url AS host, 'url' AS type, description, source_id, import_event_id, discovered_at, created_at, updated_at, deleted_at")
+	domainQuery := r.Model(&blacklistEntities.BlacklistedDomain{}).Select("uuid, urn AS host, 'domain' AS type, description, source_id, import_event_id, discovered_at, created_at, updated_at, deleted_at")
+	emailQuery := r.Model(&blacklistEntities.BlacklistedEmail{}).Select("uuid, email AS host, 'email' AS type, description, source_id, import_event_id, discovered_at, created_at, updated_at, deleted_at")
 
 	if filter.IsActive != nil && *filter.IsActive == false {
-		ipQuery = ipQuery.Unscoped()
-		urlQuery = urlQuery.Unscoped()
-		domainQuery = domainQuery.Unscoped()
+		ipQuery = ipQuery.Where("deleted_at IS NULL")
+		urlQuery = urlQuery.Where("deleted_at IS NULL")
+		domainQuery = domainQuery.Where("deleted_at IS NULL")
+		emailQuery = emailQuery.Where("deleted_at IS NULL")
 	}
 
 	if filter.CreatedAfter != nil {
 		ipQuery = ipQuery.Where("created_at > ?", filter.CreatedAfter)
 		urlQuery = urlQuery.Where("created_at > ?", filter.CreatedAfter)
 		domainQuery = domainQuery.Where("created_at > ?", filter.CreatedAfter)
+		emailQuery = emailQuery.Where("created_at > ?", filter.CreatedAfter)
 	}
 
 	if filter.CreatedBefore != nil {
 		ipQuery = ipQuery.Where("created_at < ?", filter.CreatedBefore)
 		urlQuery = urlQuery.Where("created_at < ?", filter.CreatedBefore)
 		domainQuery = domainQuery.Where("created_at < ?", filter.CreatedBefore)
+		emailQuery = emailQuery.Where("created_at < ?", filter.CreatedBefore)
 	}
 
 	if len(filter.SearchString) > 0 {
@@ -261,15 +393,24 @@ func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter blacklistEntities.B
 		ipQuery = ipQuery.Where("ip_address <<= ?", addr)
 		urlQuery = urlQuery.Where("url LIKE ?", "%"+filter.SearchString+"%")
 		domainQuery = domainQuery.Where("urn LIKE ?", "%"+filter.SearchString+"%")
+		emailQuery = emailQuery.Where("email LIKE ?", "%"+filter.SearchString+"%")
 	}
 
 	if len(filter.SourceIDs) > 0 {
 		ipQuery = ipQuery.Where("source_id IN ?", filter.SourceIDs)
 		urlQuery = urlQuery.Where("source_id IN ?", filter.SourceIDs)
 		domainQuery = domainQuery.Where("source_id IN ?", filter.SourceIDs)
+		emailQuery = emailQuery.Where("source_id IN ?", filter.SourceIDs)
 	}
 
-	var query = "? UNION ? UNION ? ORDER BY created_at DESC, updated_at DESC, UUID DESC OFFSET ?"
+	if filter.ImportEventID > 0 {
+		ipQuery = ipQuery.Where("import_event_id = ?", filter.ImportEventID)
+		urlQuery = urlQuery.Where("import_event_id = ?", filter.ImportEventID)
+		domainQuery = domainQuery.Where("import_event_id = ?", filter.ImportEventID)
+		emailQuery = emailQuery.Where("import_event_id = ?", filter.ImportEventID)
+	}
+
+	var query = "? UNION ? UNION ? UNION ? ORDER BY created_at DESC, updated_at DESC, UUID DESC OFFSET ?"
 
 	if filter.Limit != 0 {
 		query += " LIMIT ?"
@@ -277,6 +418,7 @@ func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter blacklistEntities.B
 			ipQuery,
 			urlQuery,
 			domainQuery,
+			emailQuery,
 			filter.Offset,
 			filter.Limit,
 		).Scan(&hosts).Error
@@ -285,6 +427,7 @@ func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter blacklistEntities.B
 			ipQuery,
 			urlQuery,
 			domainQuery,
+			emailQuery,
 			filter.Offset,
 		).Scan(&hosts).Error
 	}
@@ -329,23 +472,27 @@ func (r *BlacklistsRepoImpl) SelectByDateStatistics(startDate, endDate time.Time
 	ipQuery := r.Model(&blacklistEntities.BlacklistedIP{}).Select("date(created_at) AS date, count(*), 'ip' AS type").Group("date(created_at)")
 	urlQuery := r.Model(&blacklistEntities.BlacklistedURL{}).Select("date(created_at) AS date, count(*), 'url' AS type").Group("date(created_at)")
 	domainQuery := r.Model(&blacklistEntities.BlacklistedDomain{}).Select("date(created_at) AS date, count(*), 'domain' AS type").Group("date(created_at)")
+	emailQuery := r.Model(&blacklistEntities.BlacklistedDomain{}).Select("date(created_at) AS date, count(*), 'email' AS type").Group("date(created_at)")
 
 	if !startDate.IsZero() {
 		ipQuery = ipQuery.Where("created_at > ?", startDate)
 		urlQuery = urlQuery.Where("created_at > ?", startDate)
 		domainQuery = domainQuery.Where("created_at > ?", startDate)
+		emailQuery = emailQuery.Where("created_at > ?", startDate)
 	}
 
 	if !endDate.IsZero() {
 		ipQuery = ipQuery.Where("created_at < ?", endDate)
 		urlQuery = urlQuery.Where("created_at < ?", endDate)
 		domainQuery = domainQuery.Where("created_at < ?", endDate)
+		emailQuery = emailQuery.Where("created_at < ?", endDate)
 	}
 
-	err := r.Raw("? UNION ? UNION ? ORDER BY date DESC",
+	err := r.Raw("? UNION ? UNION ? UNION ? ORDER BY date DESC",
 		ipQuery,
 		urlQuery,
 		domainQuery,
+		emailQuery,
 	).Scan(&byDate).Error
 
 	if err != nil {

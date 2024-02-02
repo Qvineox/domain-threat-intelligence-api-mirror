@@ -26,19 +26,16 @@ const (
 var DefaultUserRoles = []PlatformUserRole{
 	{
 		ID:          RoleLogin,
-		UpdatedAt:   time.Now(),
 		Name:        "Auth",
-		Description: "Определяет может ли пользователи авторизоваться в системе",
+		Description: "Определяет может ли пользователь авторизоваться в системе",
 	},
 	{
 		ID:          RoleAdmin,
-		UpdatedAt:   time.Now(),
 		Name:        "Admin",
 		Description: "Является ли пользователь администратором",
 	},
 	{
 		ID:          RoleBlacklistImport,
-		UpdatedAt:   time.Now(),
 		Name:        "Can import blacklists",
 		Description: "Определяет может ли пользователи импортировать списки блокировок",
 	},

@@ -62,7 +62,7 @@ func (s *STIX2Object) ToBlackListedIP(sourceID uint64) (BlacklistedIP, error) {
 	if !strings.Contains(s.Pattern, "network-traffic:dst_ref.type = 'ipv4-addr'") {
 		return BlacklistedIP{}, errors.New("IPv4 not found")
 	} else {
-		dstValue := findIP(s.Pattern)
+		dstValue := ExtractIPFromPattern(s.Pattern)
 		if len(dstValue) == 0 {
 			return BlacklistedIP{}, errors.New("IPv4 not found")
 		}
@@ -80,10 +80,11 @@ func (s *STIX2Object) ToBlackListedIP(sourceID uint64) (BlacklistedIP, error) {
 	}, nil
 }
 
-func (s *STIX2Object) ToBlacklisted() (*BlacklistedIP, *BlacklistedDomain, *BlacklistedURL, error) {
+func (s *STIX2Object) ToBlacklisted(extractAll bool) (*BlacklistedIP, *BlacklistedDomain, *BlacklistedURL, *BlacklistedEmail, error) {
 	var ip_ *BlacklistedIP
 	var domain_ *BlacklistedDomain
 	var url_ *BlacklistedURL
+	var email_ *BlacklistedEmail
 
 	var sourceID uint64
 
@@ -99,12 +100,8 @@ func (s *STIX2Object) ToBlacklisted() (*BlacklistedIP, *BlacklistedDomain, *Blac
 		slog.Warn("indicator vendor not found")
 	}
 
-	// parsing URL destination
-	// this could also be IP with path
-
-	// find ip_ in pattern
-	dstValue := findIP(s.Pattern)
-	if len(dstValue) != 0 {
+	if slices.Contains(s.Labels, "misp:type=\"ip-src\"") {
+		value := ExtractIPFromPattern(s.Pattern)
 		ip_ = &BlacklistedIP{
 			IPAddress:    pgtype.Inet{},
 			Description:  s.Description,
@@ -112,18 +109,47 @@ func (s *STIX2Object) ToBlacklisted() (*BlacklistedIP, *BlacklistedDomain, *Blac
 			DiscoveredAt: s.ValidFrom,
 		}
 
-		err := ip_.IPAddress.Set(dstValue)
+		err := ip_.IPAddress.Set(value)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, nil, nil, err
+		}
+
+		if !extractAll {
+			return ip_, nil, nil, nil, nil
+		}
+	}
+
+	// parsing URL destination
+	// this could also be IP with path
+
+	// find ip_ in pattern
+	if extractAll {
+		dstValue := ExtractIPFromPattern(s.Pattern)
+		if len(dstValue) != 0 {
+			ip_ = &BlacklistedIP{
+				IPAddress:    pgtype.Inet{},
+				Description:  s.Description,
+				SourceID:     sourceID,
+				DiscoveredAt: s.ValidFrom,
+			}
+
+			err := ip_.IPAddress.Set(dstValue)
+			if err != nil {
+				return nil, nil, nil, nil, err
+			}
 		}
 	}
 
 	if slices.Contains(s.Labels, "misp:type=\"url\"") {
 		url_ = &BlacklistedURL{
-			URL:          extractURLFromPattern(s.Pattern),
+			URL:          extractValueFromPattern(s.Pattern),
 			Description:  s.Description,
 			SourceID:     sourceID,
 			DiscoveredAt: s.ValidFrom,
+		}
+
+		if !extractAll {
+			return nil, nil, url_, nil, nil
 		}
 
 		// domain should be ejected only if IP not provided
@@ -150,21 +176,26 @@ func (s *STIX2Object) ToBlacklisted() (*BlacklistedIP, *BlacklistedDomain, *Blac
 		}
 	}
 
-	return ip_, domain_, url_, nil
-}
+	if slices.Contains(s.Labels, "misp:type=\"email-src\"") {
+		email_ = &BlacklistedEmail{
+			Email:        extractValueFromPattern(s.Pattern),
+			Description:  s.Description,
+			SourceID:     sourceID,
+			DiscoveredAt: s.ValidFrom,
+		}
 
-func findIP(input string) string {
-	numBlock := "(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])"
-	regexPattern := numBlock + "\\." + numBlock + "\\." + numBlock + "\\." + numBlock
+		if !extractAll {
+			return nil, nil, nil, email_, nil
+		}
+	}
 
-	regEx := regexp.MustCompile(regexPattern)
-	return regEx.FindString(input)
-}
-
-func extractURLFromPattern(input string) string {
-	var re = regexp.MustCompile(`(?m)'(.+)'`)
-	return strings.Trim(re.FindString(input), "'")
+	return ip_, domain_, url_, email_, nil
 }
 
 // type, spec_version, id, created, modified
 // need to eject types in [identity, indicator]
+
+func extractValueFromPattern(input string) string {
+	var re = regexp.MustCompile(`(?m)'(.+)'`)
+	return strings.Trim(re.FindString(input), "'")
+}

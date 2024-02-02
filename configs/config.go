@@ -2,10 +2,15 @@ package configs
 
 import (
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/spf13/viper"
 	"log/slog"
 	"os"
 	"path/filepath"
 )
+
+type StaticConfigV struct {
+	config *viper.Viper
+}
 
 type StaticConfig struct {
 	Database struct {

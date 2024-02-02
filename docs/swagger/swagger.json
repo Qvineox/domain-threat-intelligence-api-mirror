@@ -13,46 +13,15 @@
     "basePath": "/api/v1",
     "paths": {
         "/blacklists/domain": {
-            "delete": {
-                "description": "Accepts and deletes single blacklisted domain",
-                "tags": [
-                    "Blacklists"
-                ],
-                "summary": "delete blacklisted domain",
-                "parameters": [
-                    {
-                        "description": "record UUID to delete",
-                        "name": "id",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/routing.blacklistDeleteParams"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/success.DatabaseResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/error.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/blacklists/domains": {
             "get": {
-                "description": "Gets list of blacklisted domains by filter",
+                "description": "Returns list of blacklisted domains by filter",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Blacklists"
                 ],
-                "summary": "blacklisted domains by filter",
+                "summary": "Blacklisted domains by filter",
                 "parameters": [
                     {
                         "type": "array",
@@ -62,6 +31,12 @@
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
                         "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
                         "in": "query"
                     },
                     {
@@ -122,10 +97,13 @@
             },
             "put": {
                 "description": "Accepts and saves list of blacklisted domains",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Blacklists"
                 ],
-                "summary": "insert blacklisted domains",
+                "summary": "Save blacklisted domains",
                 "parameters": [
                     {
                         "description": "IPs to save",
@@ -151,19 +129,53 @@
                         }
                     }
                 }
-            }
-        },
-        "/blacklists/export/csv": {
-            "post": {
-                "description": "Accepts filters and returns exported blacklisted hosts in CSV",
+            },
+            "delete": {
+                "description": "Accepts and deletes single blacklisted domain",
                 "produces": [
-                    "application/csv"
+                    "application/json"
                 ],
                 "tags": [
-                    "Blacklists",
-                    "Export"
+                    "Blacklists"
                 ],
-                "summary": "exports blacklisted hosts into CSV",
+                "summary": "Delete blacklisted domain",
+                "parameters": [
+                    {
+                        "description": "record UUID to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.deleteByUUIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/email": {
+            "get": {
+                "description": "Returns list of blacklisted emails by filter",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "Blacklisted emails by filter",
                 "parameters": [
                     {
                         "type": "array",
@@ -172,22 +184,194 @@
                         },
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
-                        "name": "source_ids[]",
+                        "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is active",
+                        "name": "is_active",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "Created timestamp is after",
                         "name": "created_after",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "Created timestamp is before",
                         "name": "created_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Substring to search",
+                        "name": "search_string",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query limit",
+                        "name": "limit",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/blacklistEntities.BlacklistedEmail"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Accepts and saves list of blacklisted emails",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "Save blacklisted emails",
+                "parameters": [
+                    {
+                        "description": "emails to save",
+                        "name": "hosts",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.blacklistInsertParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Accepts and deletes single blacklisted email",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "Delete blacklisted email",
+                "parameters": [
+                    {
+                        "description": "record UUID to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.deleteByUUIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/export/csv": {
+            "post": {
+                "description": "Accepts filters and returns exported blacklisted hosts in CSV",
+                "produces": [
+                    "application/json",
+                    "application/csv"
+                ],
+                "tags": [
+                    "Blacklists",
+                    "Export"
+                ],
+                "summary": "Exports blacklisted hosts into CSV",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Source type IDs",
+                        "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is active",
+                        "name": "is_active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is after",
+                        "name": "created_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is before",
+                        "name": "created_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Substring to search",
+                        "name": "search_string",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -210,13 +394,14 @@
             "post": {
                 "description": "Accepts filters and returns exported blacklisted hosts in JSON",
                 "produces": [
+                    "application/json",
                     "application/json"
                 ],
                 "tags": [
                     "Blacklists",
                     "Export"
                 ],
-                "summary": "exports blacklisted hosts into JSON",
+                "summary": "Exports blacklisted hosts into JSON",
                 "parameters": [
                     {
                         "type": "array",
@@ -225,22 +410,38 @@
                         },
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
-                        "name": "source_ids",
+                        "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is active",
+                        "name": "is_active",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "Created timestamp is after",
                         "name": "created_after",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "Created timestamp is before",
                         "name": "created_before",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Substring to search",
+                        "name": "search_string",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -259,13 +460,85 @@
                 }
             }
         },
-        "/blacklists/hosts": {
+        "/blacklists/export/naumen": {
+            "post": {
+                "description": "Sends service call to Naumen Service Desk with hosts selected to block by filter",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blacklists",
+                    "Export"
+                ],
+                "summary": "Send hosts to Naumen Service Desk",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Source type IDs",
+                        "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is active",
+                        "name": "is_active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is after",
+                        "name": "created_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is before",
+                        "name": "created_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Substring to search",
+                        "name": "search_string",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/serviceDeskEntities.ServiceDeskTicket"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/host": {
             "get": {
-                "description": "Gets list of blacklisted hosts (all types) by filter",
+                "description": "Returns list of blacklisted hosts (all types) by filter",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Blacklists"
                 ],
-                "summary": "all hosts by filter",
+                "summary": "All hosts by filter",
                 "parameters": [
                     {
                         "type": "array",
@@ -275,6 +548,12 @@
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
                         "name": "source_id[]",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
                         "in": "query"
                     },
                     {
@@ -337,11 +616,14 @@
         "/blacklists/import/csv": {
             "post": {
                 "description": "Accepts and imports blacklisted hosts from CSV file",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Blacklists",
                     "Import"
                 ],
-                "summary": "import blacklisted hosts from CSV file",
+                "summary": "Import blacklisted hosts from CSV file",
                 "parameters": [
                     {
                         "type": "file",
@@ -356,40 +638,11 @@
                         "name": "discovered_at",
                         "in": "formData",
                         "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/success.DatabaseResponse"
-                        }
                     },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/error.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/blacklists/import/stix": {
-            "post": {
-                "description": "Accepts and imports blacklisted hosts from STIX 2.0 file",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "tags": [
-                    "Blacklists",
-                    "Import"
-                ],
-                "summary": "import blacklisted hosts from file (STIX 2.0)",
-                "parameters": [
                     {
-                        "type": "file",
-                        "description": "files to import",
-                        "name": "file_upload",
+                        "type": "string",
+                        "description": "other types extraction",
+                        "name": "extract_all",
                         "in": "formData",
                         "required": true
                     }
@@ -398,7 +651,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/success.DatabaseResponse"
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                         }
                     },
                     "400": {
@@ -410,21 +663,124 @@
                 }
             }
         },
-        "/blacklists/ip": {
-            "delete": {
-                "description": "Accepts and deletes single blacklisted IP",
-                "tags": [
-                    "Blacklists"
+        "/blacklists/import/event": {
+            "get": {
+                "description": "Returns import events without data",
+                "produces": [
+                    "application/json"
                 ],
-                "summary": "delete blacklisted ip",
+                "tags": [
+                    "Blacklists",
+                    "Import"
+                ],
+                "summary": "Get import events list",
                 "parameters": [
                     {
-                        "description": "record UUID to delete",
+                        "type": "string",
+                        "description": "Created timestamp is after",
+                        "name": "created_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is before",
+                        "name": "created_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Type to search",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/import/event/{event_id}": {
+            "get": {
+                "description": "Returns import event data with all included blacklisted hosts",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blacklists",
+                    "Import"
+                ],
+                "summary": "Get import event",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Event ID",
+                        "name": "event_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/import/events": {
+            "delete": {
+                "description": "Accepts and deletes single blacklist import event",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blacklists",
+                    "Import"
+                ],
+                "summary": "Delete blacklist import event",
+                "parameters": [
+                    {
+                        "description": "record ID to delete",
                         "name": "id",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.blacklistDeleteParams"
+                            "$ref": "#/definitions/routing.deleteByIDParams"
                         }
                     }
                 ],
@@ -444,13 +800,69 @@
                 }
             }
         },
-        "/blacklists/ips": {
+        "/blacklists/import/stix": {
+            "post": {
+                "description": "Accepts and imports blacklisted hosts from STIX 2.0 file",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blacklists",
+                    "Import"
+                ],
+                "summary": "Import blacklisted hosts from file (STIX 2.0)",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "file to import",
+                        "name": "file_upload",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "discovery date",
+                        "name": "discovered_at",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "other types extraction",
+                        "name": "extract_all",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/ip": {
             "get": {
-                "description": "Gets list of blacklisted ips by filter",
+                "description": "Returns list of blacklisted IPs by filter",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Blacklists"
                 ],
-                "summary": "blacklisted ips by filter",
+                "summary": "Blacklisted IPs by filter",
                 "parameters": [
                     {
                         "type": "array",
@@ -460,6 +872,12 @@
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
                         "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
                         "in": "query"
                     },
                     {
@@ -520,10 +938,13 @@
             },
             "put": {
                 "description": "Accepts and saves list of blacklisted IPs",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Blacklists"
                 ],
-                "summary": "insert blacklisted ips",
+                "summary": "Save blacklisted ips",
                 "parameters": [
                     {
                         "description": "IPs to save",
@@ -549,18 +970,54 @@
                         }
                     }
                 }
-            }
-        },
-        "/blacklists/sources": {
-            "get": {
-                "description": "Returns all available blacklist data sources",
+            },
+            "delete": {
+                "description": "Accepts and deletes single blacklisted IP",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Blacklists"
                 ],
-                "summary": "returns blacklist sources",
+                "summary": "Delete blacklisted IP",
+                "parameters": [
+                    {
+                        "description": "record UUID to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.deleteByUUIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/blacklists/sources": {
+            "get": {
+                "description": "Returns all available blacklist data sources",
+                "produces": [
+                    "application/json",
+                    "application/json"
+                ],
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "Get blacklist sources",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -584,12 +1041,13 @@
             "get": {
                 "description": "Returns data containing overall amount of blacklisted entities",
                 "produces": [
+                    "application/json",
                     "application/json"
                 ],
                 "tags": [
                     "Blacklists"
                 ],
-                "summary": "returns amount of blacklisted entities",
+                "summary": "Returns amount of blacklisted entities",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -607,46 +1065,15 @@
             }
         },
         "/blacklists/url": {
-            "delete": {
-                "description": "Accepts and deletes single blacklisted URL",
-                "tags": [
-                    "Blacklists"
-                ],
-                "summary": "delete blacklisted URL",
-                "parameters": [
-                    {
-                        "description": "record UUID to delete",
-                        "name": "id",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/routing.blacklistDeleteParams"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/success.DatabaseResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/error.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/blacklists/urls": {
             "get": {
-                "description": "Gets list of blacklisted URLs by filter",
+                "description": "Returns list of blacklisted URLs by filter",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Blacklists"
                 ],
-                "summary": "blacklisted urls by filter",
+                "summary": "Blacklisted URLs by filter",
                 "parameters": [
                     {
                         "type": "array",
@@ -656,6 +1083,12 @@
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
                         "name": "source_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Import event ID",
+                        "name": "import_event_id",
                         "in": "query"
                     },
                     {
@@ -715,11 +1148,14 @@
                 }
             },
             "put": {
-                "description": "Accepts and saves list of blacklisted urls",
+                "description": "Accepts and saves list of blacklisted URLs",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Blacklists"
                 ],
-                "summary": "insert blacklisted urls",
+                "summary": "Save blacklisted URLs",
                 "parameters": [
                     {
                         "description": "URLs to save",
@@ -745,15 +1181,53 @@
                         }
                     }
                 }
+            },
+            "delete": {
+                "description": "Accepts and deletes single blacklisted URL",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blacklists"
+                ],
+                "summary": "Delete blacklisted URL",
+                "parameters": [
+                    {
+                        "description": "record UUID to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.deleteByUUIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
             }
         },
         "/system/dynamic": {
             "get": {
                 "description": "Gets info about current dynamic application config",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Configuration"
                 ],
-                "summary": "view application dynamic config",
+                "summary": "View application dynamic config",
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -770,10 +1244,13 @@
         "/system/dynamic/variable": {
             "post": {
                 "description": "Updates dynamic application config variable",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Configuration"
                 ],
-                "summary": "update dynamic config variable",
+                "summary": "Update dynamic config variable",
                 "parameters": [
                     {
                         "description": "variable to update",
@@ -800,6 +1277,29 @@
         }
     },
     "definitions": {
+        "blacklistEntities.BlacklistImportEvent": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "ID": {
+                    "type": "integer"
+                },
+                "IsComplete": {
+                    "type": "boolean"
+                },
+                "Summary": {
+                    "$ref": "#/definitions/datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary"
+                },
+                "Type": {
+                    "type": "string"
+                }
+            }
+        },
         "blacklistEntities.BlacklistSource": {
             "type": "object",
             "properties": {
@@ -839,6 +1339,17 @@
                     "description": "DiscoveredAt sets date of discovery, provided by source or inserted automatically on create",
                     "type": "string"
                 },
+                "ImportEvent": {
+                    "description": "ImportEvent describes import session from where blacklisted host was added",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
+                },
+                "ImportEventID": {
+                    "type": "integer"
+                },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
                     "allOf": [
@@ -852,6 +1363,55 @@
                 },
                 "URN": {
                     "type": "string"
+                },
+                "UUID": {
+                    "type": "string"
+                },
+                "UpdatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "blacklistEntities.BlacklistedEmail": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "Description": {
+                    "type": "string"
+                },
+                "DiscoveredAt": {
+                    "description": "DiscoveredAt sets date of discovery, provided by source or inserted automatically on create",
+                    "type": "string"
+                },
+                "Email": {
+                    "type": "string"
+                },
+                "ImportEvent": {
+                    "description": "ImportEvent describes import session from where blacklisted host was added",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
+                },
+                "ImportEventID": {
+                    "type": "integer"
+                },
+                "Source": {
+                    "description": "Defines source from where blacklisted host was added",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
+                },
+                "SourceID": {
+                    "type": "integer"
                 },
                 "UUID": {
                     "type": "string"
@@ -880,8 +1440,19 @@
                 "Host": {
                     "type": "string"
                 },
+                "ImportEvent": {
+                    "description": "ImportEvent describes import session from where blacklisted host was added",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
+                },
+                "ImportEventID": {
+                    "type": "integer"
+                },
                 "Source": {
-                    "description": "Defines source from where blacklisted host was added",
+                    "description": "Source defines source from where blacklisted host was added",
                     "allOf": [
                         {
                             "$ref": "#/definitions/blacklistEntities.BlacklistSource"
@@ -925,6 +1496,17 @@
                 "IPAddress": {
                     "$ref": "#/definitions/pgtype.Inet"
                 },
+                "ImportEvent": {
+                    "description": "ImportEvent describes import session from where blacklisted host was added",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
+                },
+                "ImportEventID": {
+                    "type": "integer"
+                },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
                     "allOf": [
@@ -960,6 +1542,17 @@
                     "description": "DiscoveredAt sets date of discovery, provided by source or inserted automatically on create",
                     "type": "string"
                 },
+                "ImportEvent": {
+                    "description": "ImportEvent describes import session from where blacklisted host was added",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
+                },
+                "ImportEventID": {
+                    "type": "integer"
+                },
                 "MD5": {
                     "type": "string"
                 },
@@ -993,6 +1586,9 @@
             "x-enum-varnames": [
                 "HostStatusNew"
             ]
+        },
+        "datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary": {
+            "type": "object"
         },
         "error.APIError": {
             "type": "object",
@@ -1113,6 +1709,12 @@
                                 "type": "integer"
                             }
                         },
+                        "Emails": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
                         "IPs": {
                             "type": "array",
                             "items": {
@@ -1133,19 +1735,14 @@
                 "TotalDomains": {
                     "type": "integer"
                 },
+                "TotalEmails": {
+                    "type": "integer"
+                },
                 "TotalIPs": {
                     "type": "integer"
                 },
                 "TotalURLs": {
                     "type": "integer"
-                }
-            }
-        },
-        "routing.blacklistDeleteParams": {
-            "type": "object",
-            "properties": {
-                "uuid": {
-                    "type": "string"
                 }
             }
         },
@@ -1180,6 +1777,28 @@
                 }
             }
         },
+        "routing.deleteByIDParams": {
+            "type": "object",
+            "required": [
+                "ID"
+            ],
+            "properties": {
+                "ID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "routing.deleteByUUIDParams": {
+            "type": "object",
+            "required": [
+                "UUID"
+            ],
+            "properties": {
+                "UUID": {
+                    "type": "string"
+                }
+            }
+        },
         "routing.dynamicConfigUpdateParams": {
             "type": "object",
             "required": [
@@ -1190,6 +1809,36 @@
                     "type": "string"
                 },
                 "DynamicConfigVariable": {
+                    "type": "string"
+                }
+            }
+        },
+        "serviceDeskEntities.ServiceDeskTicket": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "Data": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "ID": {
+                    "type": "integer"
+                },
+                "System": {
+                    "type": "string"
+                },
+                "TicketID": {
+                    "description": "TicketID is issued by service desk",
+                    "type": "string"
+                },
+                "UpdatedAt": {
                     "type": "string"
                 }
             }

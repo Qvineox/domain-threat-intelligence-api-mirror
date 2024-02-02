@@ -4,6 +4,7 @@ import (
 	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/networkEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/scanEntities"
+	"domain_threat_intelligence_api/cmd/core/entities/serviceDeskEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"gorm.io/gorm"
 	"log/slog"
@@ -13,10 +14,13 @@ func runMigrations(database *gorm.DB) error {
 	slog.Info("running migrations...")
 
 	err := database.AutoMigrate(
+		serviceDeskEntities.ServiceDeskTicket{},
+		blacklistEntities.BlacklistImportEvent{},
 		blacklistEntities.BlacklistSource{},
 		blacklistEntities.BlacklistedDomain{},
 		blacklistEntities.BlacklistedIP{},
 		blacklistEntities.BlacklistedURL{},
+		blacklistEntities.BlacklistedEmail{},
 		networkEntities.NetworkNodeType{},
 		networkEntities.NetworkNode{},
 		networkEntities.NetworkNodeScan{},

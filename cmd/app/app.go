@@ -4,6 +4,7 @@ import (
 	"domain_threat_intelligence_api/api/rest"
 	"domain_threat_intelligence_api/cmd/core/repos"
 	"domain_threat_intelligence_api/cmd/core/services"
+	"domain_threat_intelligence_api/cmd/integrations/naumen"
 	"domain_threat_intelligence_api/configs"
 	"fmt"
 	"gorm.io/driver/postgres"
@@ -30,11 +31,15 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfig)
 		return err
 	}
 
+	// domain services initialization
+	domainServices := rest.Services{}
+
+	// integrations
+	domainServices.ServiceDeskService = naumen.NewServiceDeskClient(repos.NewServiceDeskRepoImpl(dbConn), dynamicCfg)
+
 	// creating repositories and services
-	domainServices := rest.Services{
-		BlacklistService:   services.NewBlackListsServiceImpl(repos.NewBlacklistsRepoImpl(dbConn)),
-		SystemStateService: services.NewSystemStateServiceImpl(dynamicCfg),
-	}
+	domainServices.BlacklistService = services.NewBlackListsServiceImpl(repos.NewBlacklistsRepoImpl(dbConn), domainServices.ServiceDeskService)
+	domainServices.SystemStateService = services.NewSystemStateServiceImpl(dynamicCfg)
 
 	slog.Info("web server starting...")
 

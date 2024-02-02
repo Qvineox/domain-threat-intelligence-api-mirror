@@ -27,10 +27,11 @@ func NewSystemStateRouter(service core.ISystemStateService, path *gin.RouterGrou
 
 // GetDynamicConfig returns info about current dynamic application config
 //
-//	@Summary		view application dynamic config
+//	@Summary		View application dynamic config
 //	@Description	Gets info about current dynamic application config
 //	@Tags			Configuration
 //	@Router			/system/dynamic [get]
+//	@Produce		json
 //	@Success		200
 //	@Failure		400	{object}	error.APIError
 func (r *SystemStateRouter) GetDynamicConfig(c *gin.Context) {
@@ -45,10 +46,11 @@ func (r *SystemStateRouter) GetDynamicConfig(c *gin.Context) {
 
 // PostDynamicConfigValue updates dynamic config variable
 //
-//	@Summary		update dynamic config variable
+//	@Summary		Update dynamic config variable
 //	@Description	Updates dynamic application config variable
 //	@Tags			Configuration
 //	@Router			/system/dynamic/variable [post]
+//	@Produce		json
 //	@Param			variable	body	dynamicConfigUpdateParams	true	"variable to update"
 //	@Success		202
 //	@Failure		400	{object}	error.APIError

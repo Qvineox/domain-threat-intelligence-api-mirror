@@ -1,41 +1,46 @@
 package services
 
 import (
-	"crypto/sha512"
 	"domain_threat_intelligence_api/cmd/core"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
-	"encoding/hex"
 	"errors"
 	"github.com/jackc/pgtype"
+	"strings"
 )
 
-const salt string = "ag23g2gvsadg31w"
-
 type UsersServiceImpl struct {
-	repo core.IUsersRepo
+	repo         core.IUsersRepo
+	passwordSalt string
 }
 
-func (s *UsersServiceImpl) CreateUser(login, password, fullName, email string) (pgtype.UUID, error) {
+func (s *UsersServiceImpl) CreateUser(login, password, fullName, email string, roleIDs []uint64) (pgtype.UUID, error) {
 	if len(password) == 0 || len(login) == 0 {
 		return pgtype.UUID{}, errors.New("password or login empty")
 	}
 
-	hasher := sha512.New()
-	hasher.Write(append([]byte(password), salt...))
-
-	hashedPass := hasher.Sum(nil)
-
-	newUser := userEntities.PlatformUser{
-		FullName:     fullName,
-		Login:        login,
-		PasswordHash: hex.EncodeToString(hashedPass),
-		IsActive:     true,
+	if !s.isValidByPasswordPolicy(password) {
+		return pgtype.UUID{}, errors.New("password not valid by policy")
 	}
 
-	return s.repo.InsertUser(newUser)
+	newUser, err := userEntities.NewPlatformUser(fullName, login, email, strings.Join([]string{password, s.passwordSalt}, ""), true)
+	if err != nil {
+		return pgtype.UUID{}, err
+	}
+
+	err = newUser.SetRoles(roleIDs)
+	if err != nil {
+		return pgtype.UUID{}, err
+	}
+
+	return s.repo.InsertUser(*newUser)
 }
 
-func (s *UsersServiceImpl) SaveUser(user userEntities.PlatformUser) (pgtype.UUID, error) {
+func (s *UsersServiceImpl) SaveUser(user userEntities.PlatformUser, roleIDs []uint64) (pgtype.UUID, error) {
+	err := user.SetRoles(roleIDs)
+	if err != nil {
+		return pgtype.UUID{}, err
+	}
+
 	return s.repo.UpdateUser(user)
 }
 
@@ -68,4 +73,13 @@ func (s *UsersServiceImpl) ChangePassword(uuid pgtype.UUID, oldPassword, newPass
 	}
 
 	return errors.New("not implemented")
+}
+
+func (s *UsersServiceImpl) isValidByPasswordPolicy(password string) bool {
+
+	if len(password) < 8 {
+		return false
+	}
+
+	return true
 }
