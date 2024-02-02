@@ -349,10 +349,10 @@ func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter blacklistEntities.B
 	var hosts []blacklistEntities.BlacklistedHost
 	var err error
 
-	ipQuery := r.Model(&blacklistEntities.BlacklistedIP{}).Select("uuid, abbrev(ip_address) AS host, 'ip' AS type, description, source_id, import_event_id, created_at, updated_at, deleted_at")
-	urlQuery := r.Model(&blacklistEntities.BlacklistedURL{}).Select("uuid, url AS host, 'url' AS type, description, source_id, import_event_id, created_at, updated_at, deleted_at")
-	domainQuery := r.Model(&blacklistEntities.BlacklistedDomain{}).Select("uuid, urn AS host, 'domain' AS type, description, import_event_id, source_id, created_at, updated_at, deleted_at")
-	emailQuery := r.Model(&blacklistEntities.BlacklistedEmail{}).Select("uuid, email AS host, 'email' AS type, description, import_event_id, source_id, created_at, updated_at, deleted_at")
+	ipQuery := r.Model(&blacklistEntities.BlacklistedIP{}).Select("uuid, abbrev(ip_address) AS host, 'ip' AS type, description, source_id, import_event_id, discovered_at, created_at, updated_at, deleted_at")
+	urlQuery := r.Model(&blacklistEntities.BlacklistedURL{}).Select("uuid, url AS host, 'url' AS type, description, source_id, import_event_id, discovered_at, created_at, updated_at, deleted_at")
+	domainQuery := r.Model(&blacklistEntities.BlacklistedDomain{}).Select("uuid, urn AS host, 'domain' AS type, description, source_id, import_event_id, discovered_at, created_at, updated_at, deleted_at")
+	emailQuery := r.Model(&blacklistEntities.BlacklistedEmail{}).Select("uuid, email AS host, 'email' AS type, description, source_id, import_event_id, discovered_at, created_at, updated_at, deleted_at")
 
 	if filter.IsActive != nil && *filter.IsActive == false {
 		ipQuery = ipQuery.Unscoped()

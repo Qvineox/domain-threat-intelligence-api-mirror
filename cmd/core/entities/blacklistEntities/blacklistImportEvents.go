@@ -1,6 +1,7 @@
 package blacklistEntities
 
 import (
+	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"time"
@@ -13,7 +14,9 @@ type BlacklistImportEvent struct {
 	Type       string                                          `json:"Type" gorm:"column:type"`
 	IsComplete bool                                            `json:"IsComplete" gorm:"column:is_complete"`
 
-	// TODO: add CreatedBy field
+	// CreatedBy defines import event creator identity
+	CreatedBy   *userEntities.PlatformUser `json:"CreatedBy"`
+	CreatedByID *uint64                    `json:"CreatedByID" gorm:"column:created_by_id"`
 
 	CreatedAt time.Time      `json:"CreatedAt"`
 	DeletedAt gorm.DeletedAt `json:"DeletedAt,omitempty" gorm:"index"`

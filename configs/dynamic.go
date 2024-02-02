@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 type DynamicConfig struct {
@@ -107,14 +108,34 @@ func (c *DynamicConfig) GetNaumenURL() (url string, err error) {
 	return url, nil
 }
 
+func (c *DynamicConfig) GetNaumenBlacklistService() (id, slm int, callType string, err error) {
+	id = c.config.GetInt(string(NaumenBlacklistsAgreementID))
+	slm = c.config.GetInt(string(NaumenBlacklistsSLM))
+	callType = c.config.GetString(string(NaumenBlacklistsCallType))
+
+	if id == 0 || slm == 0 || len(callType) == 0 {
+		return 0, 0, "", errors.New("service params not defined")
+	}
+
+	return id, slm, callType, nil
+}
+
+func (c *DynamicConfig) GetNaumenBlacklistTypes() (types []string, err error) {
+	types = c.config.GetStringSlice(string(NaumenBlacklistsTypes))
+
+	if len(types) == 0 {
+		return nil, errors.New("types to blacklist not defined")
+	}
+
+	return types, nil
+}
+
 func (c *DynamicConfig) GetNaumenCredentials() (clientKey, clientID, clientGroupID string, err error) {
 	clientKey = c.config.GetString(string(NaumenClientKey))
 	clientID = c.config.GetString(string(NaumenClientID))
 	clientGroupID = c.config.GetString(string(NaumenClientGroupID))
 
-	// TODO: check if group required
-
-	if len(clientKey) == 0 || len(clientID) == 0 {
+	if len(clientKey) == 0 || len(clientID) == 0 || len(clientGroupID) == 0 {
 		return "", "", clientGroupID, errors.New("credentials not defined")
 	}
 
@@ -144,6 +165,13 @@ func (c *DynamicConfig) SetDefaultValues() error {
 	c.config.SetDefault(string(NaumenClientID), "")
 	c.config.SetDefault(string(NaumenClientGroupID), "")
 
+	// blacklists service parameters
+	c.config.SetDefault(string(NaumenBlacklistsAgreementID), "")
+	c.config.SetDefault(string(NaumenBlacklistsSLM), "")
+	c.config.SetDefault(string(NaumenBlacklistsCallType), "")
+	c.config.SetDefault(string(NaumenBlacklistsTypes), []string{"ip"})
+
+	// smtp credentials
 	c.config.SetDefault(string(SMTPHost), "")
 	c.config.SetDefault(string(SMTPUser), "")
 	c.config.SetDefault(string(SMTPSender), "dti")
@@ -164,6 +192,19 @@ func (c *DynamicConfig) SetValue(key string, value string) error {
 		c.config.Set(string(NaumenClientGroupID), value)
 	case string(NaumenClientID):
 		c.config.Set(string(NaumenClientID), value)
+	case string(NaumenBlacklistsAgreementID):
+		c.config.Set(string(NaumenBlacklistsAgreementID), value)
+	case string(NaumenBlacklistsSLM):
+		c.config.Set(string(NaumenBlacklistsSLM), value)
+	case string(NaumenBlacklistsCallType):
+		c.config.Set(string(NaumenBlacklistsCallType), value)
+	case string(NaumenBlacklistsTypes):
+		values := strings.Split(value, ",")
+		if len(values) == 0 {
+			return errors.New("blacklisting types not defined")
+		}
+
+		c.config.Set(string(NaumenBlacklistsTypes), values)
 	case string(SMTPHost):
 		c.config.Set(string(SMTPHost), value)
 	case string(SMTPUser):
@@ -201,13 +242,17 @@ func (c *DynamicConfig) GetCurrentState() ([]byte, error) {
 type DynamicVariables string
 
 const (
-	NaumenURL           DynamicVariables = "integrations.naumen.url"
-	NaumenClientKey     DynamicVariables = "integrations.naumen.client_key"
-	NaumenClientID      DynamicVariables = "integrations.naumen.client_id"
-	NaumenClientGroupID DynamicVariables = "integrations.naumen.client_group_id"
-	SMTPHost            DynamicVariables = "smtp.host"
-	SMTPUser            DynamicVariables = "smtp.user"
-	SMTPSender          DynamicVariables = "smtp.sender"
-	SMTPPassword        DynamicVariables = "smtp.password"
-	SMTPUseTLS          DynamicVariables = "smtp.use_tls"
+	NaumenURL                   DynamicVariables = "integrations.naumen.url"
+	NaumenClientKey             DynamicVariables = "integrations.naumen.client_key"
+	NaumenClientID              DynamicVariables = "integrations.naumen.client_id"
+	NaumenClientGroupID         DynamicVariables = "integrations.naumen.client_group_id"
+	NaumenBlacklistsAgreementID DynamicVariables = "integrations.naumen.blacklists.agreement_id"
+	NaumenBlacklistsSLM         DynamicVariables = "integrations.naumen.blacklists.slm"
+	NaumenBlacklistsCallType    DynamicVariables = "integrations.naumen.blacklists.call_type"
+	NaumenBlacklistsTypes       DynamicVariables = "integrations.naumen.blacklists.types"
+	SMTPHost                    DynamicVariables = "smtp.host"
+	SMTPUser                    DynamicVariables = "smtp.user"
+	SMTPSender                  DynamicVariables = "smtp.sender"
+	SMTPPassword                DynamicVariables = "smtp.password"
+	SMTPUseTLS                  DynamicVariables = "smtp.use_tls"
 )

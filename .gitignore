@@ -4,3 +4,4 @@ scripts/docker/docker-compose.yml
 go.sum
 build/bin
 /configs/dynamic.json
+docs/examples

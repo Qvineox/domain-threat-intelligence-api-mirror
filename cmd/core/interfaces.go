@@ -2,6 +2,7 @@ package core
 
 import (
 	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
+	"domain_threat_intelligence_api/cmd/core/entities/serviceDeskEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"github.com/jackc/pgtype"
 	"time"
@@ -34,8 +35,9 @@ type IBlacklistsService interface {
 	ImportFromSTIX2(bundles []blacklistEntities.STIX2Bundle, extractAll bool) (blacklistEntities.BlacklistImportEvent, error)
 	ImportFromCSV(data [][]string, discoveredAt time.Time, extractAll bool) (blacklistEntities.BlacklistImportEvent, error)
 
-	ExportToJSON(blacklistEntities.BlacklistExportFilter) ([]byte, error)
-	ExportToCSV(blacklistEntities.BlacklistExportFilter) ([]byte, error)
+	ExportToJSON(blacklistEntities.BlacklistSearchFilter) ([]byte, error)
+	ExportToCSV(blacklistEntities.BlacklistSearchFilter) ([]byte, error)
+	ExportToNaumen(filter blacklistEntities.BlacklistSearchFilter) (serviceDeskEntities.ServiceDeskTicket, error)
 
 	RetrieveTotalStatistics() (ips int64, urls int64, domains int64, emails int64)
 	RetrieveByDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error)
@@ -75,11 +77,11 @@ type IBlacklistsRepo interface {
 
 type IUsersService interface {
 	// CreateUser creates only new entities.PlatformUser, returns error if user exists, ignores defined UUID
-	CreateUser(login, password, fullName, email string) (pgtype.UUID, error)
+	CreateUser(login, password, fullName, email string, roleIDs []uint64) (pgtype.UUID, error)
 
 	// SaveUser updates only existing entities.PlatformUser, returns error if user doesn't exist, UUID should be defined.
 	// This method doesn't update user password, use ResetPassword or ChangePassword
-	SaveUser(user userEntities.PlatformUser) (pgtype.UUID, error)
+	SaveUser(user userEntities.PlatformUser, roleIDs []uint64) (pgtype.UUID, error)
 
 	DeleteUser(uuid pgtype.UUID) error
 	RetrieveUsers() ([]userEntities.PlatformUser, error)
@@ -114,6 +116,7 @@ type IAuthService interface {
 	Login(login, password string) (accessToken, refreshToken string, err error)
 	Logout(uuid pgtype.UUID) error
 
+	Validate(token string) (isValid bool, err error)
 	Refresh(token string) (accessToken, refreshToken string, err error)
 }
 
@@ -122,4 +125,21 @@ type ISystemStateService interface {
 	RetrieveDynamicConfig() ([]byte, error)
 	SaveDynamicConfigVariable(key, value string) error
 	ReturnToDefault() error
+}
+
+type IServiceDeskService interface {
+	IsAvailable() bool
+
+	RetrieveTicketsByFilter(filter serviceDeskEntities.ServiceDeskSearchFilter) ([]serviceDeskEntities.ServiceDeskTicket, error)
+	DeleteTicket(id uint64) error
+
+	// SendBlacklistedHosts sends new ticket to service desk
+	SendBlacklistedHosts([]blacklistEntities.BlacklistedHost) (ticket serviceDeskEntities.ServiceDeskTicket, err error)
+}
+
+type IServiceDeskRepo interface {
+	SaveTicket(ticket serviceDeskEntities.ServiceDeskTicket) (serviceDeskEntities.ServiceDeskTicket, error)
+	SelectTicketsByFilter(filter serviceDeskEntities.ServiceDeskSearchFilter) ([]serviceDeskEntities.ServiceDeskTicket, error)
+	DeleteTicket(id uint64) error
+	//SelectTicket(id uint64)
 }

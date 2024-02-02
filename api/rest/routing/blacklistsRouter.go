@@ -91,6 +91,7 @@ func NewBlacklistsRouter(service core.IBlacklistsService, path *gin.RouterGroup)
 	{
 		blacklistExportGroup.POST("/csv", router.PostExportBlacklistsToCSV)
 		blacklistExportGroup.POST("/json", router.PostExportBlacklistsToJSON)
+		blacklistExportGroup.POST("/naumen", router.PostExportBlacklistsToNaumen)
 	}
 
 	blacklistsGroup.GET("/sources", router.GetBlackListSources)
@@ -793,6 +794,7 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 	event, err := r.service.ImportFromSTIX2(bundles, extractAll)
 	if err != nil {
 		apiErrors.FileProcessingErrorResponse(c, err)
+		return
 	}
 
 	go r.recountStatistics()
@@ -909,7 +911,7 @@ func (r *BlacklistsRouter) DeleteImportEvent(c *gin.Context) {
 //	@Success		200	{file}		file
 //	@Failure		400	{object}	apiErrors.APIError
 func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
-	params := blacklistEntities.BlacklistExportFilter{}
+	params := blacklistEntities.BlacklistSearchFilter{}
 
 	err := c.ShouldBindQuery(&params)
 	if err != nil {
@@ -917,22 +919,18 @@ func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
 		return
 	}
 
-	// reset all params if exporting by event id
-	if params.ImportEventID != 0 {
-		params = blacklistEntities.BlacklistExportFilter{
-			ImportEventID: params.ImportEventID,
-		}
-	} else {
-		if params.CreatedBefore != nil && !params.CreatedBefore.IsZero() {
-			var d = params.CreatedBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
-			params.CreatedBefore = &d
-		}
-
-		if params.DiscoveredBefore != nil && !params.DiscoveredBefore.IsZero() {
-			var d = params.DiscoveredBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
-			params.DiscoveredBefore = &d
-		}
+	if params.CreatedBefore != nil && !params.CreatedBefore.IsZero() {
+		var d = params.CreatedBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.CreatedBefore = &d
 	}
+
+	if params.DiscoveredBefore != nil && !params.DiscoveredBefore.IsZero() {
+		var d = params.DiscoveredBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.DiscoveredBefore = &d
+	}
+
+	params.Limit = 0
+	params.Offset = 0
 
 	jsonBytes, err := r.service.ExportToCSV(params)
 	if err != nil {
@@ -973,7 +971,7 @@ func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
 //	@Success		200	{file}		file
 //	@Failure		400	{object}	apiErrors.APIError
 func (r *BlacklistsRouter) PostExportBlacklistsToJSON(c *gin.Context) {
-	params := blacklistEntities.BlacklistExportFilter{}
+	params := blacklistEntities.BlacklistSearchFilter{}
 
 	err := c.ShouldBindQuery(&params)
 	if err != nil {
@@ -991,6 +989,9 @@ func (r *BlacklistsRouter) PostExportBlacklistsToJSON(c *gin.Context) {
 		var d = params.DiscoveredBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
 		params.DiscoveredBefore = &d
 	}
+
+	params.Limit = 0
+	params.Offset = 0
 
 	jsonBytes, err := r.service.ExportToJSON(params)
 	if err != nil {
@@ -1013,6 +1014,58 @@ func (r *BlacklistsRouter) PostExportBlacklistsToJSON(c *gin.Context) {
 	}
 
 	c.FileAttachment(file.Name(), filepath.Base(file.Name()))
+}
+
+// PostExportBlacklistsToNaumen sends service call to Naumen Service Desk with hosts selected to block by filter
+//
+//	@Summary		Send hosts to Naumen Service Desk
+//	@Description	Sends service call to Naumen Service Desk with hosts selected to block by filter
+//	@Tags			Blacklists, Export
+//	@Router			/blacklists/export/naumen [post]
+//	@Produce		json
+//	@Param			source_id		query		[]uint64	false	"Source type IDs"	collectionFormat(multi)
+//	@Param			import_event_id	query		uint64		false	"Import event ID"
+//	@Param			is_active		query		bool		false	"Is active"
+//	@Param			created_after	query		string		false	"Created timestamp is after"
+//	@Param			created_before	query		string		false	"Created timestamp is before"
+//	@Param			search_string	query		string		false	"Substring to search"
+//	@Success		201				{object}	serviceDeskEntities.ServiceDeskTicket
+//	@Failure		400				{object}	apiErrors.APIError
+func (r *BlacklistsRouter) PostExportBlacklistsToNaumen(c *gin.Context) {
+	params := blacklistEntities.BlacklistSearchFilter{}
+
+	err := c.ShouldBindQuery(&params)
+	if err != nil {
+		apiErrors.ParamsErrorResponse(c, err)
+		return
+	}
+
+	// reset all params if exporting by event id
+	if params.CreatedBefore != nil && !params.CreatedBefore.IsZero() {
+		var d = params.CreatedBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.CreatedBefore = &d
+	}
+
+	if params.DiscoveredBefore != nil && !params.DiscoveredBefore.IsZero() {
+		var d = params.DiscoveredBefore.Add((24*60 - 1) * time.Minute) // set to end of the day
+		params.DiscoveredBefore = &d
+	}
+
+	params.Limit = 0
+	params.Offset = 0
+
+	// remove limits if event defined
+	if params.ImportEventID != 0 {
+		params.Limit = 0
+	}
+
+	ticket, err := r.service.ExportToNaumen(params)
+	if err != nil {
+		apiErrors.InternalErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, ticket)
 }
 
 // GetStatistics returns data containing overall amount of blacklisted entities

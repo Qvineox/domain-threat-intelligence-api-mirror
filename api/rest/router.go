@@ -25,9 +25,10 @@ func CreateRouter(services Services, allowedOrigins []string) *gin.Engine {
 
 	baseRouteV1 := router.Group("/api/v1")
 
-	// maintenance API group
+	// API groups
 	routing.NewBlacklistsRouter(services.BlacklistService, baseRouteV1)
 	routing.NewSystemStateRouter(services.SystemStateService, baseRouteV1)
+	routing.NewServiceDeskRouter(services.ServiceDeskService, baseRouteV1)
 
 	return router
 }
