@@ -53,7 +53,7 @@ func (h *BlacklistedHost) FromIP(ip BlacklistedIP) {
 	h.UpdatedAt = ip.UpdatedAt
 	h.DeletedAt = ip.DeletedAt
 
-	h.Status = h.GetStatus()
+	h.Status = HostStatusDefault
 }
 
 func (h *BlacklistedHost) FromDomain(ip BlacklistedDomain) {
@@ -69,7 +69,7 @@ func (h *BlacklistedHost) FromDomain(ip BlacklistedDomain) {
 	h.UpdatedAt = ip.UpdatedAt
 	h.DeletedAt = ip.DeletedAt
 
-	h.Status = h.GetStatus()
+	h.Status = HostStatusDefault
 }
 
 func (h *BlacklistedHost) FromURL(ip BlacklistedURL) {
@@ -85,26 +85,5 @@ func (h *BlacklistedHost) FromURL(ip BlacklistedURL) {
 	h.UpdatedAt = ip.UpdatedAt
 	h.DeletedAt = ip.DeletedAt
 
-	h.Status = h.GetStatus()
-}
-
-var statusThreshold = 2 * time.Hour
-
-func (h *BlacklistedHost) GetStatus() HostStatus {
-	now := time.Now()
-	threshold := now.Add(-statusThreshold)
-
-	if !h.DeletedAt.Time.IsZero() {
-		return HostStatusDeleted
-	}
-
-	if h.UpdatedAt.After(threshold) {
-		return HostStatusUpdated
-	}
-
-	if h.CreatedAt.After(threshold) {
-		return HostStatusNew
-	}
-
-	return HostStatusDefault
+	h.Status = HostStatusDefault
 }
