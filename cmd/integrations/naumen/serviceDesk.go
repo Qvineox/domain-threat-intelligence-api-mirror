@@ -129,7 +129,12 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 		}
 	}
 
-	requestAttributes.SubjectTicket = "Заблокировать доступ к/от указанных адресов. Добавить в черный список ФинЦЕРТ."
+	// check if at least 1 host left unfiltered
+	if len(filteredHosts) == 0 {
+		return serviceDeskEntities.ServiceDeskTicket{}, errors.New("there are no hosts to send")
+	}
+
+	requestAttributes.SubjectTicket = "Черный список ФинЦЕРТ. Заблокировать доступ."
 
 	description, err := s.buildHostsDescription(stats)
 	if err != nil {
@@ -160,7 +165,7 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 	}
 
 	response, err := s.httpClient.Do(request)
-	if err != nil || response.StatusCode == http.StatusBadRequest || response.StatusCode == http.StatusUnauthorized {
+	if err != nil || response.StatusCode != http.StatusCreated {
 		if response != nil {
 			text, err_ := io.ReadAll(response.Body)
 			if err_ != nil {
@@ -178,7 +183,11 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 
 		err = json.NewDecoder(response.Body).Decode(&responseBody)
 		if err != nil {
-			return serviceDeskEntities.ServiceDeskTicket{}, err
+			// naumen returns plain text error with error status
+			plainError, _ := io.ReadAll(response.Body)
+			errorText := string(plainError)
+
+			return serviceDeskEntities.ServiceDeskTicket{}, errors.New(err.Error() + ": " + errorText)
 		} else if len(responseBody.UUID) == 0 {
 			return serviceDeskEntities.ServiceDeskTicket{}, errors.New("missing naumen uuid")
 		} else {
@@ -227,13 +236,13 @@ type blacklistStats struct {
 }
 
 func (s *ServiceDeskClient) buildHostsDescription(stats blacklistStats) (string, error) {
-	var desc = "<style>table{width:100%;border-collapse: collapse;} thead{background-color:#7f96b9; font-weight:bold;} td{border: 1px solid; text-align: center;}</style>"
+	var desc = "<style>table{border-collapse: collapse;} thead{background-color:#7f96b9; font-weight:bold;} td{border: 1px solid; text-align: center;}</style>"
 
 	desc += "<p>Добрый день!</p>"
-	desc += fmt.Sprintf("<p>От ФинЦЕРТ'а поступило %d новых адресов для блокировки. Адреса указаны в приложенном файле.</p>", stats.ip+stats.domain+stats.url+stats.email)
+	desc += fmt.Sprintf("<p>От ФинЦЕРТ поступило %d новых адресов для блокировки. Просьба заблокировать сетевой доступ до и от указанных адресов.<br/><br/><b>Адреса указаны в приложенном файле.</b></p>", stats.ip+stats.domain+stats.url+stats.email)
 
 	desc += "<table>"
-	desc += "<thead><tr><td>Тип хоста</td><td>Количество</td></tr></thead>"
+	desc += "<thead><tr><td style=\"width: 250px;\">Тип хоста</td><td style=\"width: 150px;\">Количество</td></tr></thead>"
 	desc += "<tbody>"
 
 	if stats.ip > 0 {
@@ -273,6 +282,11 @@ func (s *ServiceDeskClient) buildHostsFile(hosts []blacklistEntities.Blacklisted
 	}
 
 	_, err = file.Write([]byte(writeValue))
+	if err != nil {
+		return nil, err
+	}
+
+	err = file.Close()
 	if err != nil {
 		return nil, err
 	}
