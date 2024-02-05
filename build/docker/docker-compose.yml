@@ -1,14 +1,15 @@
 version: '3.9'
 
 services:
-  dti_db:
-    container_name: dti_db
-    hostname: database
+  postgres:
+    container_name: domain_threat_intel_database
+    hostname: domain_threat_intel_database
 
-  dti_api:
-    container_name: dti_api
+  api:
+    container_name: domain_threat_intel_api
+    hostname: domain_threat_intel_api
     depends_on:
-      - dti_db
+      - postgres
     environment:
       db_host: $DB_HOST
       db_port: $DB_PORT
