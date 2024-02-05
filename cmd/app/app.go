@@ -12,7 +12,7 @@ import (
 	"log/slog"
 )
 
-func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfig) error {
+func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigProvider) error {
 	slog.Info("application starting...")
 	slog.Info("establishing database connection...")
 

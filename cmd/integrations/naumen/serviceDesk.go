@@ -24,10 +24,10 @@ type ServiceDeskClient struct {
 	repo       core.IServiceDeskRepo
 	httpClient http.Client
 
-	dynamic *configs.DynamicConfig
+	dynamic *configs.DynamicConfigProvider
 }
 
-func NewServiceDeskClient(repo core.IServiceDeskRepo, dynamicConfig *configs.DynamicConfig) *ServiceDeskClient {
+func NewServiceDeskClient(repo core.IServiceDeskRepo, dynamicConfig *configs.DynamicConfigProvider) *ServiceDeskClient {
 	client := ServiceDeskClient{
 		repo:    repo,
 		dynamic: dynamicConfig,
@@ -44,22 +44,7 @@ func NewServiceDeskClient(repo core.IServiceDeskRepo, dynamicConfig *configs.Dyn
 }
 
 func (s *ServiceDeskClient) IsAvailable() bool {
-	_, err := s.dynamic.GetNaumenURL()
-	if err != nil {
-		return false
-	}
-
-	_, _, _, err = s.dynamic.GetNaumenCredentials()
-	if err != nil {
-		return false
-	}
-
-	_, _, _, err = s.dynamic.GetNaumenBlacklistService()
-	if err != nil {
-		return false
-	}
-
-	return true
+	return s.dynamic.IsNaumenEnabled()
 }
 
 func (s *ServiceDeskClient) RetrieveTicketsByFilter(filter serviceDeskEntities.ServiceDeskSearchFilter) ([]serviceDeskEntities.ServiceDeskTicket, error) {
@@ -85,12 +70,7 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 	}
 
 	// get service configuration
-	url, err := s.dynamic.GetNaumenURL()
-	if err != nil {
-		return serviceDeskEntities.ServiceDeskTicket{}, err
-	}
-
-	key, emp, ou, err := s.dynamic.GetNaumenCredentials()
+	url, key, emp, ou, err := s.dynamic.GetNaumenCredentials()
 	if err != nil {
 		return serviceDeskEntities.ServiceDeskTicket{}, err
 	}
@@ -295,12 +275,7 @@ func (s *ServiceDeskClient) buildHostsFile(hosts []blacklistEntities.Blacklisted
 }
 
 func (s *ServiceDeskClient) appendFile(ticketID string, filePath string) error {
-	url, err := s.dynamic.GetNaumenURL()
-	if err != nil {
-		return err
-	}
-
-	key, _, _, err := s.dynamic.GetNaumenCredentials()
+	url, key, _, _, err := s.dynamic.GetNaumenCredentials()
 	if err != nil {
 		return err
 	}

@@ -63,12 +63,6 @@ func (r *SystemStateRouter) PostDynamicConfigValue(c *gin.Context) {
 		return
 	}
 
-	err = r.service.SaveDynamicConfigVariable(params.DynamicConfigVariable, params.DynamicConfigValue)
-	if err != nil {
-		error.ParamsErrorResponse(c, err)
-		return
-	}
-
 	c.Status(http.StatusAccepted)
 }
 
