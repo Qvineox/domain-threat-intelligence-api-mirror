@@ -3,20 +3,20 @@ stages:
 #  - test
 #  - deploy
 
-#.dind_build_setup:
-#  image: artifactory.rgs.ru:5000/docker/docker:24.0.5
-#  variables:
-#    DOCKER_HOST: tcp://docker:2375
-#    DOCKER_TLS_CERTDIR: ""
-#    DOCKER_DRIVER: overlay2
-#  services:
-#    - name: artifactory.rgs.ru:5000/docker/docker:24.0.5-dind
-#      alias: docker
-#      command: [ "--insecure-registry=gl-uib-registry.rgs.ru" ] # to escape .509 unknown issuer
-#  before_script:
-#    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-#  tags:
-#    - docker-in-docker
+.dind_build_setup:
+  image: docker/docker:24.0.5
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_DRIVER: overlay2
+  services:
+    - name: docker/docker:24.0.5-dind
+      alias: docker
+      command: [ "--insecure-registry=gl-uib-registry.rgs.ru" ] # to escape .509 unknown issuer
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  tags:
+    - docker
 #  only:
 #    refs:
 #      - master
