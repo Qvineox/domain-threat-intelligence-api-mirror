@@ -37,6 +37,7 @@ stages:
 
 build docker image:
   stage: build
+  extends: .dind_build_setup
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_REF_SLUG
   script:
