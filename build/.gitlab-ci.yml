@@ -10,7 +10,7 @@ stages:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay2
   services:
-    - name: docker:25.0.2-dind
+    - name: docker/docker:24.0.5-dind
       alias: docker
 #      command: [ "--insecure-registry=gl-uib-registry.rgs.ru" ] # to escape .509 unknown issuer
   before_script:
