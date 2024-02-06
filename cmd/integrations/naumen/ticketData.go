@@ -33,29 +33,13 @@ func (t *ticketData) FillPayload(hosts []blacklistEntities.BlacklistedHost) {
 	for _, h := range hosts {
 		switch h.Type {
 		case "ip":
-			for _, h := range hosts {
-				if h.Type == "ip" {
-					i = append(i, h.Host)
-				}
-			}
+			i = append(i, h.Host)
 		case "domain":
-			for _, h := range hosts {
-				if h.Type == "domain" {
-					d = append(d, h.Host)
-				}
-			}
+			d = append(d, h.Host)
 		case "url":
-			for _, h := range hosts {
-				if h.Type == "url" {
-					u = append(u, h.Host)
-				}
-			}
+			u = append(u, h.Host)
 		case "email":
-			for _, h := range hosts {
-				if h.Type == "email" {
-					e = append(e, h.Host)
-				}
-			}
+			e = append(e, h.Host)
 		}
 	}
 

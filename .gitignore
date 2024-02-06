@@ -5,3 +5,4 @@ go.sum
 build/bin
 /configs/dynamic.json
 docs/examples
+/configs/dynamic.old.json

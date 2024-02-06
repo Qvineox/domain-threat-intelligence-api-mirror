@@ -123,7 +123,6 @@ type IAuthService interface {
 // ISystemStateService holds collection of services that provide info about system configuration, state and status
 type ISystemStateService interface {
 	RetrieveDynamicConfig() ([]byte, error)
-	SaveDynamicConfigVariable(key, value string) error
 	ReturnToDefault() error
 }
 

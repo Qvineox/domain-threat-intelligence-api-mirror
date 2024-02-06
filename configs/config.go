@@ -44,7 +44,7 @@ func NewStaticConfig() (StaticConfig, error) {
 		return StaticConfig{}, err
 	}
 
-	// if config file not find tries to get configuration parameters from environment
+	// if viper file not find tries to get configuration parameters from environment
 	err = cleanenv.ReadConfig(filepath.Join(currentDir, "configs", "config.json"), &cfg)
 	if err != nil {
 		err = cleanenv.ReadEnv(&cfg)

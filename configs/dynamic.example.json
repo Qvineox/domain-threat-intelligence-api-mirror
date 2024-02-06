@@ -1,3 +1,27 @@
 {
-  "naumen_client_key": "xxx"
+  "integrations": {
+    "naumen": {
+      "blacklists": {
+        "agreementid": "",
+        "calltype": "",
+        "slm": "",
+        "types": [
+          "ip"
+        ]
+      },
+      "clientgroupid": "",
+      "clientid": "",
+      "clientkey": "",
+      "enabled": false,
+      "url": ""
+    }
+  },
+  "smtp": {
+    "enabled": false,
+    "host": "",
+    "password": "",
+    "sender": "",
+    "user": "",
+    "usetls": false
+  }
 }
