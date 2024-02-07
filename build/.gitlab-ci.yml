@@ -1,6 +1,6 @@
 stages:
   - build
-  #  - test
+  - test
   - deploy
 
 .registry_setup:
@@ -41,6 +41,9 @@ build docker image:
     refs:
       - stage
 
+run static code analysis:
+  stage: test
+
 deploy to production:
   extends: .registry_setup
   stage: deploy
@@ -55,4 +58,7 @@ deploy to production:
   only:
     refs:
       - stage
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
 
