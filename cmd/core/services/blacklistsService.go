@@ -607,8 +607,12 @@ func (s *BlackListsServiceImpl) RetrieveTotalStatistics() (int64, int64, int64, 
 	return s.repo.CountStatistics()
 }
 
-func (s *BlackListsServiceImpl) RetrieveByDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error) {
-	return s.repo.SelectByDateStatistics(startDate, endDate)
+func (s *BlackListsServiceImpl) RetrieveByCreationDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error) {
+	return s.repo.SelectByCreationDateStatistics(startDate, endDate)
+}
+
+func (s *BlackListsServiceImpl) RetrieveByDiscoveryDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error) {
+	return s.repo.SelectByDiscoveryDateStatistics(startDate, endDate)
 }
 
 type BlacklistedBundle struct {

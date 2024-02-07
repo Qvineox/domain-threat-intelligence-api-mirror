@@ -1,0 +1,58 @@
+stages:
+  - build
+  #  - test
+  - deploy
+
+.registry_setup:
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_REF_SLUG
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  tags:
+    - docker
+#  only:
+#    refs:
+#      - master
+
+#build gateway docker image:
+#  stage: build
+#  extends: .dind_build_setup
+#  variables:
+#    IMAGE_TAG: $CI_REGISTRY_IMAGE/gateway:$CI_COMMIT_REF_SLUG
+#  script:
+#    - mkdir $CI_PROJECT_DIR/gateway/config/certificates
+#    - cp $CERT $CI_PROJECT_DIR/gateway/config/certificates/cert.crt
+#    - cp $CERT_PRIVATE_KEY $CI_PROJECT_DIR/gateway/config/certificates/key.key
+#    - docker build -t $IMAGE_TAG ./gateway
+#    - docker push $IMAGE_TAG
+#  tags:
+#    - docker-in-docker
+
+build docker image:
+  stage: build
+  image: docker:25.0.2
+  extends: .registry_setup
+  script:
+    - docker build . -t $IMAGE_TAG -f ./build/docker/Dockerfile
+    - docker push $IMAGE_TAG
+  tags:
+    - docker
+  only:
+    refs:
+      - stage
+
+deploy to production:
+  extends: .registry_setup
+  stage: deploy
+  environment:
+    name: Stage
+    url: https://domain-threat-intel-stage.qvineox.ru/
+  script:
+    - docker pull $IMAGE_TAG
+    - docker compose up -d
+  tags:
+    - shell
+  only:
+    refs:
+      - stage
+

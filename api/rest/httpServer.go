@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	_ "domain_threat_intelligence_api/docs/swagger" // needs to be imported to use Swagger docs
+	swaggerDocs "domain_threat_intelligence_api/docs/swagger" // needs to be imported to use Swagger docs
 )
 
 type HTTPServer struct {
@@ -16,7 +16,7 @@ type HTTPServer struct {
 	swaggerEnabled bool
 }
 
-func NewHTTPServer(host string, port uint64, swagger bool, services Services, allowedOrigins []string) (*HTTPServer, error) {
+func NewHTTPServer(host, swaggerHost, apiVersion, basePath string, port uint64, swagger bool, services Services, allowedOrigins []string) (*HTTPServer, error) {
 	s := &HTTPServer{}
 
 	if len(host) == 0 {
@@ -32,11 +32,15 @@ func NewHTTPServer(host string, port uint64, swagger bool, services Services, al
 	}
 
 	// gin router initialization
-	router := CreateRouter(services, allowedOrigins)
+	router := CreateRouter(services, basePath, allowedOrigins)
 
 	// swagger routing
 	s.swaggerEnabled = swagger
 	if s.swaggerEnabled {
+		swaggerDocs.SwaggerInfo.Host = swaggerHost
+		swaggerDocs.SwaggerInfo.Version = apiVersion
+		swaggerDocs.SwaggerInfo.BasePath = basePath
+
 		handleSwagger(router)
 	}
 

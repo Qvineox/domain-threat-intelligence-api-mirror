@@ -340,19 +340,7 @@
                         },
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
-                        "name": "source_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Import event ID",
-                        "name": "import_event_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Is active",
-                        "name": "is_active",
+                        "name": "source_id[]",
                         "in": "query"
                     },
                     {
@@ -369,8 +357,14 @@
                     },
                     {
                         "type": "string",
-                        "description": "Substring to search",
-                        "name": "search_string",
+                        "description": "Discovery timestamp is after",
+                        "name": "discovered_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Discovery timestamp is before",
+                        "name": "discovered_before",
                         "in": "query"
                     }
                 ],
@@ -410,19 +404,7 @@
                         },
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
-                        "name": "source_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Import event ID",
-                        "name": "import_event_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Is active",
-                        "name": "is_active",
+                        "name": "source_id[]",
                         "in": "query"
                     },
                     {
@@ -439,8 +421,14 @@
                     },
                     {
                         "type": "string",
-                        "description": "Substring to search",
-                        "name": "search_string",
+                        "description": "Discovery timestamp is after",
+                        "name": "discovered_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Discovery timestamp is before",
+                        "name": "discovered_before",
                         "in": "query"
                     }
                 ],
@@ -1241,24 +1229,92 @@
                 }
             }
         },
-        "/system/dynamic/variable": {
+        "/system/dynamic/naumen": {
             "post": {
-                "description": "Updates dynamic application config variable",
+                "description": "Updates dynamic Naumen Service Desk configuration",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Configuration"
                 ],
-                "summary": "Update dynamic config variable",
+                "summary": "Update dynamic Naumen Service Desk configuration",
                 "parameters": [
                     {
-                        "description": "variable to update",
-                        "name": "variable",
+                        "description": "dynamic naumen configuration",
+                        "name": "naumenConfig",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.dynamicConfigUpdateParams"
+                            "$ref": "#/definitions/routing.naumenConfigUpdateParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/dynamic/naumen/blacklists": {
+            "post": {
+                "description": "Updates dynamic Naumen Service Desk service configuration",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Configuration"
+                ],
+                "summary": "Update dynamic Naumen Service Desk service configuration",
+                "parameters": [
+                    {
+                        "description": "dynamic naumen service configuration",
+                        "name": "naumenConfig",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.naumenBlacklistServiceConfigUpdateParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/dynamic/smtp": {
+            "post": {
+                "description": "Updates dynamic SMTP configuration",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Configuration"
+                ],
+                "summary": "Update dynamic SMTP configuration",
+                "parameters": [
+                    {
+                        "description": "dynamic SMTP configuration",
+                        "name": "smtpConfig",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.smtpConfigUpdateParams"
                         }
                     }
                 ],
@@ -1283,6 +1339,13 @@
                 "CreatedAt": {
                     "type": "string"
                 },
+                "CreatedBy": {
+                    "description": "CreatedBy defines import event creator identity",
+                    "$ref": "#/definitions/userEntities.PlatformUser"
+                },
+                "CreatedByID": {
+                    "type": "integer"
+                },
                 "DeletedAt": {
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
@@ -1293,7 +1356,7 @@
                     "type": "boolean"
                 },
                 "Summary": {
-                    "$ref": "#/definitions/datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary"
+                    "type": "object"
                 },
                 "Type": {
                     "type": "string"
@@ -1341,22 +1404,14 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1393,22 +1448,14 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1442,28 +1489,20 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Source defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
                 },
                 "Status": {
-                    "$ref": "#/definitions/blacklistEntities.HostStatus"
+                    "type": "string"
                 },
                 "Type": {
                     "description": "domain, url or IP",
@@ -1498,22 +1537,14 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1544,11 +1575,7 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                 },
                 "ImportEventID": {
                     "type": "integer"
@@ -1558,11 +1585,7 @@
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1578,23 +1601,11 @@
                 }
             }
         },
-        "blacklistEntities.HostStatus": {
-            "type": "string",
-            "enum": [
-                "new"
-            ],
-            "x-enum-varnames": [
-                "HostStatusNew"
-            ]
-        },
-        "datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary": {
-            "type": "object"
-        },
         "error.APIError": {
             "type": "object",
             "properties": {
                 "ErrorCode": {
-                    "$ref": "#/definitions/error.CodeError"
+                    "type": "integer"
                 },
                 "ErrorMessage": {
                     "type": "string"
@@ -1606,35 +1617,6 @@
                     "type": "integer"
                 }
             }
-        },
-        "error.CodeError": {
-            "type": "integer",
-            "enum": [
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11
-            ],
-            "x-enum-varnames": [
-                "EncodingErrorCode",
-                "DecodingErrorCode",
-                "IncorrectParamsErrorCode",
-                "InsufficientParamsErrorCode",
-                "DatabaseErrorCode",
-                "FileDecodingErrorCode",
-                "FileReadingErrorCode",
-                "FileExtensionNotSupportedErrorCode",
-                "NotImplementedErrorCode",
-                "FileProcessingErrorCode",
-                "InternalUnidentifiedErrorCode"
-            ]
         },
         "gorm.DeletedAt": {
             "type": "object",
@@ -1674,22 +1656,9 @@
                     "$ref": "#/definitions/net.IPNet"
                 },
                 "status": {
-                    "$ref": "#/definitions/pgtype.Status"
+                    "type": "integer"
                 }
             }
-        },
-        "pgtype.Status": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2
-            ],
-            "x-enum-varnames": [
-                "Undefined",
-                "Null",
-                "Present"
-            ]
         },
         "routing.BlacklistedStatistics": {
             "type": "object",
@@ -1799,16 +1768,83 @@
                 }
             }
         },
-        "routing.dynamicConfigUpdateParams": {
+        "routing.naumenBlacklistServiceConfigUpdateParams": {
             "type": "object",
             "required": [
-                "DynamicConfigVariable"
+                "CallType",
+                "HostTypes",
+                "SLM",
+                "agreementID"
             ],
             "properties": {
-                "DynamicConfigValue": {
+                "CallType": {
                     "type": "string"
                 },
-                "DynamicConfigVariable": {
+                "HostTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "SLM": {
+                    "type": "integer"
+                },
+                "agreementID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "routing.naumenConfigUpdateParams": {
+            "type": "object",
+            "required": [
+                "ClientGroupID",
+                "ClientID",
+                "ClientKey",
+                "URL"
+            ],
+            "properties": {
+                "ClientGroupID": {
+                    "type": "integer"
+                },
+                "ClientID": {
+                    "type": "integer"
+                },
+                "ClientKey": {
+                    "type": "string"
+                },
+                "Enabled": {
+                    "type": "boolean"
+                },
+                "URL": {
+                    "type": "string"
+                }
+            }
+        },
+        "routing.smtpConfigUpdateParams": {
+            "type": "object",
+            "required": [
+                "Host",
+                "Password",
+                "Sender",
+                "User"
+            ],
+            "properties": {
+                "Enabled": {
+                    "type": "boolean"
+                },
+                "Host": {
+                    "type": "string"
+                },
+                "Password": {
+                    "type": "string"
+                },
+                "Sender": {
+                    "type": "string"
+                },
+                "UseTLS": {
+                    "type": "boolean"
+                },
+                "User": {
                     "type": "string"
                 }
             }
@@ -1857,6 +1893,68 @@
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "userEntities.PlatformUser": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "Email": {
+                    "type": "string"
+                },
+                "FullName": {
+                    "type": "string"
+                },
+                "ID": {
+                    "type": "integer"
+                },
+                "IsActive": {
+                    "type": "boolean"
+                },
+                "Login": {
+                    "type": "string"
+                },
+                "Roles": {
+                    "description": "Defines which roles user has",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/userEntities.PlatformUserRole"
+                    }
+                },
+                "UpdatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "userEntities.PlatformUserRole": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "Description": {
+                    "type": "string"
+                },
+                "IsActive": {
+                    "type": "boolean"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "UUID": {
+                    "type": "integer"
+                },
+                "UpdatedAt": {
+                    "type": "string"
                 }
             }
         }
