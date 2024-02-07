@@ -346,19 +346,7 @@ const docTemplate = `{
                         },
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
-                        "name": "source_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Import event ID",
-                        "name": "import_event_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Is active",
-                        "name": "is_active",
+                        "name": "source_id[]",
                         "in": "query"
                     },
                     {
@@ -375,8 +363,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Substring to search",
-                        "name": "search_string",
+                        "description": "Discovery timestamp is after",
+                        "name": "discovered_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Discovery timestamp is before",
+                        "name": "discovered_before",
                         "in": "query"
                     }
                 ],
@@ -416,19 +410,7 @@ const docTemplate = `{
                         },
                         "collectionFormat": "multi",
                         "description": "Source type IDs",
-                        "name": "source_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Import event ID",
-                        "name": "import_event_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Is active",
-                        "name": "is_active",
+                        "name": "source_id[]",
                         "in": "query"
                     },
                     {
@@ -445,8 +427,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Substring to search",
-                        "name": "search_string",
+                        "description": "Discovery timestamp is after",
+                        "name": "discovered_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Discovery timestamp is before",
+                        "name": "discovered_before",
                         "in": "query"
                     }
                 ],
@@ -1247,24 +1235,92 @@ const docTemplate = `{
                 }
             }
         },
-        "/system/dynamic/variable": {
+        "/system/dynamic/naumen": {
             "post": {
-                "description": "Updates dynamic application config variable",
+                "description": "Updates dynamic Naumen Service Desk configuration",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Configuration"
                 ],
-                "summary": "Update dynamic config variable",
+                "summary": "Update dynamic Naumen Service Desk configuration",
                 "parameters": [
                     {
-                        "description": "variable to update",
-                        "name": "variable",
+                        "description": "dynamic naumen configuration",
+                        "name": "naumenConfig",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.dynamicConfigUpdateParams"
+                            "$ref": "#/definitions/routing.naumenConfigUpdateParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/dynamic/naumen/blacklists": {
+            "post": {
+                "description": "Updates dynamic Naumen Service Desk service configuration",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Configuration"
+                ],
+                "summary": "Update dynamic Naumen Service Desk service configuration",
+                "parameters": [
+                    {
+                        "description": "dynamic naumen service configuration",
+                        "name": "naumenConfig",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.naumenBlacklistServiceConfigUpdateParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/dynamic/smtp": {
+            "post": {
+                "description": "Updates dynamic SMTP configuration",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Configuration"
+                ],
+                "summary": "Update dynamic SMTP configuration",
+                "parameters": [
+                    {
+                        "description": "dynamic SMTP configuration",
+                        "name": "smtpConfig",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.smtpConfigUpdateParams"
                         }
                     }
                 ],
@@ -1288,6 +1344,17 @@ const docTemplate = `{
             "properties": {
                 "CreatedAt": {
                     "type": "string"
+                },
+                "CreatedBy": {
+                    "description": "CreatedBy defines import event creator identity",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/userEntities.PlatformUser"
+                        }
+                    ]
+                },
+                "CreatedByID": {
+                    "type": "integer"
                 },
                 "DeletedAt": {
                     "$ref": "#/definitions/gorm.DeletedAt"
@@ -1626,7 +1693,9 @@ const docTemplate = `{
                 8,
                 9,
                 10,
-                11
+                11,
+                12,
+                13
             ],
             "x-enum-varnames": [
                 "EncodingErrorCode",
@@ -1634,12 +1703,14 @@ const docTemplate = `{
                 "IncorrectParamsErrorCode",
                 "InsufficientParamsErrorCode",
                 "DatabaseErrorCode",
+                "DatabaseEntityNotFoundCode",
                 "FileDecodingErrorCode",
                 "FileReadingErrorCode",
                 "FileExtensionNotSupportedErrorCode",
                 "NotImplementedErrorCode",
                 "FileProcessingErrorCode",
-                "InternalUnidentifiedErrorCode"
+                "InternalUnidentifiedErrorCode",
+                "AuthFailedErrorCode"
             ]
         },
         "gorm.DeletedAt": {
@@ -1703,31 +1774,55 @@ const docTemplate = `{
                 "ByDate": {
                     "type": "object",
                     "properties": {
+                        "CreatedDomains": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "CreatedEmails": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "CreatedIPs": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "CreatedURLs": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
                         "Dates": {
                             "type": "array",
                             "items": {
                                 "type": "string"
                             }
                         },
-                        "Domains": {
+                        "DiscoveredDomains": {
                             "type": "array",
                             "items": {
                                 "type": "integer"
                             }
                         },
-                        "Emails": {
+                        "DiscoveredEmails": {
                             "type": "array",
                             "items": {
                                 "type": "integer"
                             }
                         },
-                        "IPs": {
+                        "DiscoveredIPs": {
                             "type": "array",
                             "items": {
                                 "type": "integer"
                             }
                         },
-                        "URLs": {
+                        "DiscoveredURLs": {
                             "type": "array",
                             "items": {
                                 "type": "integer"
@@ -1805,16 +1900,83 @@ const docTemplate = `{
                 }
             }
         },
-        "routing.dynamicConfigUpdateParams": {
+        "routing.naumenBlacklistServiceConfigUpdateParams": {
             "type": "object",
             "required": [
-                "DynamicConfigVariable"
+                "CallType",
+                "HostTypes",
+                "SLM",
+                "agreementID"
             ],
             "properties": {
-                "DynamicConfigValue": {
+                "CallType": {
                     "type": "string"
                 },
-                "DynamicConfigVariable": {
+                "HostTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "SLM": {
+                    "type": "integer"
+                },
+                "agreementID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "routing.naumenConfigUpdateParams": {
+            "type": "object",
+            "required": [
+                "ClientGroupID",
+                "ClientID",
+                "ClientKey",
+                "URL"
+            ],
+            "properties": {
+                "ClientGroupID": {
+                    "type": "string"
+                },
+                "ClientID": {
+                    "type": "string"
+                },
+                "ClientKey": {
+                    "type": "string"
+                },
+                "Enabled": {
+                    "type": "boolean"
+                },
+                "URL": {
+                    "type": "string"
+                }
+            }
+        },
+        "routing.smtpConfigUpdateParams": {
+            "type": "object",
+            "required": [
+                "Host",
+                "Password",
+                "Sender",
+                "User"
+            ],
+            "properties": {
+                "Enabled": {
+                    "type": "boolean"
+                },
+                "Host": {
+                    "type": "string"
+                },
+                "Password": {
+                    "type": "string"
+                },
+                "Sender": {
+                    "type": "string"
+                },
+                "UseTLS": {
+                    "type": "boolean"
+                },
+                "User": {
                     "type": "string"
                 }
             }
@@ -1863,6 +2025,68 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "userEntities.PlatformUser": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "Email": {
+                    "type": "string"
+                },
+                "FullName": {
+                    "type": "string"
+                },
+                "ID": {
+                    "type": "integer"
+                },
+                "IsActive": {
+                    "type": "boolean"
+                },
+                "Login": {
+                    "type": "string"
+                },
+                "Roles": {
+                    "description": "Defines which roles user has",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/userEntities.PlatformUserRole"
+                    }
+                },
+                "UpdatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "userEntities.PlatformUserRole": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "Description": {
+                    "type": "string"
+                },
+                "IsActive": {
+                    "type": "boolean"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "UUID": {
+                    "type": "integer"
+                },
+                "UpdatedAt": {
+                    "type": "string"
                 }
             }
         }

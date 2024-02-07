@@ -40,7 +40,8 @@ type IBlacklistsService interface {
 	ExportToNaumen(filter blacklistEntities.BlacklistSearchFilter) (serviceDeskEntities.ServiceDeskTicket, error)
 
 	RetrieveTotalStatistics() (ips int64, urls int64, domains int64, emails int64)
-	RetrieveByDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error)
+	RetrieveByCreationDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error)
+	RetrieveByDiscoveryDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error)
 
 	RetrieveAllSources() ([]blacklistEntities.BlacklistSource, error)
 }
@@ -70,7 +71,8 @@ type IBlacklistsRepo interface {
 	SelectHostsUnionByFilter(filter blacklistEntities.BlacklistSearchFilter) ([]blacklistEntities.BlacklistedHost, error)
 
 	CountStatistics() (ips int64, urls int64, domains int64, emails int64)
-	SelectByDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error)
+	SelectByCreationDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error)
+	SelectByDiscoveryDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error)
 
 	SelectAllSources() ([]blacklistEntities.BlacklistSource, error)
 }
@@ -122,6 +124,10 @@ type IAuthService interface {
 
 // ISystemStateService holds collection of services that provide info about system configuration, state and status
 type ISystemStateService interface {
+	UpdateSMTPConfig(enabled bool, host, user, password, sender string, useTLS bool) error
+	UpdateNSDCredentials(enabled bool, url, clientID, clientGroupID, clientKey string) error
+	UpdateNSDBlacklistServiceConfig(id, slm int, callType string, types []string) error
+
 	RetrieveDynamicConfig() ([]byte, error)
 	ReturnToDefault() error
 }

@@ -36,13 +36,18 @@ type BlacklistedStatistics struct {
 	TotalDomains int64      `json:"TotalDomains"`
 	TotalEmails  int64      `json:"TotalEmails"`
 	TotalIPs     int64      `json:"TotalIPs"`
-	ByDate       struct {
-		Dates   []string `json:"Dates"`
-		IPs     []uint64 `json:"IPs"`
-		Domains []uint64 `json:"Domains"`
-		URLs    []uint64 `json:"URLs"`
-		Emails  []uint64 `json:"Emails"`
-	} `json:"ByDate"`
+
+	CreatedByDate    HostsByDate `json:"CreatedByDate"`
+	DiscoveredByDate HostsByDate `json:"DiscoveredByDate"`
+}
+
+type HostsByDate struct {
+	Dates []string `json:"Dates"`
+
+	IPs     []uint64 `json:"IPs"`
+	Domains []uint64 `json:"Domains"`
+	URLs    []uint64 `json:"URLs"`
+	Emails  []uint64 `json:"Emails"`
 }
 
 func NewBlacklistsRouter(service core.IBlacklistsService, path *gin.RouterGroup) *BlacklistsRouter {
@@ -902,9 +907,9 @@ func (r *BlacklistsRouter) DeleteImportEvent(c *gin.Context) {
 //	@Tags			Blacklists, Export
 //	@Router			/blacklists/export/csv [post]
 //	@Produce		json
-//	@Param			source_id[]	query	[]uint64	false	"Source type IDs"	collectionFormat(multi)
-//	@Param			created_after	query	string		false	"Created timestamp is after"
-//	@Param			created_before	query	string		false	"Created timestamp is before"
+//	@Param			source_id[]			query	[]uint64	false	"Source type IDs"	collectionFormat(multi)
+//	@Param			created_after		query	string		false	"Created timestamp is after"
+//	@Param			created_before		query	string		false	"Created timestamp is before"
 //	@Param			discovered_after	query	string		false	"Discovery timestamp is after"
 //	@Param			discovered_before	query	string		false	"Discovery timestamp is before"
 //	@Produce		application/csv
@@ -962,9 +967,9 @@ func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
 //	@Tags			Blacklists, Export
 //	@Router			/blacklists/export/json [post]
 //	@Produce		json
-//	@Param			source_id[]	query	[]uint64	false	"Source type IDs"	collectionFormat(multi)
-//	@Param			created_after	query	string		false	"Created timestamp is after"
-//	@Param			created_before	query	string		false	"Created timestamp is before"
+//	@Param			source_id[]			query	[]uint64	false	"Source type IDs"	collectionFormat(multi)
+//	@Param			created_after		query	string		false	"Created timestamp is after"
+//	@Param			created_before		query	string		false	"Created timestamp is before"
 //	@Param			discovered_after	query	string		false	"Discovery timestamp is after"
 //	@Param			discovered_before	query	string		false	"Discovery timestamp is before"
 //	@Produce		application/json
@@ -1114,48 +1119,72 @@ func (r *BlacklistsRouter) recountStatistics() {
 
 	//var byDate = make(map[string]*[3]uint64)
 
-	statistics, err := r.service.RetrieveByDateStatistics(now.Add(-time.Hour*24*31*6), now)
+	statisticsByCreationDate, err := r.service.RetrieveByCreationDateStatistics(now.Add(-time.Hour*24*31*6), now)
 	if err != nil {
 		return
 	}
 
-	var stats = struct {
-		Dates   []string `json:"Dates"`
-		IPs     []uint64 `json:"IPs"`
-		Domains []uint64 `json:"Domains"`
-		URLs    []uint64 `json:"URLs"`
-		Emails  []uint64 `json:"Emails"`
-	}{
-		Dates:   make([]string, 0),
-		IPs:     make([]uint64, 0),
-		Domains: make([]uint64, 0),
-		URLs:    make([]uint64, 0),
-		Emails:  make([]uint64, 0),
+	statisticsByDiscoveryDate, err := r.service.RetrieveByDiscoveryDateStatistics(now.Add(-time.Hour*24*31*6), now)
+	if err != nil {
+		return
 	}
 
-	for _, v := range statistics {
+	var discovery HostsByDate
+	var creation HostsByDate
+
+	for _, v := range statisticsByCreationDate {
 		date := v.Date.Format("02.01.2006")
 
-		index := slices.Index(stats.Dates, date)
+		index := slices.Index(creation.Dates, date)
 		if index == -1 {
-			stats.Dates = append(stats.Dates, date)
-			index = len(stats.Dates) - 1
+			creation.Dates = append(creation.Dates, date)
+			index = len(creation.Dates) - 1
 
-			stats.URLs = append(stats.URLs, 0)
-			stats.IPs = append(stats.IPs, 0)
-			stats.Domains = append(stats.Domains, 0)
-			stats.Emails = append(stats.Emails, 0)
+			creation.URLs = append(creation.URLs, 0)
+			creation.IPs = append(creation.IPs, 0)
+			creation.Domains = append(creation.Domains, 0)
+			creation.Emails = append(creation.Emails, 0)
 		}
 
 		switch v.Type {
 		case "url":
-			stats.URLs[index] = v.Count
+			creation.URLs[index] = v.Count
 		case "ip":
-			stats.IPs[index] = v.Count
+			creation.IPs[index] = v.Count
 		case "domain":
-			stats.Domains[index] = v.Count
+			creation.Domains[index] = v.Count
+		case "email":
+			creation.Emails[index] = v.Count
 		}
 	}
 
-	r.cachedValues.stats.ByDate = stats
+	r.cachedValues.stats.CreatedByDate = creation
+
+	for _, v := range statisticsByDiscoveryDate {
+		date := v.Date.Format("02.01.2006")
+
+		index := slices.Index(discovery.Dates, date)
+		if index == -1 {
+			discovery.Dates = append(discovery.Dates, date)
+			index = len(discovery.Dates) - 1
+
+			discovery.URLs = append(discovery.URLs, 0)
+			discovery.IPs = append(discovery.IPs, 0)
+			discovery.Domains = append(discovery.Domains, 0)
+			discovery.Emails = append(discovery.Emails, 0)
+		}
+
+		switch v.Type {
+		case "url":
+			discovery.URLs[index] = v.Count
+		case "ip":
+			discovery.IPs[index] = v.Count
+		case "domain":
+			discovery.Domains[index] = v.Count
+		case "email":
+			discovery.Emails[index] = v.Count
+		}
+	}
+
+	r.cachedValues.stats.DiscoveredByDate = discovery
 }

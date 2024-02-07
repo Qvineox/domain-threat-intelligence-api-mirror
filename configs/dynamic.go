@@ -6,6 +6,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 	"log/slog"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -128,6 +129,41 @@ func (c *DynamicConfigProvider) GetNaumenCredentials() (url, clientKey, clientID
 	return url, clientKey, clientID, clientGroupID, nil
 }
 
+func (c *DynamicConfigProvider) SetNaumenAvailability(enabled bool) {
+	c.config.SetDefault(NaumenEnabled, enabled)
+}
+
+func (c *DynamicConfigProvider) SetNaumenCredentials(serviceUrl, clientKey, clientID, clientGroupID string) error {
+	if len(serviceUrl) == 0 || len(clientKey) == 0 || len(clientID) == 0 || len(clientGroupID) == 0 {
+		return errors.New("one out of required parameters not defined")
+	}
+
+	_, err := url.Parse(serviceUrl)
+	if err != nil {
+		return errors.New("url parsing error: " + err.Error())
+	}
+
+	c.config.SetDefault(NaumenURL, serviceUrl)
+	c.config.SetDefault(NaumenClientKey, clientKey)
+	c.config.SetDefault(NaumenClientID, clientID)
+	c.config.SetDefault(NaumenClientGroupID, clientGroupID)
+
+	return c.config.WriteConfig()
+}
+
+func (c *DynamicConfigProvider) SetNaumenBlacklistConfig(id, slm int, callType string, types []string) error {
+	if id == 0 || slm == 0 || len(callType) == 0 || len(types) == 0 {
+		return errors.New("one out of required parameters not defined")
+	}
+
+	c.config.SetDefault(NaumenBlacklistsAgreementID, id)
+	c.config.SetDefault(NaumenBlacklistsSLM, slm)
+	c.config.SetDefault(NaumenBlacklistsCallType, callType)
+	c.config.SetDefault(NaumenBlacklistsTypes, types)
+
+	return nil
+}
+
 func (c *DynamicConfigProvider) GetSMTPCredentials() (host, user, password, sender string, useTLS bool, err error) {
 	if !c.config.GetBool(SMTPEnabled) {
 		return "", "", "", "", false, errors.New("smtp service disabled")
@@ -149,8 +185,14 @@ func (c *DynamicConfigProvider) GetSMTPCredentials() (host, user, password, send
 	return host, user, password, sender, useTLS, nil
 }
 
-func (c *DynamicConfigProvider) SetSMTPCredentials(enabled bool, host, user, password, sender string, useTLS bool) (err error) {
+func (c *DynamicConfigProvider) SetSMTPAvailability(enabled bool) {
 	c.config.SetDefault(SMTPEnabled, enabled)
+}
+
+func (c *DynamicConfigProvider) SetSMTPCredentials(host, user, password, sender string, useTLS bool) (err error) {
+	if len(host) == 0 || len(user) == 0 || len(sender) == 0 {
+		return errors.New("one out of required parameters not defined")
+	}
 
 	c.config.SetDefault(SMTPHost, host)
 	c.config.SetDefault(SMTPUser, user)
