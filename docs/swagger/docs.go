@@ -1670,40 +1670,11 @@ const docTemplate = `{
         "routing.BlacklistedStatistics": {
             "type": "object",
             "properties": {
-                "ByDate": {
-                    "type": "object",
-                    "properties": {
-                        "Dates": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "Domains": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        },
-                        "Emails": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        },
-                        "IPs": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        },
-                        "URLs": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        }
-                    }
+                "CreatedByDate": {
+                    "$ref": "#/definitions/routing.HostsByDate"
+                },
+                "DiscoveredByDate": {
+                    "$ref": "#/definitions/routing.HostsByDate"
                 },
                 "LastEval": {
                     "type": "string"
@@ -1719,6 +1690,41 @@ const docTemplate = `{
                 },
                 "TotalURLs": {
                     "type": "integer"
+                }
+            }
+        },
+        "routing.HostsByDate": {
+            "type": "object",
+            "properties": {
+                "Dates": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "Domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "Emails": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "IPs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "URLs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
@@ -1971,7 +1977,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.0.3",
-	Host:             "localhost:7090",
+	Host:             "",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Domain Threat Intelligence API",

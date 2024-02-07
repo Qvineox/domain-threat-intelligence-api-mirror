@@ -9,7 +9,6 @@
         },
         "version": "0.0.3"
     },
-    "host": "localhost:7090",
     "basePath": "/api/v1",
     "paths": {
         "/blacklists/domain": {
@@ -1663,40 +1662,11 @@
         "routing.BlacklistedStatistics": {
             "type": "object",
             "properties": {
-                "ByDate": {
-                    "type": "object",
-                    "properties": {
-                        "Dates": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "Domains": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        },
-                        "Emails": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        },
-                        "IPs": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        },
-                        "URLs": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        }
-                    }
+                "CreatedByDate": {
+                    "$ref": "#/definitions/routing.HostsByDate"
+                },
+                "DiscoveredByDate": {
+                    "$ref": "#/definitions/routing.HostsByDate"
                 },
                 "LastEval": {
                     "type": "string"
@@ -1712,6 +1682,41 @@
                 },
                 "TotalURLs": {
                     "type": "integer"
+                }
+            }
+        },
+        "routing.HostsByDate": {
+            "type": "object",
+            "properties": {
+                "Dates": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "Domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "Emails": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "IPs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "URLs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
