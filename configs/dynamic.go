@@ -4,234 +4,160 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/fsnotify/fsnotify"
-	"github.com/spf13/viper"
+	"github.com/ilyakaznacheev/cleanenv"
+	"log"
 	"log/slog"
+	"net/url"
 	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
 )
 
-type DynamicConfig struct {
-	config *viper.Viper
+type DynamicConfigProvider struct {
+	config dynamicConfig
+	path   string
 }
 
-func NewDynamicConfig() (*DynamicConfig, error) {
-	slog.Info("loading dynamic configuration...")
+type dynamicConfig struct {
+	SMTP         smtpConfig         `env-required:"false" json:"SMTP"`
+	Integrations integrationsConfig `end-required:"false" json:"Integrations"`
+}
 
-	var dynamic = &DynamicConfig{config: viper.New()}
+type smtpConfig struct {
+}
+
+type integrationsConfig struct {
+	Naumen naumenConfig `env-required:"false" json:"Naumen"`
+}
+
+type naumenConfig struct {
+	Enabled bool `env-default:"false" json:"Enabled"`
+
+	ClientGroupID uint64 `json:"ClientGroupID"`
+	ClientID      uint64 `json:"ClientID"`
+	ClientKey     string `json:"ClientKey"`
+	Url           string `json:"URL"`
+
+	BlacklistsService struct {
+		AgreementID uint64   `json:"AgreementID"`
+		Slm         uint64   `json:"SLM"`
+		CallType    string   `json:"CallType"`
+		Types       []string `json:"Types"`
+	} `json:"BlacklistsService"`
+}
+
+// NewDynamicConfigProvider creates or reads dynamic configuration. If dynamic file exists, recovers values or creates new file.
+func NewDynamicConfigProvider() (*DynamicConfigProvider, error) {
+	slog.Info("loading dynamic configuration...")
+	var provider = DynamicConfigProvider{
+		config: dynamicConfig{},
+	}
 
 	currentDir, err := os.Getwd()
 	if err != nil {
 		return nil, err
 	}
 
-	path := filepath.Join(currentDir, "configs")
+	provider.path = filepath.Join(currentDir, "configs", "config.dynamic.json")
 
-	dynamic.config.SetConfigName("dynamic")
-	dynamic.config.SetConfigType("json")
+	err = cleanenv.ReadConfig(provider.path, &provider.config)
+	if err == nil {
+		return &provider, err
+	}
 
-	dynamic.config.AddConfigPath(path)
+	// check if file not found
+	var pathErr *os.PathError
+	ok := errors.As(err, &pathErr)
+	if !ok {
+		return nil, err
+	}
 
-	// find dy
-	err = dynamic.config.ReadInConfig()
+	slog.Warn("dynamic config file missing, creating...")
+
+	_, err = os.Create(provider.path)
 	if err != nil {
-		_, ok := err.(viper.ConfigFileNotFoundError)
-		if ok {
-			slog.Warn("dynamic file not found, creating default config...")
-
-			// setting default config
-			err = dynamic.SetDefaultValues()
-			if err != nil {
-				return nil, err
-			}
-
-			file, err := os.Create(filepath.Join(path, "dynamic.json"))
-			if err != nil {
-				return nil, err
-			}
-
-			dynamic.config.SetConfigFile(file.Name())
-
-			err = dynamic.config.WriteConfig()
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
-
-		if errors.Is(err, viper.ConfigFileNotFoundError{}) {
-			slog.Error("dynamic file not found!")
-		}
+		slog.Error("failed to create dynamic config file: " + err.Error())
+		return nil, err
 	}
 
-	slog.Info("dynamic configuration loaded.")
-
-	dynamic.config.OnConfigChange(func(e fsnotify.Event) {
-		slog.Warn("dynamic config changed.")
-	})
-
-	dynamic.config.WatchConfig()
-
-	slog.Info("started config watcher")
-
-	return dynamic, nil
-}
-
-func (c *DynamicConfig) GetVariable(key DynamicVariables) (string, error) {
-	if !c.config.IsSet(string(key)) {
-		return "", errors.New("config value not set")
-	}
-
-	value := c.config.Get(string(key))
-
-	parsed, ok := value.(string)
-	if ok {
-		if len(parsed) == 0 {
-			return "", errors.New("config value empty")
-		}
-
-		return parsed, nil
-	}
-
-	return "", errors.New("malformed dynamic config value")
-}
-
-func (c *DynamicConfig) GetNaumenURL() (url string, err error) {
-	url = c.config.GetString(string(NaumenURL))
-
-	if len(url) == 0 {
-		return "", errors.New("url not defined")
-	}
-
-	return url, nil
-}
-
-func (c *DynamicConfig) GetNaumenBlacklistService() (id, slm int, callType string, err error) {
-	id = c.config.GetInt(string(NaumenBlacklistsAgreementID))
-	slm = c.config.GetInt(string(NaumenBlacklistsSLM))
-	callType = c.config.GetString(string(NaumenBlacklistsCallType))
-
-	if id == 0 || slm == 0 || len(callType) == 0 {
-		return 0, 0, "", errors.New("service params not defined")
-	}
-
-	return id, slm, callType, nil
-}
-
-func (c *DynamicConfig) GetNaumenBlacklistTypes() (types []string, err error) {
-	types = c.config.GetStringSlice(string(NaumenBlacklistsTypes))
-
-	if len(types) == 0 {
-		return nil, errors.New("types to blacklist not defined")
-	}
-
-	return types, nil
-}
-
-func (c *DynamicConfig) GetNaumenCredentials() (clientKey, clientID, clientGroupID string, err error) {
-	clientKey = c.config.GetString(string(NaumenClientKey))
-	clientID = c.config.GetString(string(NaumenClientID))
-	clientGroupID = c.config.GetString(string(NaumenClientGroupID))
-
-	if len(clientKey) == 0 || len(clientID) == 0 || len(clientGroupID) == 0 {
-		return "", "", clientGroupID, errors.New("credentials not defined")
-	}
-
-	return clientKey, clientID, clientGroupID, nil
-}
-
-func (c *DynamicConfig) GetSMTPCredentials() (host, user, password, sender string, useTLS bool, err error) {
-	host = c.config.GetString(string(SMTPHost))
-
-	if len(host) == 0 {
-		return "", "", "", "", false, errors.New("smtp host not defined")
-	}
-
-	user = c.config.GetString(string(SMTPUser))
-	password = c.config.GetString(string(SMTPPassword))
-
-	sender = c.config.GetString(string(SMTPSender))
-
-	useTLS = c.config.GetBool(string(SMTPUseTLS))
-
-	return host, user, password, sender, useTLS, nil
-}
-
-func (c *DynamicConfig) SetDefaultValues() error {
-	c.config.SetDefault(string(NaumenURL), "")
-	c.config.SetDefault(string(NaumenClientKey), "")
-	c.config.SetDefault(string(NaumenClientID), "")
-	c.config.SetDefault(string(NaumenClientGroupID), "")
-
-	// blacklists service parameters
-	c.config.SetDefault(string(NaumenBlacklistsAgreementID), "")
-	c.config.SetDefault(string(NaumenBlacklistsSLM), "")
-	c.config.SetDefault(string(NaumenBlacklistsCallType), "")
-	c.config.SetDefault(string(NaumenBlacklistsTypes), []string{"ip"})
-
-	// smtp credentials
-	c.config.SetDefault(string(SMTPHost), "")
-	c.config.SetDefault(string(SMTPUser), "")
-	c.config.SetDefault(string(SMTPSender), "dti")
-	c.config.SetDefault(string(SMTPPassword), "")
-	c.config.SetDefault(string(SMTPUseTLS), "false")
-
-	return nil
-}
-
-func (c *DynamicConfig) SetValue(key string, value string) error {
-
-	switch key {
-	case string(NaumenURL):
-		c.config.Set(string(NaumenURL), value)
-	case string(NaumenClientKey):
-		c.config.Set(string(NaumenClientKey), value)
-	case string(NaumenClientGroupID):
-		c.config.Set(string(NaumenClientGroupID), value)
-	case string(NaumenClientID):
-		c.config.Set(string(NaumenClientID), value)
-	case string(NaumenBlacklistsAgreementID):
-		c.config.Set(string(NaumenBlacklistsAgreementID), value)
-	case string(NaumenBlacklistsSLM):
-		c.config.Set(string(NaumenBlacklistsSLM), value)
-	case string(NaumenBlacklistsCallType):
-		c.config.Set(string(NaumenBlacklistsCallType), value)
-	case string(NaumenBlacklistsTypes):
-		values := strings.Split(value, ",")
-		if len(values) == 0 {
-			return errors.New("blacklisting types not defined")
-		}
-
-		c.config.Set(string(NaumenBlacklistsTypes), values)
-	case string(SMTPHost):
-		c.config.Set(string(SMTPHost), value)
-	case string(SMTPUser):
-		c.config.Set(string(SMTPUser), value)
-	case string(SMTPSender):
-		c.config.Set(string(SMTPSender), value)
-	case string(SMTPPassword):
-		c.config.Set(string(SMTPPassword), value)
-	case string(SMTPUseTLS):
-		c.config.Set(string(SMTPUseTLS), value)
-	default:
-		return errors.New("configuration parameter not found")
-	}
-
-	err := c.config.WriteConfig()
+	// fill file with default values
+	_ = provider.SetDefaultValues()
+	err = provider.WriteToFile()
 	if err != nil {
+		return nil, err
+	}
+
+	return &provider, err
+}
+
+func (d *DynamicConfigProvider) StartWatcher() {
+	slog.Info("starting dynamic config watcher...")
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		slog.Error("failed to start dynamic config watcher: " + err.Error())
+	}
+
+	err = watcher.Add(d.path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer watcher.Close()
+
+	for {
+		select {
+		case err, ok := <-watcher.Errors:
+			if !ok {
+				slog.Warn("watcher closed")
+				return
+			}
+
+			slog.Error("watcher error: " + err.Error())
+		// Read from Events.
+		case e, ok := <-watcher.Events:
+			if !ok {
+				slog.Warn("watcher closed")
+				return
+			}
+
+			switch e.Op {
+			case fsnotify.Write:
+				slog.Warn("dynamic configuration file changed, updating...")
+
+				bytes_, err := os.ReadFile(d.path)
+				if err != nil {
+					slog.Error("failed to read file: " + err.Error())
+				} else {
+					err = json.Unmarshal(bytes_, &d.config)
+					if err != nil {
+						slog.Error("failed to decode file: " + err.Error())
+					}
+				}
+			default:
+				slog.Debug("unhandled dynamic configuration event: " + e.String())
+			}
+		}
+	}
+}
+
+func (d *DynamicConfigProvider) WriteToFile() error {
+	bytes_, err := json.Marshal(d.config)
+	if err != nil {
+		slog.Error("failed to encode dynamic config: " + err.Error())
+		return err
+	}
+
+	err = os.WriteFile(d.path, bytes_, 0700)
+	if err != nil {
+		slog.Error("failed to write dynamic config: " + err.Error())
 		return err
 	}
 
 	return nil
 }
 
-func (c *DynamicConfig) GetCurrentState() ([]byte, error) {
-	settings := c.config.AllSettings()
-	slog.Info(strconv.Itoa(len(settings)))
-
-	bytes, err := json.Marshal(settings)
+func (d *DynamicConfigProvider) GetCurrentState() ([]byte, error) {
+	bytes, err := json.Marshal(d.config)
 	if err != nil {
 		return nil, err
 	}
@@ -239,20 +165,90 @@ func (c *DynamicConfig) GetCurrentState() ([]byte, error) {
 	return bytes, nil
 }
 
-type DynamicVariables string
+func (d *DynamicConfigProvider) SetDefaultValues() error {
+	d.config.SMTP = smtpConfig{}
+	d.config.Integrations = integrationsConfig{}
 
-const (
-	NaumenURL                   DynamicVariables = "integrations.naumen.url"
-	NaumenClientKey             DynamicVariables = "integrations.naumen.client_key"
-	NaumenClientID              DynamicVariables = "integrations.naumen.client_id"
-	NaumenClientGroupID         DynamicVariables = "integrations.naumen.client_group_id"
-	NaumenBlacklistsAgreementID DynamicVariables = "integrations.naumen.blacklists.agreement_id"
-	NaumenBlacklistsSLM         DynamicVariables = "integrations.naumen.blacklists.slm"
-	NaumenBlacklistsCallType    DynamicVariables = "integrations.naumen.blacklists.call_type"
-	NaumenBlacklistsTypes       DynamicVariables = "integrations.naumen.blacklists.types"
-	SMTPHost                    DynamicVariables = "smtp.host"
-	SMTPUser                    DynamicVariables = "smtp.user"
-	SMTPSender                  DynamicVariables = "smtp.sender"
-	SMTPPassword                DynamicVariables = "smtp.password"
-	SMTPUseTLS                  DynamicVariables = "smtp.use_tls"
-)
+	err := d.WriteToFile()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *DynamicConfigProvider) IsNaumenEnabled() bool {
+	return d.config.Integrations.Naumen.Enabled
+}
+
+func (d *DynamicConfigProvider) GetNaumenCredentials() (url, key string, uID, gID uint64, err error) {
+	if !d.IsNaumenEnabled() {
+		return "", "", 0, 0, errors.New("service desk integration disabled")
+	}
+
+	n := d.config.Integrations.Naumen
+
+	if len(n.Url) == 0 || len(n.ClientKey) == 0 || n.ClientID == 0 || n.ClientGroupID == 0 {
+		return "", "", 0, 0, errors.New("service desk configuration incomplete")
+	}
+
+	return n.Url, n.ClientKey, n.ClientID, n.ClientGroupID, nil
+}
+
+func (d *DynamicConfigProvider) SetNaumenConfig(enabled bool, host, key string, uID, gID uint64) (err error) {
+	if len(key) == 0 || len(host) == 0 || uID == 0 || gID == 0 {
+		return errors.New("service desk configuration incomplete")
+	}
+
+	_, err = url.Parse(host)
+	if err != nil {
+		return errors.New("host malformed: " + err.Error())
+	}
+
+	d.config.Integrations.Naumen.Enabled = enabled
+
+	d.config.Integrations.Naumen.ClientGroupID = uID
+	d.config.Integrations.Naumen.ClientID = gID
+	d.config.Integrations.Naumen.ClientKey = key
+
+	d.config.Integrations.Naumen.Url = host
+
+	err = d.WriteToFile()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *DynamicConfigProvider) SetNaumenBlacklistServiceConfig(aID, slm uint64, callType string, types []string) (err error) {
+	if len(callType) == 0 || len(types) == 0 || aID == 0 || slm == 0 {
+		return errors.New("service desk configuration incomplete")
+	}
+
+	d.config.Integrations.Naumen.BlacklistsService.AgreementID = aID
+	d.config.Integrations.Naumen.BlacklistsService.Slm = slm
+	d.config.Integrations.Naumen.BlacklistsService.CallType = callType
+	d.config.Integrations.Naumen.BlacklistsService.Types = types
+
+	err = d.WriteToFile()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *DynamicConfigProvider) GetBlacklistServiceConfig() (aID, slm uint64, callType string, types []string, err error) {
+	if !d.IsNaumenEnabled() {
+		return 0, 0, "", nil, errors.New("service desk integration disabled")
+	}
+
+	s := d.config.Integrations.Naumen.BlacklistsService
+
+	if s.Slm == 0 || s.AgreementID == 0 || len(s.CallType) == 0 || len(s.Types) == 0 {
+		return 0, 0, "", nil, errors.New("service desk configuration incomplete")
+	}
+
+	return s.AgreementID, s.Slm, s.CallType, s.Types, nil
+}

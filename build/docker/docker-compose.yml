@@ -1,0 +1,67 @@
+version: '3.9'
+
+name: dti
+
+networks:
+  internal:
+    external: false
+  web:
+    external: true
+
+services:
+  #  postgres:
+  #    container_name: domain_threat_intel_database
+  #    image: postgres:16.1-alpine3.19
+  #    hostname: dti_database
+  #    restart: unless-stopped
+  #    environment:
+  #      POSTGRES_DB: $DB_NAME
+  #      POSTGRES_USER: $DB_USER
+  #      POSTGRES_PASSWORD: $DB_PASS
+  #    networks:
+  #      - internal
+  #    expose:
+  #      - 5432
+  #    volumes:
+  #      - ./database_data:/var/lib/postgresql/data
+  #    healthcheck:
+  #      test: [ "CMD-SHELL", "pg_isready -U $DB_USER -d $DB_NAME" ]
+  #      interval: 10s
+  #      timeout: 5s
+  #      retries: 5
+  #      start_period: 10s
+  #    deploy:
+  #      resources:
+  #        limits:
+  #          cpus: '4'
+  #          memory: 4G
+
+  api:
+    image: $IMAGE_TAG
+    container_name: domain_threat_intel_api
+    hostname: dti_web
+    restart: unless-stopped
+    environment:
+      db_host: $DB_HOST
+      db_port: $DB_PORT
+      db_user: $DB_USER
+      db_pass: $DB_PASS
+      db_name: $DB_NAME
+      db_timezone: $DB_TZ
+      http_host: 0.0.0.0
+      http_port: 80
+      http_base_path: $HTTP_BASE_PATH
+      http_api_version: $HTTP_API_VERSION
+      http_swagger_enabled: $HTTP_SWAGGER_ENABLED
+      http_swagger_host: $HTTP_SWAGGER_HOST
+      http_origin: 'https://$HTTP_SUBDOMAIN.qvineox.ru'
+    networks:
+      - web
+      - internal
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dti_api_web.service=dti_api_web
+      - traefik.http.routers.dti_api_web.rule=Host(`$HTTP_SUBDOMAIN.qvineox.ru`)
+      - traefik.http.routers.dti_api_web.tls=true
+      - traefik.http.routers.dti_api_web.entrypoints=websec
+      - traefik.http.services.dti_api_web.loadbalancer.server.port=80

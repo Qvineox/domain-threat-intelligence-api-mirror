@@ -12,7 +12,7 @@ import (
 	"log/slog"
 )
 
-func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfig) error {
+func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigProvider) error {
 	slog.Info("application starting...")
 	slog.Info("establishing database connection...")
 
@@ -43,7 +43,15 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfig)
 
 	slog.Info("web server starting...")
 
-	webServer, err := rest.NewHTTPServer(staticCfg.WebServer.Host, staticCfg.WebServer.Port, staticCfg.WebServer.Swagger, domainServices, []string{staticCfg.WebServer.AllowedOrigin})
+	webServer, err := rest.NewHTTPServer(
+		staticCfg.WebServer.Host,
+		staticCfg.WebServer.SwaggerHost,
+		staticCfg.WebServer.APIVersion,
+		staticCfg.WebServer.BasePath,
+		staticCfg.WebServer.Port,
+		staticCfg.WebServer.Swagger,
+		domainServices,
+		[]string{staticCfg.WebServer.AllowedOrigin})
 	err = webServer.Start()
 	if err != nil {
 		slog.Info("web server stopped with error: " + err.Error())

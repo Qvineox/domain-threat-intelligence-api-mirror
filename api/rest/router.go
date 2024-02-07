@@ -9,21 +9,20 @@ import (
 
 // CreateRouter initializes application routing and all route groups
 //
-//	@title			Domain Threat Intelligence API
-//	@version		0.0.3
-//	@description	API provided by DTI project
-//	@contact.name	Yaroslav Lysak
-//	@contact.url	https://t.me/Qvineox
-//	@host			localhost:7090
-//	@BasePath		/api/v1
-func CreateRouter(services Services, allowedOrigins []string) *gin.Engine {
+// @title        Domain Threat Intelligence API
+// @version      0.0.3
+// @description  API provided by DTI project
+// @contact.name Yaroslav Lysak
+// @contact.url  https://t.me/Qvineox
+// @BasePath     /api/v1
+func CreateRouter(services Services, basePath string, allowedOrigins []string) *gin.Engine {
 	router := gin.Default()
 
 	router.MaxMultipartMemory = 16 << 25
 
 	configureCORS(router, allowedOrigins)
 
-	baseRouteV1 := router.Group("/api/v1")
+	baseRouteV1 := router.Group(basePath)
 
 	// API groups
 	routing.NewBlacklistsRouter(services.BlacklistService, baseRouteV1)

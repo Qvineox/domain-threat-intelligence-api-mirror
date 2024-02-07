@@ -5,7 +5,6 @@ import (
 	"domain_threat_intelligence_api/cmd/core"
 	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/serviceDeskEntities"
-	"domain_threat_intelligence_api/configs"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,13 +23,21 @@ type ServiceDeskClient struct {
 	repo       core.IServiceDeskRepo
 	httpClient http.Client
 
-	dynamic *configs.DynamicConfig
+	dynamicConfig INaumenDynamicConfig
 }
 
-func NewServiceDeskClient(repo core.IServiceDeskRepo, dynamicConfig *configs.DynamicConfig) *ServiceDeskClient {
+type INaumenDynamicConfig interface {
+	IsNaumenEnabled() bool
+	GetNaumenCredentials() (url, key string, uID, gID uint64, err error)
+	GetBlacklistServiceConfig() (aID, slm uint64, callType string, types []string, err error)
+	SetNaumenConfig(enabled bool, host, key string, uID, gID uint64) (err error)
+	SetNaumenBlacklistServiceConfig(aID, slm uint64, callType string, types []string) (err error)
+}
+
+func NewServiceDeskClient(repo core.IServiceDeskRepo, dynamicConfig INaumenDynamicConfig) *ServiceDeskClient {
 	client := ServiceDeskClient{
-		repo:    repo,
-		dynamic: dynamicConfig,
+		repo:          repo,
+		dynamicConfig: dynamicConfig,
 		httpClient: http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -44,22 +51,7 @@ func NewServiceDeskClient(repo core.IServiceDeskRepo, dynamicConfig *configs.Dyn
 }
 
 func (s *ServiceDeskClient) IsAvailable() bool {
-	_, err := s.dynamic.GetNaumenURL()
-	if err != nil {
-		return false
-	}
-
-	_, _, _, err = s.dynamic.GetNaumenCredentials()
-	if err != nil {
-		return false
-	}
-
-	_, _, _, err = s.dynamic.GetNaumenBlacklistService()
-	if err != nil {
-		return false
-	}
-
-	return true
+	return s.dynamicConfig.IsNaumenEnabled()
 }
 
 func (s *ServiceDeskClient) RetrieveTicketsByFilter(filter serviceDeskEntities.ServiceDeskSearchFilter) ([]serviceDeskEntities.ServiceDeskTicket, error) {
@@ -85,23 +77,13 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 	}
 
 	// get service configuration
-	url, err := s.dynamic.GetNaumenURL()
-	if err != nil {
-		return serviceDeskEntities.ServiceDeskTicket{}, err
-	}
-
-	key, emp, ou, err := s.dynamic.GetNaumenCredentials()
-	if err != nil {
-		return serviceDeskEntities.ServiceDeskTicket{}, err
-	}
-
-	ag, slm, callType, err := s.dynamic.GetNaumenBlacklistService()
+	url, key, emp, ou, err := s.dynamicConfig.GetNaumenCredentials()
 	if err != nil {
 		return serviceDeskEntities.ServiceDeskTicket{}, err
 	}
 
 	// filter hosts to send by preconfigured types
-	types, err := s.dynamic.GetNaumenBlacklistTypes()
+	ag, slm, callType, types, err := s.dynamicConfig.GetBlacklistServiceConfig()
 	if err != nil {
 		return serviceDeskEntities.ServiceDeskTicket{}, err
 	}
@@ -139,8 +121,8 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 	requestAttributes.DescriptionInRTF = description
 	requestAttributes.Agreement = fmt.Sprintf("agreement$%d", ag)
 	requestAttributes.Service = fmt.Sprintf("slmService$%d", slm)
-	requestAttributes.ClientEmployee = fmt.Sprintf("employee$%s", emp)
-	requestAttributes.ClientOU = fmt.Sprintf("ou$%s", ou)
+	requestAttributes.ClientEmployee = fmt.Sprintf("employee$%d", emp)
+	requestAttributes.ClientOU = fmt.Sprintf("ou$%d", ou)
 
 	bytes_, err := json.Marshal(requestAttributes)
 	if err != nil {
@@ -281,12 +263,7 @@ func (s *ServiceDeskClient) buildHostsFile(hosts []blacklistEntities.Blacklisted
 }
 
 func (s *ServiceDeskClient) appendFile(ticketID string, filePath string) error {
-	url, err := s.dynamic.GetNaumenURL()
-	if err != nil {
-		return err
-	}
-
-	key, _, _, err := s.dynamic.GetNaumenCredentials()
+	url, key, _, _, err := s.dynamicConfig.GetNaumenCredentials()
 	if err != nil {
 		return err
 	}
