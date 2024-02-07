@@ -49,7 +49,7 @@ deploy to production:
     url: https://domain-threat-intel-stage.qvineox.ru/
   script:
     - docker pull $IMAGE_TAG
-    - docker compose up -d
+    - docker compose -f build/docker/docker-compose.yml up -d
   tags:
     - shell
   only:
