@@ -3,6 +3,10 @@ stages:
   - test
   - deploy
 
+include:
+    - template: Security/SAST.gitlab-ci.yml
+
+
 .registry_setup:
   variables:
     IMAGE_TAG: $CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_REF_SLUG
@@ -41,7 +45,8 @@ build docker image:
     refs:
       - stage
 
-run static code analysis:
+sast:
+  allow_failure: true
   stage: test
 
 deploy to production:
@@ -59,6 +64,4 @@ deploy to production:
     refs:
       - stage
 
-include:
-  - template: Security/SAST.gitlab-ci.yml
 
