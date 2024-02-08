@@ -28,7 +28,7 @@ type StaticConfig struct {
 		BasePath      string `env-default:"/api/v1" env:"http_base_path" json:"base_path"`
 		APIVersion    string `env-default:"v0.0.1" env:"http_api_version" json:"api_version"`
 		Swagger       bool   `env-default:"false" env:"http_swagger_enabled" json:"swagger_enabled"`
-		SwaggerHost   string `env-default:"http://localhost:7090" env:"http_swagger_host" json:"swagger_host"`
+		SwaggerHost   string `env-default:"localhost:7090" env:"http_swagger_host" json:"swagger_host"`
 		AllowedOrigin string `env-required:"false" env:"http_origin" json:"allowed_origin"`
 	} `env-required:"true" json:"web_server"`
 
