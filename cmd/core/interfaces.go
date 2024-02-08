@@ -78,48 +78,48 @@ type IBlacklistsRepo interface {
 }
 
 type IUsersService interface {
-	// CreateUser creates only new entities.PlatformUser, returns error if user exists, ignores defined UUID
-	CreateUser(login, password, fullName, email string, roleIDs []uint64) (pgtype.UUID, error)
-
 	// SaveUser updates only existing entities.PlatformUser, returns error if user doesn't exist, UUID should be defined.
 	// This method doesn't update user password, use ResetPassword or ChangePassword
-	SaveUser(user userEntities.PlatformUser, roleIDs []uint64) (pgtype.UUID, error)
+	SaveUser(user userEntities.PlatformUser, roleIDs []uint64) error
 
-	DeleteUser(uuid pgtype.UUID) error
+	DeleteUser(id uint64) error
 	RetrieveUsers() ([]userEntities.PlatformUser, error)
-	RetrieveUser(uuid pgtype.UUID) (userEntities.PlatformUser, error)
+	RetrieveUser(id uint64) (userEntities.PlatformUser, error)
 
 	RetrieveRoles() ([]userEntities.PlatformUserRole, error)
 
 	// ResetPassword is used to send recovery messages to users
-	ResetPassword(uuid pgtype.UUID) error
+	ResetPassword(id uint64) error
 
 	// ChangePassword allows to set new password for user. Can be used by admin and user itself
-	ChangePassword(uuid pgtype.UUID, oldPassword, newPassword string) error
+	ChangePassword(id uint64, oldPassword, newPassword string) error
 }
 
 type IUsersRepo interface {
-	InsertUser(user userEntities.PlatformUser) (pgtype.UUID, error)
-	UpdateUser(user userEntities.PlatformUser) (pgtype.UUID, error)
-	DeleteUser(uuid pgtype.UUID) error
+	InsertUser(user userEntities.PlatformUser) (uint64, error)
+	UpdateUser(user userEntities.PlatformUser) error
+	DeleteUser(id uint64) error
+
 	SelectUsers() ([]userEntities.PlatformUser, error)
-	SelectUser(uuid pgtype.UUID) (userEntities.PlatformUser, error)
+	SelectUser(id uint64) (userEntities.PlatformUser, error)
+	SelectUserByLogin(login string) (userEntities.PlatformUser, error)
 
 	SelectRoles() ([]userEntities.PlatformUserRole, error)
 
 	// UpdatePasswordHash is used only to update user password hash. Must be used when resetting or changing password
-	UpdatePasswordHash(uuid pgtype.UUID, hash string) error
+	UpdatePasswordHash(id uint64, hash string) error
 }
 
 type IAuthService interface {
-	RegisterNewUser(login, password, fullName, email string) (pgtype.UUID, error)
 	ConfirmEmail(confirmationUUID pgtype.UUID) error
 
+	// Register creates new entities.PlatformUser, returns error if user exists, ignores defined ID
+	Register(login, password, fullName, email string, roleIDs []uint64) (uint64, error)
 	Login(login, password string) (accessToken, refreshToken string, err error)
-	Logout(uuid pgtype.UUID) error
+	Logout(refreshToken string) error
 
-	Validate(token string) (isValid bool, err error)
-	Refresh(token string) (accessToken, refreshToken string, err error)
+	Validate(accessToken string) (isValid bool, err error)
+	Refresh(refreshToken string) (accessToken, newRefreshToken string, err error)
 }
 
 // ISystemStateService holds collection of services that provide info about system configuration, state and status

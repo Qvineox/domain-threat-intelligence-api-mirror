@@ -4,7 +4,7 @@ stages:
   - deploy
 
 include:
-    - template: Security/SAST.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
 
 
 .registry_setup:
@@ -49,7 +49,7 @@ sast:
   allow_failure: true
   stage: test
 
-deploy to production:
+deploy to staging:
   extends: .registry_setup
   stage: deploy
   environment:
@@ -57,7 +57,7 @@ deploy to production:
     url: https://domain-threat-intel-stage.qvineox.ru/
   script:
     - docker pull $IMAGE_TAG
-    - docker compose -f build/docker/docker-compose.yml up -d
+    - docker compose -f build/docker/docker-compose.stage.yml up -d
   tags:
     - shell
   only:

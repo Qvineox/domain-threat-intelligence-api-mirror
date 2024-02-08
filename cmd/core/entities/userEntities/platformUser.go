@@ -29,13 +29,13 @@ type PlatformUser struct {
 
 func NewPlatformUser(fullName, login, email, saltedPassword string, isActive bool) (*PlatformUser, error) {
 	if len(saltedPassword) == 0 || len(login) == 0 {
-		return nil, errors.New("saltedPassword or login empty")
+		return nil, errors.New("salted password or login empty")
 	}
 
-	hasher := sha512.New()
-	hasher.Write([]byte(saltedPassword))
+	h := sha512.New()
+	h.Write([]byte(saltedPassword))
 
-	hashedPass := hasher.Sum(nil)
+	hashedPass := h.Sum(nil)
 
 	return &PlatformUser{
 		FullName:     fullName,
@@ -44,6 +44,33 @@ func NewPlatformUser(fullName, login, email, saltedPassword string, isActive boo
 		PasswordHash: hex.EncodeToString(hashedPass),
 		IsActive:     isActive,
 	}, nil
+}
+
+func (user *PlatformUser) SetPasswordHash(saltedPassword string) error {
+	if len(saltedPassword) == 0 {
+		return errors.New("salted password empty")
+	}
+
+	h := sha512.New()
+	h.Write([]byte(saltedPassword))
+
+	hashedPass := h.Sum(nil)
+
+	user.PasswordHash = hex.EncodeToString(hashedPass)
+
+	return nil
+}
+
+func (user *PlatformUser) ComparePassword(saltedPassword string) (bool, error) {
+	if len(saltedPassword) == 0 {
+		return false, errors.New("salted password empty")
+	}
+
+	h := sha512.New()
+	h.Write([]byte(saltedPassword))
+	hashedPass := h.Sum(nil)
+
+	return user.PasswordHash == hex.EncodeToString(hashedPass), nil
 }
 
 func (user *PlatformUser) SetRoles(roleIDs []uint64) error {

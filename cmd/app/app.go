@@ -41,6 +41,10 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 	domainServices.BlacklistService = services.NewBlackListsServiceImpl(repos.NewBlacklistsRepoImpl(dbConn), domainServices.ServiceDeskService)
 	domainServices.SystemStateService = services.NewSystemStateServiceImpl(dynamicCfg)
 
+	usersRepo := repos.NewUsersRepoImpl(dbConn)
+	domainServices.AuthService = services.NewAuthServiceImpl(usersRepo, "salt")
+	domainServices.UsersService = services.NewUsersServiceImpl(usersRepo)
+
 	slog.Info("web server starting...")
 
 	webServer, err := rest.NewHTTPServer(

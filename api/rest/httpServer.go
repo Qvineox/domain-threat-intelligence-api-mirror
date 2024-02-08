@@ -65,4 +65,6 @@ type Services struct {
 	BlacklistService   core.IBlacklistsService
 	SystemStateService core.ISystemStateService
 	ServiceDeskService core.IServiceDeskService
+	AuthService        core.IAuthService
+	UsersService       core.IUsersService
 }
