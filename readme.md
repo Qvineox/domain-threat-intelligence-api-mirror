@@ -57,8 +57,9 @@ Following variables are used in application. These variables are also mapped in 
 | http_base_path       | optional     | $HTTP_BASE_PATH       | REST endpoint path                                                    | /api/v1           |
 | http_api_version     | optional     | $HTTP_API_VERSION     | REST endpoint schema version                                          | v0.0.1            |
 | http_swagger_enabled | optional     | $HTTP_SWAGGER_ENABLED | Defines if [swagger](scripts%2Fswagger%2Freadme.md) routes will start | false             |   
-| http_swagger_host    | optional     | $HTTP_SWAGGER_HOST    | Defines [swagger](scripts%2Fswagger%2Freadme.md) API route            | localhost:7090    |   
-| allowed_origin       | optional     | $HTTP_SUBDOMAIN       | Defines if [swagger](scripts%2Fswagger%2Freadme.md) starts            | localhost         |   
+| http_swagger_host    | optional     | $HTTP_SWAGGER_HOST    | Defines [swagger](scripts%2Fswagger%2Freadme.md) API host             | localhost:7090    |   
+| http_allowed_origin  | optional     | $HTTP_SUBDOMAIN       | Allowed origins                                                       | localhost         |   
+| http_domain          | optional     | $HTTP_DOMAIN          | Main domain for cookie auth                                           | qvineox.ru        |   
 
 ### Continuous integration using GitLab
 
