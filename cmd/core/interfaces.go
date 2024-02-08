@@ -1,6 +1,7 @@
 package core
 
 import (
+	"domain_threat_intelligence_api/cmd/core/entities/authEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/serviceDeskEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
@@ -118,7 +119,7 @@ type IAuthService interface {
 	Login(login, password string) (accessToken, refreshToken string, err error)
 	Logout(refreshToken string) error
 
-	Validate(accessToken string) (isValid bool, err error)
+	Validate(accessToken string) (claims authEntities.AccessTokenClaims, err error)
 	Refresh(refreshToken string) (accessToken, newRefreshToken string, err error)
 }
 

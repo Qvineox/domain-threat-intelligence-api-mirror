@@ -30,6 +30,7 @@ type StaticConfig struct {
 		Swagger       bool   `env-default:"false" env:"http_swagger_enabled" json:"swagger_enabled"`
 		SwaggerHost   string `env-default:"localhost:7090" env:"http_swagger_host" json:"swagger_host"`
 		AllowedOrigin string `env-required:"false" env:"http_origin" json:"allowed_origin"`
+		Domain        string `env-required:"false" env:"http_domain" json:"domain"`
 	} `env-required:"true" json:"web_server"`
 
 	Logging struct {

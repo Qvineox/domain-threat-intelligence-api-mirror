@@ -52,6 +52,7 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 		staticCfg.WebServer.SwaggerHost,
 		staticCfg.WebServer.APIVersion,
 		staticCfg.WebServer.BasePath,
+		staticCfg.WebServer.Domain,
 		staticCfg.WebServer.Port,
 		staticCfg.WebServer.Swagger,
 		domainServices,

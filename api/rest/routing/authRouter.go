@@ -4,15 +4,18 @@ import (
 	apiErrors "domain_threat_intelligence_api/api/rest/error"
 	"domain_threat_intelligence_api/cmd/core"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type AuthRouter struct {
 	service core.IAuthService
 	path    *gin.RouterGroup
+
+	domain string
 }
 
-func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup) *AuthRouter {
-	router := AuthRouter{service: service, path: path}
+func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup, domain string) *AuthRouter {
+	router := AuthRouter{service: service, path: path, domain: domain}
 
 	authGroup := path.Group("/auth")
 
@@ -30,11 +33,16 @@ func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup) *AuthRouter
 
 // https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html#token-storage-on-client-side
 
+// Login accepts login and password, return pair of auth tokens
+//
+// @Summary            Authorizes user by login and password
+// @Description        Accepts login and password, return pair of auth tokens
+// @Tags               Auth
+// @Router             /auth/login [post]
+// @ProduceAccessToken json
+// @Param              username body loginParams true "user credentials"
 func (r *AuthRouter) Login(c *gin.Context) {
-	var params struct {
-		Username string `json:"username" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
+	var params loginParams
 
 	err := c.ShouldBindJSON(&params)
 	if err != nil {
@@ -44,15 +52,19 @@ func (r *AuthRouter) Login(c *gin.Context) {
 
 	// TODO: session auth
 
-	_, _, err = r.service.Login(params.Username, params.Password)
+	accessToken, refreshToken, err := r.service.Login(params.Username, params.Password)
 	if err != nil {
 		apiErrors.AuthErrorResponse(c, err)
 		return
 	}
 
-	//c.SetCookie("refresh_token", refresh, 60*60*48, "", s.serverConfig.Domain, true, true)
-	//c.JSON(http.StatusAccepted, tokens)
+	c.SetCookie("refresh_token", refreshToken, 60*60*48, "", r.domain, true, true)
+	c.JSON(http.StatusAccepted, accessToken)
+}
 
+type loginParams struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 func (r *AuthRouter) Logout(c *gin.Context) {

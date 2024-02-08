@@ -17,25 +17,22 @@ type PlatformUserRole struct {
 	DeletedAt gorm.DeletedAt `json:"DeletedAt,omitempty" gorm:"index"`
 }
 
-const (
-	RoleLogin uint64 = iota + 1
-	RoleAdmin
-	RoleBlacklistImport
-)
-
 var DefaultUserRoles = []PlatformUserRole{
 	{
-		ID:          RoleLogin,
+		ID:          1,
+		IsActive:    true,
 		Name:        "Auth",
 		Description: "Определяет может ли пользователь авторизоваться в системе",
 	},
 	{
-		ID:          RoleAdmin,
+		ID:          2,
+		IsActive:    true,
 		Name:        "Admin",
 		Description: "Является ли пользователь администратором",
 	},
 	{
-		ID:          RoleBlacklistImport,
+		ID:          3,
+		IsActive:    true,
 		Name:        "Can import blacklists",
 		Description: "Определяет может ли пользователи импортировать списки блокировок",
 	},

@@ -11,12 +11,30 @@
     },
     "basePath": "/api/v1",
     "paths": {
+        "/auth/login": {
+            "post": {
+                "description": "Accepts login and password, return pair of auth tokens",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Authorizes user by login and password",
+                "parameters": [
+                    {
+                        "description": "user credentials",
+                        "name": "username",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.loginParams"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/blacklists/domain": {
             "get": {
                 "description": "Returns list of blacklisted domains by filter",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -96,9 +114,6 @@
             },
             "put": {
                 "description": "Accepts and saves list of blacklisted domains",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -131,9 +146,6 @@
             },
             "delete": {
                 "description": "Accepts and deletes single blacklisted domain",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -168,9 +180,6 @@
         "/blacklists/email": {
             "get": {
                 "description": "Returns list of blacklisted emails by filter",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -250,9 +259,6 @@
             },
             "put": {
                 "description": "Accepts and saves list of blacklisted emails",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -285,9 +291,6 @@
             },
             "delete": {
                 "description": "Accepts and deletes single blacklisted email",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -322,10 +325,6 @@
         "/blacklists/export/csv": {
             "post": {
                 "description": "Accepts filters and returns exported blacklisted hosts in CSV",
-                "produces": [
-                    "application/json",
-                    "application/csv"
-                ],
                 "tags": [
                     "Blacklists",
                     "Export"
@@ -386,10 +385,6 @@
         "/blacklists/export/json": {
             "post": {
                 "description": "Accepts filters and returns exported blacklisted hosts in JSON",
-                "produces": [
-                    "application/json",
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists",
                     "Export"
@@ -450,9 +445,6 @@
         "/blacklists/export/naumen": {
             "post": {
                 "description": "Sends service call to Naumen Service Desk with hosts selected to block by filter",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists",
                     "Export"
@@ -519,9 +511,6 @@
         "/blacklists/host": {
             "get": {
                 "description": "Returns list of blacklisted hosts (all types) by filter",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -603,9 +592,6 @@
         "/blacklists/import/csv": {
             "post": {
                 "description": "Accepts and imports blacklisted hosts from CSV file",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists",
                     "Import"
@@ -653,9 +639,6 @@
         "/blacklists/import/event": {
             "get": {
                 "description": "Returns import events without data",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists",
                     "Import"
@@ -716,9 +699,6 @@
         "/blacklists/import/event/{event_id}": {
             "get": {
                 "description": "Returns import event data with all included blacklisted hosts",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists",
                     "Import"
@@ -752,9 +732,6 @@
         "/blacklists/import/events": {
             "delete": {
                 "description": "Accepts and deletes single blacklist import event",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists",
                     "Import"
@@ -792,9 +769,6 @@
                 "description": "Accepts and imports blacklisted hosts from STIX 2.0 file",
                 "consumes": [
                     "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
                 ],
                 "tags": [
                     "Blacklists",
@@ -843,9 +817,6 @@
         "/blacklists/ip": {
             "get": {
                 "description": "Returns list of blacklisted IPs by filter",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -925,9 +896,6 @@
             },
             "put": {
                 "description": "Accepts and saves list of blacklisted IPs",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -960,9 +928,6 @@
             },
             "delete": {
                 "description": "Accepts and deletes single blacklisted IP",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -997,10 +962,6 @@
         "/blacklists/sources": {
             "get": {
                 "description": "Returns all available blacklist data sources",
-                "produces": [
-                    "application/json",
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -1027,10 +988,6 @@
         "/blacklists/stats": {
             "get": {
                 "description": "Returns data containing overall amount of blacklisted entities",
-                "produces": [
-                    "application/json",
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -1054,9 +1011,6 @@
         "/blacklists/url": {
             "get": {
                 "description": "Returns list of blacklisted URLs by filter",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -1136,9 +1090,6 @@
             },
             "put": {
                 "description": "Accepts and saves list of blacklisted URLs",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -1171,9 +1122,6 @@
             },
             "delete": {
                 "description": "Accepts and deletes single blacklisted URL",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -1208,9 +1156,6 @@
         "/system/dynamic": {
             "get": {
                 "description": "Gets info about current dynamic application config",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Configuration"
                 ],
@@ -1231,9 +1176,6 @@
         "/system/dynamic/naumen": {
             "post": {
                 "description": "Updates dynamic Naumen Service Desk configuration",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Configuration"
                 ],
@@ -1265,9 +1207,6 @@
         "/system/dynamic/naumen/blacklists": {
             "post": {
                 "description": "Updates dynamic Naumen Service Desk service configuration",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Configuration"
                 ],
@@ -1299,9 +1238,6 @@
         "/system/dynamic/smtp": {
             "post": {
                 "description": "Updates dynamic SMTP configuration",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Configuration"
                 ],
@@ -1769,6 +1705,21 @@
             ],
             "properties": {
                 "UUID": {
+                    "type": "string"
+                }
+            }
+        },
+        "routing.loginParams": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

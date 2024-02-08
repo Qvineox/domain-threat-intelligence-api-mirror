@@ -19,12 +19,30 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/login": {
+            "post": {
+                "description": "Accepts login and password, return pair of auth tokens",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Authorizes user by login and password",
+                "parameters": [
+                    {
+                        "description": "user credentials",
+                        "name": "username",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.loginParams"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/blacklists/domain": {
             "get": {
                 "description": "Returns list of blacklisted domains by filter",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -104,9 +122,6 @@ const docTemplate = `{
             },
             "put": {
                 "description": "Accepts and saves list of blacklisted domains",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -139,9 +154,6 @@ const docTemplate = `{
             },
             "delete": {
                 "description": "Accepts and deletes single blacklisted domain",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -176,9 +188,6 @@ const docTemplate = `{
         "/blacklists/email": {
             "get": {
                 "description": "Returns list of blacklisted emails by filter",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -258,9 +267,6 @@ const docTemplate = `{
             },
             "put": {
                 "description": "Accepts and saves list of blacklisted emails",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -293,9 +299,6 @@ const docTemplate = `{
             },
             "delete": {
                 "description": "Accepts and deletes single blacklisted email",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -330,10 +333,6 @@ const docTemplate = `{
         "/blacklists/export/csv": {
             "post": {
                 "description": "Accepts filters and returns exported blacklisted hosts in CSV",
-                "produces": [
-                    "application/json",
-                    "application/csv"
-                ],
                 "tags": [
                     "Blacklists",
                     "Export"
@@ -394,10 +393,6 @@ const docTemplate = `{
         "/blacklists/export/json": {
             "post": {
                 "description": "Accepts filters and returns exported blacklisted hosts in JSON",
-                "produces": [
-                    "application/json",
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists",
                     "Export"
@@ -458,9 +453,6 @@ const docTemplate = `{
         "/blacklists/export/naumen": {
             "post": {
                 "description": "Sends service call to Naumen Service Desk with hosts selected to block by filter",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists",
                     "Export"
@@ -527,9 +519,6 @@ const docTemplate = `{
         "/blacklists/host": {
             "get": {
                 "description": "Returns list of blacklisted hosts (all types) by filter",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -611,9 +600,6 @@ const docTemplate = `{
         "/blacklists/import/csv": {
             "post": {
                 "description": "Accepts and imports blacklisted hosts from CSV file",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists",
                     "Import"
@@ -661,9 +647,6 @@ const docTemplate = `{
         "/blacklists/import/event": {
             "get": {
                 "description": "Returns import events without data",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists",
                     "Import"
@@ -724,9 +707,6 @@ const docTemplate = `{
         "/blacklists/import/event/{event_id}": {
             "get": {
                 "description": "Returns import event data with all included blacklisted hosts",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists",
                     "Import"
@@ -760,9 +740,6 @@ const docTemplate = `{
         "/blacklists/import/events": {
             "delete": {
                 "description": "Accepts and deletes single blacklist import event",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists",
                     "Import"
@@ -800,9 +777,6 @@ const docTemplate = `{
                 "description": "Accepts and imports blacklisted hosts from STIX 2.0 file",
                 "consumes": [
                     "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
                 ],
                 "tags": [
                     "Blacklists",
@@ -851,9 +825,6 @@ const docTemplate = `{
         "/blacklists/ip": {
             "get": {
                 "description": "Returns list of blacklisted IPs by filter",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -933,9 +904,6 @@ const docTemplate = `{
             },
             "put": {
                 "description": "Accepts and saves list of blacklisted IPs",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -968,9 +936,6 @@ const docTemplate = `{
             },
             "delete": {
                 "description": "Accepts and deletes single blacklisted IP",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -1005,10 +970,6 @@ const docTemplate = `{
         "/blacklists/sources": {
             "get": {
                 "description": "Returns all available blacklist data sources",
-                "produces": [
-                    "application/json",
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -1035,10 +996,6 @@ const docTemplate = `{
         "/blacklists/stats": {
             "get": {
                 "description": "Returns data containing overall amount of blacklisted entities",
-                "produces": [
-                    "application/json",
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -1062,9 +1019,6 @@ const docTemplate = `{
         "/blacklists/url": {
             "get": {
                 "description": "Returns list of blacklisted URLs by filter",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -1144,9 +1098,6 @@ const docTemplate = `{
             },
             "put": {
                 "description": "Accepts and saves list of blacklisted URLs",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -1179,9 +1130,6 @@ const docTemplate = `{
             },
             "delete": {
                 "description": "Accepts and deletes single blacklisted URL",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Blacklists"
                 ],
@@ -1216,9 +1164,6 @@ const docTemplate = `{
         "/system/dynamic": {
             "get": {
                 "description": "Gets info about current dynamic application config",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Configuration"
                 ],
@@ -1239,9 +1184,6 @@ const docTemplate = `{
         "/system/dynamic/naumen": {
             "post": {
                 "description": "Updates dynamic Naumen Service Desk configuration",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Configuration"
                 ],
@@ -1273,9 +1215,6 @@ const docTemplate = `{
         "/system/dynamic/naumen/blacklists": {
             "post": {
                 "description": "Updates dynamic Naumen Service Desk service configuration",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Configuration"
                 ],
@@ -1307,9 +1246,6 @@ const docTemplate = `{
         "/system/dynamic/smtp": {
             "post": {
                 "description": "Updates dynamic SMTP configuration",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Configuration"
                 ],
@@ -1777,6 +1713,21 @@ const docTemplate = `{
             ],
             "properties": {
                 "UUID": {
+                    "type": "string"
+                }
+            }
+        },
+        "routing.loginParams": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

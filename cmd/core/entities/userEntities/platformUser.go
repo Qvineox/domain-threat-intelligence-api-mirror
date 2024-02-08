@@ -77,16 +77,31 @@ func (user *PlatformUser) SetRoles(roleIDs []uint64) error {
 	var userRoles []PlatformUserRole
 
 	for _, id := range roleIDs {
+		var found = false
+
 		for _, defRole := range DefaultUserRoles {
 			if id == defRole.ID {
 				userRoles = append(userRoles, defRole)
-				continue
+				found = true
+				break
 			}
+		}
 
+		if !found {
 			return errors.New(fmt.Sprintf("role with id %d not found", id))
 		}
 	}
 
 	user.Roles = userRoles
 	return nil
+}
+
+func (user *PlatformUser) GetRoleIDs() []uint64 {
+	var ids []uint64
+
+	for _, r := range user.Roles {
+		ids = append(ids, r.ID)
+	}
+
+	return ids
 }

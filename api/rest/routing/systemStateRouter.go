@@ -30,13 +30,13 @@ func NewSystemStateRouter(service core.ISystemStateService, path *gin.RouterGrou
 
 // GetDynamicConfig returns info about current dynamic application config
 //
-// @Summary     View application dynamic config
-// @Description Gets info about current dynamic application config
-// @Tags        Configuration
-// @Router      /system/dynamic [get]
-// @Produce     json
-// @Success     200
-// @Failure     400 {object} error.APIError
+// @Summary            View application dynamic config
+// @Description        Gets info about current dynamic application config
+// @Tags               Configuration
+// @Router             /system/dynamic [get]
+// @ProduceAccessToken json
+// @Success            200
+// @Failure            400 {object} error.APIError
 func (r *SystemStateRouter) GetDynamicConfig(c *gin.Context) {
 	config, err := r.service.RetrieveDynamicConfig()
 	if err != nil {
@@ -49,14 +49,14 @@ func (r *SystemStateRouter) GetDynamicConfig(c *gin.Context) {
 
 // PostUpdateSMTPConfig updates dynamic SMTP configuration
 //
-// @Summary     Update dynamic SMTP configuration
-// @Description Updates dynamic SMTP configuration
-// @Tags        Configuration
-// @Router      /system/dynamic/smtp [post]
-// @Produce     json
-// @Param       smtpConfig body smtpConfigUpdateParams true "dynamic SMTP configuration"
-// @Success     202
-// @Failure     400 {object} error.APIError
+// @Summary            Update dynamic SMTP configuration
+// @Description        Updates dynamic SMTP configuration
+// @Tags               Configuration
+// @Router             /system/dynamic/smtp [post]
+// @ProduceAccessToken json
+// @Param              smtpConfig body smtpConfigUpdateParams true "dynamic SMTP configuration"
+// @Success            202
+// @Failure            400 {object} error.APIError
 func (r *SystemStateRouter) PostUpdateSMTPConfig(c *gin.Context) {
 	params := smtpConfigUpdateParams{}
 
@@ -86,14 +86,14 @@ type smtpConfigUpdateParams struct {
 
 // PostUpdateNaumenConfig updates dynamic Naumen Service Desk configuration
 //
-// @Summary     Update dynamic Naumen Service Desk configuration
-// @Description Updates dynamic Naumen Service Desk configuration
-// @Tags        Configuration
-// @Router      /system/dynamic/naumen [post]
-// @Produce     json
-// @Param       naumenConfig body naumenConfigUpdateParams true "dynamic naumen configuration"
-// @Success     202
-// @Failure     400 {object} error.APIError
+// @Summary            Update dynamic Naumen Service Desk configuration
+// @Description        Updates dynamic Naumen Service Desk configuration
+// @Tags               Configuration
+// @Router             /system/dynamic/naumen [post]
+// @ProduceAccessToken json
+// @Param              naumenConfig body naumenConfigUpdateParams true "dynamic naumen configuration"
+// @Success            202
+// @Failure            400 {object} error.APIError
 func (r *SystemStateRouter) PostUpdateNaumenConfig(c *gin.Context) {
 	params := naumenConfigUpdateParams{}
 
@@ -122,14 +122,14 @@ type naumenConfigUpdateParams struct {
 
 // PostUpdateNaumenBlacklistServiceConfig updates dynamic Naumen Service Desk service configuration
 //
-// @Summary     Update dynamic Naumen Service Desk service configuration
-// @Description Updates dynamic Naumen Service Desk service configuration
-// @Tags        Configuration
-// @Router      /system/dynamic/naumen/blacklists [post]
-// @Produce     json
-// @Param       naumenConfig body naumenBlacklistServiceConfigUpdateParams true "dynamic naumen service configuration"
-// @Success     202
-// @Failure     400 {object} error.APIError
+// @Summary            Update dynamic Naumen Service Desk service configuration
+// @Description        Updates dynamic Naumen Service Desk service configuration
+// @Tags               Configuration
+// @Router             /system/dynamic/naumen/blacklists [post]
+// @ProduceAccessToken json
+// @Param              naumenConfig body naumenBlacklistServiceConfigUpdateParams true "dynamic naumen service configuration"
+// @Success            202
+// @Failure            400 {object} error.APIError
 func (r *SystemStateRouter) PostUpdateNaumenBlacklistServiceConfig(c *gin.Context) {
 	params := naumenBlacklistServiceConfigUpdateParams{}
 

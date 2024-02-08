@@ -16,7 +16,7 @@ type HTTPServer struct {
 	swaggerEnabled bool
 }
 
-func NewHTTPServer(host, swaggerHost, apiVersion, basePath string, port uint64, swagger bool, services Services, allowedOrigins []string) (*HTTPServer, error) {
+func NewHTTPServer(host, swaggerHost, apiVersion, basePath, domain string, port uint64, swagger bool, services Services, allowedOrigins []string) (*HTTPServer, error) {
 	s := &HTTPServer{}
 
 	if len(host) == 0 {
@@ -32,7 +32,7 @@ func NewHTTPServer(host, swaggerHost, apiVersion, basePath string, port uint64, 
 	}
 
 	// gin router initialization
-	router := CreateRouter(services, basePath, allowedOrigins)
+	router := CreateRouter(services, basePath, domain, allowedOrigins)
 
 	// swagger routing
 	s.swaggerEnabled = swagger

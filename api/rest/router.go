@@ -15,7 +15,7 @@ import (
 // @contact.name Yaroslav Lysak
 // @contact.url  https://t.me/Qvineox
 // @BasePath     /api/v1
-func CreateRouter(services Services, basePath string, allowedOrigins []string) *gin.Engine {
+func CreateRouter(services Services, basePath, domain string, allowedOrigins []string) *gin.Engine {
 	router := gin.Default()
 
 	router.MaxMultipartMemory = 16 << 25
@@ -28,6 +28,7 @@ func CreateRouter(services Services, basePath string, allowedOrigins []string) *
 	routing.NewBlacklistsRouter(services.BlacklistService, baseRouteV1)
 	routing.NewSystemStateRouter(services.SystemStateService, baseRouteV1)
 	routing.NewServiceDeskRouter(services.ServiceDeskService, baseRouteV1)
+	routing.NewAuthRouter(services.AuthService, baseRouteV1, domain)
 
 	return router
 }

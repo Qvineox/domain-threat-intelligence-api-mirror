@@ -89,19 +89,25 @@ func migrateUserRoles(database *gorm.DB) error {
 }
 
 func createRootUser(database *gorm.DB) error {
-	rootUser := userEntities.PlatformUser{
-		FullName:     "Root User",
-		Login:        "root",
-		PasswordHash: "missing_hash_value",
-		IsActive:     true,
-		DeletedAt:    gorm.DeletedAt{},
-		Roles:        userEntities.DefaultUserRoles,
+	user, err := userEntities.NewPlatformUser(
+		"Root User",
+		"root",
+		"lysak.yaroslav00@yandex.ru",
+		"passsalt",
+		true)
+	if err != nil {
+		return err
 	}
 
-	err := database.
-		Where(userEntities.PlatformUser{Login: rootUser.Login}).
-		Assign(userEntities.PlatformUser{IsActive: rootUser.IsActive, Roles: rootUser.Roles}).
-		FirstOrCreate(&rootUser).
+	err = user.SetRoles([]uint64{1, 2, 3})
+	if err != nil {
+		return err
+	}
+
+	err = database.
+		Where(userEntities.PlatformUser{Login: user.Login}).
+		Assign(userEntities.PlatformUser{IsActive: user.IsActive, Email: user.Email, PasswordHash: user.PasswordHash, Roles: user.Roles}).
+		FirstOrCreate(&user).
 		Error
 
 	if err != nil {

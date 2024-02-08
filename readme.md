@@ -114,7 +114,8 @@ favors directories such as /cmd, /internal, or /pkg.
 
 - [HABR - "Запускаем PostgreSQL в Docker: от простого к сложному" - 2021](https://habr.com/ru/articles/578744/)
 - [HABR - "Разбираемся с пакетом Context в Golang" - 2019](https://habr.com/ru/companies/nixys/articles/461723/)
+- [HABR - "Неочевидные проблемы с UUID ключами в PostgreSQL" - 2023](https://habr.com/ru/articles/747348/)
 - [YouTube - "Swagger for Go REST APIs: Quick & Easy Documentation with Gin" - 2023](https://youtu.be/0b_N4y8_9iI?si=hqdJT9NGcBtQJbkK)
 - [LogRocket - "Gin binding in Go: A tutorial with examples" - 2021](https://blog.logrocket.com/gin-binding-in-go-a-tutorial-with-examples/)
+- [LogRocket - "A guide to JWT authentication in Go" - 2022](https://blog.logrocket.com/jwt-authentication-go/)
 - [ZetCode - "Go CSV - read & write CSV" - 2023](https://zetcode.com/golang/csv/)
-- [HABR - "Неочевидные проблемы с UUID ключами в PostgreSQL" - 2023](https://habr.com/ru/articles/747348/)
