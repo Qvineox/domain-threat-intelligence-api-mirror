@@ -9,7 +9,6 @@
         },
         "version": "0.0.3"
     },
-    "basePath": "/api/v1",
     "paths": {
         "/auth/login": {
             "post": {
@@ -29,7 +28,17 @@
                         }
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
             }
         },
         "/blacklists/domain": {
@@ -1155,6 +1164,11 @@
         },
         "/system/dynamic": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Gets info about current dynamic application config",
                 "tags": [
                     "Configuration"
@@ -1265,6 +1279,209 @@
                     }
                 }
             }
+        },
+        "/users/me": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns current session user in JWT token",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get current session user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/userEntities.PlatformUser"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/roles": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns all roles",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get all roles",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/userEntities.PlatformUserRole"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and deletes single user account",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Delete user account",
+                "parameters": [
+                    {
+                        "description": "record ID to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.deleteByIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and updates single user account",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update user account",
+                "parameters": [
+                    {
+                        "description": "user update",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.userInsertParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user/{user_id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns single user account",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get single user account",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/userEntities.PlatformUser"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/users": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns all user accounts",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get all user accounts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/userEntities.PlatformUser"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1276,7 +1493,11 @@
                 },
                 "CreatedBy": {
                     "description": "CreatedBy defines import event creator identity",
-                    "$ref": "#/definitions/userEntities.PlatformUser"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/userEntities.PlatformUser"
+                        }
+                    ]
                 },
                 "CreatedByID": {
                     "type": "integer"
@@ -1291,7 +1512,7 @@
                     "type": "boolean"
                 },
                 "Summary": {
-                    "type": "object"
+                    "$ref": "#/definitions/datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary"
                 },
                 "Type": {
                     "type": "string"
@@ -1339,14 +1560,22 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1383,14 +1612,22 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1424,20 +1661,28 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Source defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
                 },
                 "Status": {
-                    "type": "string"
+                    "$ref": "#/definitions/blacklistEntities.HostStatus"
                 },
                 "Type": {
                     "description": "domain, url or IP",
@@ -1472,14 +1717,22 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1510,7 +1763,11 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
@@ -1520,7 +1777,11 @@
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1536,11 +1797,23 @@
                 }
             }
         },
+        "blacklistEntities.HostStatus": {
+            "type": "string",
+            "enum": [
+                "new"
+            ],
+            "x-enum-varnames": [
+                "HostStatusNew"
+            ]
+        },
+        "datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary": {
+            "type": "object"
+        },
         "error.APIError": {
             "type": "object",
             "properties": {
                 "ErrorCode": {
-                    "type": "integer"
+                    "$ref": "#/definitions/error.CodeError"
                 },
                 "ErrorMessage": {
                     "type": "string"
@@ -1552,6 +1825,39 @@
                     "type": "integer"
                 }
             }
+        },
+        "error.CodeError": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13
+            ],
+            "x-enum-varnames": [
+                "EncodingErrorCode",
+                "DecodingErrorCode",
+                "IncorrectParamsErrorCode",
+                "InsufficientParamsErrorCode",
+                "DatabaseErrorCode",
+                "DatabaseEntityNotFoundCode",
+                "FileDecodingErrorCode",
+                "FileReadingErrorCode",
+                "FileExtensionNotSupportedErrorCode",
+                "NotImplementedErrorCode",
+                "FileProcessingErrorCode",
+                "InternalUnidentifiedErrorCode",
+                "AuthFailedErrorCode"
+            ]
         },
         "gorm.DeletedAt": {
             "type": "object",
@@ -1591,9 +1897,22 @@
                     "$ref": "#/definitions/net.IPNet"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/pgtype.Status"
                 }
             }
+        },
+        "pgtype.Status": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "Undefined",
+                "Null",
+                "Present"
+            ]
         },
         "routing.BlacklistedStatistics": {
             "type": "object",
@@ -1805,6 +2124,40 @@
                 }
             }
         },
+        "routing.userInsertParams": {
+            "type": "object",
+            "required": [
+                "email",
+                "fullName",
+                "id",
+                "isActive",
+                "login",
+                "roleIDs"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fullName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "login": {
+                    "type": "string"
+                },
+                "roleIDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "serviceDeskEntities.ServiceDeskTicket": {
             "type": "object",
             "properties": {
@@ -1913,6 +2266,13 @@
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "x-api-Key",
+            "in": "header"
         }
     }
 }

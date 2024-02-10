@@ -1,6 +1,7 @@
 package authEntities
 
 import (
+	"errors"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -8,7 +9,8 @@ import (
 type AccessTokenClaims struct {
 	jwt.RegisteredClaims
 
-	RoleIDs []uint64 `json:"role_ids"`
+	UserID  uint64    `json:"user_id"`
+	RoleIDs *[]uint64 `json:"role_ids,omitempty"`
 }
 
 func (claims AccessTokenClaims) Sing(method *jwt.SigningMethodHMAC, key []byte) (string, error) {
@@ -24,9 +26,13 @@ func (claims AccessTokenClaims) Sing(method *jwt.SigningMethodHMAC, key []byte) 
 
 func NewAccessTokenClaimsFromToken(token *jwt.Token) (AccessTokenClaims, error) {
 	c, ok := token.Claims.(AccessTokenClaims)
-	if ok && token.Valid {
+	if !ok {
+		return AccessTokenClaims{}, errors.New("token structure invalid")
+	}
+
+	if token.Valid {
 		return c, nil
 	}
 
-	return AccessTokenClaims{}, nil
+	return AccessTokenClaims{}, errors.New("unexpected error")
 }

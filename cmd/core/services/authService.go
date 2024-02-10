@@ -14,6 +14,8 @@ import (
 type AuthServiceImpl struct {
 	repo core.IUsersRepo
 
+	domain string
+
 	salt            string
 	accessTokenKey  []byte
 	refreshTokenKey []byte
@@ -23,15 +25,19 @@ type AuthServiceImpl struct {
 	accessTokenFactory, refreshTokenFactory *authEntities.TokenFactory
 }
 
-func NewAuthServiceImpl(repo core.IUsersRepo, salt string) *AuthServiceImpl {
-	s := AuthServiceImpl{repo: repo, salt: salt, signingMethod: jwt.SigningMethodHS512}
+func NewAuthServiceImpl(repo core.IUsersRepo, salt, domain string) *AuthServiceImpl {
+	s := AuthServiceImpl{repo: repo, salt: salt, domain: domain, signingMethod: jwt.SigningMethodHS512}
 	s.accessTokenKey = []byte("5xLJT9hThRym6u")
-	s.accessTokenFactory = authEntities.NewTokenFactory("domain_threat_intel.qvineox.ru", "access_token", []string{"users"}, 20*time.Minute)
+	s.accessTokenFactory = authEntities.NewTokenFactory(domain, "access_token", []string{"users"}, 20*time.Minute)
 
 	s.refreshTokenKey = []byte("9WJrdq7imvMgmf")
-	s.refreshTokenFactory = authEntities.NewTokenFactory("domain_threat_intel.qvineox.ru", "refresh_token", []string{"users"}, 48*60*time.Minute)
+	s.refreshTokenFactory = authEntities.NewTokenFactory(domain, "refresh_token", []string{"users"}, 48*60*time.Minute)
 
 	return &s
+}
+
+func (s *AuthServiceImpl) GetDomain() string {
+	return s.domain
 }
 
 func (s *AuthServiceImpl) ConfirmEmail(confirmationUUID pgtype.UUID) error {
@@ -80,7 +86,7 @@ func (s *AuthServiceImpl) Login(login, password string) (accessToken, refreshTok
 		return "", "", errors.New("password invalid")
 	}
 
-	accessToken, err = s.accessTokenFactory.ProduceAccessToken(user.GetRoleIDs()).Sing(s.signingMethod, s.accessTokenKey)
+	accessToken, err = s.accessTokenFactory.ProduceAccessToken(user.GetRoleIDs(), user.ID).Sing(s.signingMethod, s.accessTokenKey)
 	if err != nil {
 		return "", "", err
 	}
@@ -99,12 +105,7 @@ func (s *AuthServiceImpl) Logout(refreshToken string) error {
 }
 
 func (s *AuthServiceImpl) Validate(accessToken string) (claims authEntities.AccessTokenClaims, err error) {
-	t, err := s.verifyToken(s.signingMethod, accessToken, s.accessTokenKey)
-	if err != nil {
-		return authEntities.AccessTokenClaims{}, err
-	}
-
-	claims, err = authEntities.NewAccessTokenClaimsFromToken(t)
+	claims, err = s.verifyToken(s.signingMethod, accessToken, s.accessTokenKey)
 	if err != nil {
 		return authEntities.AccessTokenClaims{}, err
 	}
@@ -129,23 +130,25 @@ func (s *AuthServiceImpl) withSalt(password string) string {
 	return strings.Join([]string{password, s.salt}, "")
 }
 
-func (s *AuthServiceImpl) verifyToken(method *jwt.SigningMethodHMAC, tokenString string, key []byte) (*jwt.Token, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+func (s *AuthServiceImpl) verifyToken(method *jwt.SigningMethodHMAC, tokenString string, key []byte) (authEntities.AccessTokenClaims, error) {
+	var claims authEntities.AccessTokenClaims
+
+	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
 		return key, nil
 	}, jwt.WithValidMethods([]string{method.Alg()}))
 
 	if token.Valid {
-		return token, nil
+		return claims, nil
 	}
 
 	switch {
 	case errors.Is(err, jwt.ErrTokenMalformed):
-		return nil, errors.New("token malformed")
+		return claims, errors.New("token malformed")
 	case errors.Is(err, jwt.ErrTokenSignatureInvalid):
-		return nil, errors.New("invalid signature")
+		return claims, errors.New("invalid signature")
 	case errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet):
-		return nil, errors.New("token expired")
+		return claims, errors.New("token expired")
 	default:
-		return nil, errors.New("unexpected error")
+		return claims, errors.New("unexpected error")
 	}
 }

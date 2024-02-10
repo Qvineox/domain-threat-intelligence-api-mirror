@@ -24,7 +24,7 @@ func (s *UsersServiceImpl) SaveUser(user userEntities.PlatformUser, roleIDs []ui
 	return s.repo.UpdateUser(user)
 }
 
-func (s *UsersServiceImpl) DeleteUser(id uint64) error {
+func (s *UsersServiceImpl) DeleteUser(id uint64) (int64, error) {
 	return s.repo.DeleteUser(id)
 }
 

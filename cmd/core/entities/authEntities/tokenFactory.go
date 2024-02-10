@@ -17,7 +17,7 @@ func NewTokenFactory(issuer, subject string, audience []string, expiresInMinutes
 	return &TokenFactory{issuer: issuer, subject: subject, audience: audience, expireDuration: expiresInMinutes}
 }
 
-func (f *TokenFactory) ProduceAccessToken(roleIDs []uint64) AccessTokenClaims {
+func (f *TokenFactory) ProduceAccessToken(roleIDs []uint64, userID uint64) AccessTokenClaims {
 	now := time.Now()
 
 	claims := AccessTokenClaims{
@@ -30,7 +30,8 @@ func (f *TokenFactory) ProduceAccessToken(roleIDs []uint64) AccessTokenClaims {
 			IssuedAt:  jwt.NewNumericDate(now),
 			ID:        uuid.New().String(),
 		},
-		RoleIDs: roleIDs,
+		RoleIDs: &roleIDs,
+		UserID:  userID,
 	}
 
 	return claims

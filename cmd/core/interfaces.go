@@ -83,7 +83,7 @@ type IUsersService interface {
 	// This method doesn't update user password, use ResetPassword or ChangePassword
 	SaveUser(user userEntities.PlatformUser, roleIDs []uint64) error
 
-	DeleteUser(id uint64) error
+	DeleteUser(id uint64) (int64, error)
 	RetrieveUsers() ([]userEntities.PlatformUser, error)
 	RetrieveUser(id uint64) (userEntities.PlatformUser, error)
 
@@ -99,7 +99,7 @@ type IUsersService interface {
 type IUsersRepo interface {
 	InsertUser(user userEntities.PlatformUser) (uint64, error)
 	UpdateUser(user userEntities.PlatformUser) error
-	DeleteUser(id uint64) error
+	DeleteUser(id uint64) (int64, error)
 
 	SelectUsers() ([]userEntities.PlatformUser, error)
 	SelectUser(id uint64) (userEntities.PlatformUser, error)
@@ -121,6 +121,8 @@ type IAuthService interface {
 
 	Validate(accessToken string) (claims authEntities.AccessTokenClaims, err error)
 	Refresh(refreshToken string) (accessToken, newRefreshToken string, err error)
+
+	GetDomain() string
 }
 
 // ISystemStateService holds collection of services that provide info about system configuration, state and status

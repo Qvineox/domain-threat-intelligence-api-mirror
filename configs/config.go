@@ -23,15 +23,25 @@ type StaticConfig struct {
 	} `env-required:"true" json:"database"`
 
 	WebServer struct {
-		Host          string `env-required:"true" env:"http_host" json:"host"`
-		Port          uint64 `env-required:"true" env:"http_port" json:"port"`
-		BasePath      string `env-default:"/api/v1" env:"http_base_path" json:"base_path"`
-		APIVersion    string `env-default:"v0.0.1" env:"http_api_version" json:"api_version"`
-		Swagger       bool   `env-default:"false" env:"http_swagger_enabled" json:"swagger_enabled"`
-		SwaggerHost   string `env-default:"localhost:7090" env:"http_swagger_host" json:"swagger_host"`
-		AllowedOrigin string `env-required:"false" env:"http_origin" json:"allowed_origin"`
-		Domain        string `env-required:"false" env:"http_domain" json:"domain"`
-	} `env-required:"true" json:"web_server"`
+		Host string `env-required:"true" env:"http_host" json:"host"`
+		Port uint64 `env-required:"true" env:"http_port" json:"port"`
+
+		API struct {
+			Path string `env-default:"/api/v1" env:"http_api_path" json:"path"`
+		}
+
+		Swagger struct {
+			Enabled bool   `env-default:"false" env:"http_swagger_enabled" json:"enabled"`
+			Host    string `env-default:"localhost:7090" env:"http_swagger_host" json:"host"`
+			Version string `env-default:"v0.0.1" env:"http_swagger_version" json:"version"`
+		} `env-required:"false" json:"swagger"`
+
+		Security struct {
+			UseTLS         bool     `env-default:"false" env:"http_security_tls" json:"tls"`
+			AllowedOrigins []string `env-required:"false" env:"http_security_origins" json:"origins"`
+			Domain         string   `env-required:"false" env:"http_security_domain" json:"domain"`
+		} `env-required:"true" json:"security"`
+	} `env-required:"true" json:"http"`
 
 	Logging struct {
 		Level string `env-default:"info" env:"log_level" json:"level"`

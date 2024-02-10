@@ -42,21 +42,27 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 	domainServices.SystemStateService = services.NewSystemStateServiceImpl(dynamicCfg)
 
 	usersRepo := repos.NewUsersRepoImpl(dbConn)
-	domainServices.AuthService = services.NewAuthServiceImpl(usersRepo, "salt")
+	domainServices.AuthService = services.NewAuthServiceImpl(usersRepo, "salt", staticCfg.WebServer.Security.Domain)
 	domainServices.UsersService = services.NewUsersServiceImpl(usersRepo)
 
-	slog.Info("web server starting...")
-
+	// web server configuration
 	webServer, err := rest.NewHTTPServer(
 		staticCfg.WebServer.Host,
-		staticCfg.WebServer.SwaggerHost,
-		staticCfg.WebServer.APIVersion,
-		staticCfg.WebServer.BasePath,
-		staticCfg.WebServer.Domain,
+		staticCfg.WebServer.API.Path,
 		staticCfg.WebServer.Port,
-		staticCfg.WebServer.Swagger,
-		domainServices,
-		[]string{staticCfg.WebServer.AllowedOrigin})
+		domainServices)
+
+	webServer.ConfigureCORS(staticCfg.WebServer.Security.AllowedOrigins)
+
+	if staticCfg.WebServer.Swagger.Enabled {
+		webServer.EnableSwagger(
+			staticCfg.WebServer.Swagger.Host,
+			staticCfg.WebServer.Swagger.Version,
+			staticCfg.WebServer.API.Path,
+		)
+	}
+
+	slog.Info("web server starting...")
 	err = webServer.Start()
 	if err != nil {
 		slog.Info("web server stopped with error: " + err.Error())

@@ -10,12 +10,10 @@ import (
 type AuthRouter struct {
 	service core.IAuthService
 	path    *gin.RouterGroup
-
-	domain string
 }
 
-func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup, domain string) *AuthRouter {
-	router := AuthRouter{service: service, path: path, domain: domain}
+func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup) *AuthRouter {
+	router := AuthRouter{service: service, path: path}
 
 	authGroup := path.Group("/auth")
 
@@ -35,12 +33,14 @@ func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup, domain stri
 
 // Login accepts login and password, return pair of auth tokens
 //
-// @Summary            Authorizes user by login and password
-// @Description        Accepts login and password, return pair of auth tokens
-// @Tags               Auth
-// @Router             /auth/login [post]
-// @ProduceAccessToken json
-// @Param              username body loginParams true "user credentials"
+//	@Summary			Authorizes user by login and password
+//	@Description		Accepts login and password, return pair of auth tokens
+//	@Tags				Auth
+//	@Router				/auth/login [post]
+//	@ProduceAccessToken	json
+//	@Param				username	body	loginParams	true	"user credentials"
+//	@Success			202
+//	@Failure			401	{object}	apiErrors.APIError
 func (r *AuthRouter) Login(c *gin.Context) {
 	var params loginParams
 
@@ -58,7 +58,7 @@ func (r *AuthRouter) Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("refresh_token", refreshToken, 60*60*48, "", r.domain, true, true)
+	c.SetCookie("refresh_token", refreshToken, 60*60*48, "", r.service.GetDomain(), true, true)
 	c.JSON(http.StatusAccepted, accessToken)
 }
 

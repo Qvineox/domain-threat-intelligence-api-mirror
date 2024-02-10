@@ -44,22 +44,23 @@ go build -ldflags="-s -w" -o .\build\bin\build.go ./cmd
 
 Following variables are used in application. These variables are also mapped in automated GitLab CI/CD:
 
-| Environment Variable | Is Required? | GitLab CI Variable    | Description                                                           | Example values    |
-|----------------------|--------------|-----------------------|-----------------------------------------------------------------------|-------------------|
-| db_host              |              | $DB_HOST              | Database host                                                         | 0.0.0.0, database |
-| db_port              |              | $DB_PORT              | Database port                                                         | 5432              |
-| db_user              |              | $DB_USER              | Database user                                                         | user              |
-| db_pass              |              | $DB_PASS              | Database user password                                                | password123!      |
-| db_name              |              | $DB_NAME              | Database name                                                         | database_name     |
-| db_timezone          |              | $DB_TZ                | Database timezone                                                     | Europe/Moscow     |
-| http_port            |              | $WEB_PORT             | REST port                                                             | 80                |
-| http_host            |              | $WEB_HOST             | REST host                                                             | localhost         |
-| http_base_path       | optional     | $HTTP_BASE_PATH       | REST endpoint path                                                    | /api/v1           |
-| http_api_version     | optional     | $HTTP_API_VERSION     | REST endpoint schema version                                          | v0.0.1            |
-| http_swagger_enabled | optional     | $HTTP_SWAGGER_ENABLED | Defines if [swagger](scripts%2Fswagger%2Freadme.md) routes will start | false             |   
-| http_swagger_host    | optional     | $HTTP_SWAGGER_HOST    | Defines [swagger](scripts%2Fswagger%2Freadme.md) API host             | localhost:7090    |   
-| http_allowed_origin  | optional     | $HTTP_SUBDOMAIN       | Allowed origins                                                       | localhost         |   
-| http_domain          | optional     | $HTTP_DOMAIN          | Main domain for cookie auth                                           | qvineox.ru        |   
+| Environment Variable  | Is Required? | GitLab CI Variable     | Description                          | Example values        |
+|-----------------------|--------------|------------------------|--------------------------------------|-----------------------|
+| db_host               |              | $DB_HOST               | Database host                        | 0.0.0.0, database     |
+| db_port               |              | $DB_PORT               | Database port                        | 5432                  |
+| db_user               |              | $DB_USER               | Database user                        | user                  |
+| db_pass               |              | $DB_PASS               | Database user password               | password123!          |
+| db_name               |              | $DB_NAME               | Database name                        | database_name         |
+| db_timezone           |              | $DB_TZ                 | Database timezone                    | Europe/Moscow         |
+| http_port             |              | $HTTP_PORT             | REST port                            | 80                    |
+| http_host             |              | $HTTP_HOST             | REST host                            | localhost             |
+| http_api_path         | optional     | $HTTP_API_PATH         | REST endpoint path                   | /api/v1               |
+| http_swagger_enabled  |              | $HTTP_SWAGGER_ENABLED  | Defines if Swagger routes will start | false                 |   
+| http_swagger_host     | optional     | $HTTP_SWAGGER_HOST     | Defines Swagger API host             | localhost:7090        |   
+| http_swagger_version  | optional     | $HTTP_SWAGGER_VERSION  | Swagger endpoint schema version      | v0.0.1                |   
+| http_security_tls     |              | $HTTP_SECURITY_TLS     | Defines if TLS encryption enabled    | false                 |   
+| http_security_origins | optional     | $HTTP_SECURITY_ORIGINS | Allowed origins                      | localhost, qvineox.ru |   
+| http_security_domain  | optional     | $HTTP_SECURITY_DOMAIN  | Main domain for cookie auth          | qvineox.ru            |   
 
 ### Continuous integration using GitLab
 

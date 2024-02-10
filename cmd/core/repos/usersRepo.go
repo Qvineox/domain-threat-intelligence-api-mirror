@@ -24,9 +24,9 @@ func (repo *UsersRepoImpl) UpdateUser(user userEntities.PlatformUser) error {
 	return err
 }
 
-func (repo *UsersRepoImpl) DeleteUser(id uint64) error {
-	err := repo.Delete(&userEntities.PlatformUser{}, id).Error
-	return err
+func (repo *UsersRepoImpl) DeleteUser(id uint64) (int64, error) {
+	query := repo.Delete(&userEntities.PlatformUser{}, id)
+	return query.RowsAffected, query.Error
 }
 
 func (repo *UsersRepoImpl) SelectUsers() ([]userEntities.PlatformUser, error) {
