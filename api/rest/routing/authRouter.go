@@ -24,6 +24,8 @@ func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup) *AuthRouter
 
 		authGroup.POST("/confirmation/:uuid", router.ConfirmEmail)
 		//authGroup.POST("/self-registration", router.Register) // self-registration ???
+
+		authGroup.POST("/password-strength", router.GetPasswordStrength)
 	}
 
 	return &router
@@ -40,7 +42,7 @@ func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup) *AuthRouter
 // @ProduceAccessToken json
 // @Param              username body loginParams true "user credentials"
 // @Success            202
-// @Failure            401 {object} apiErrors.APIError
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *AuthRouter) Login(c *gin.Context) {
 	var params loginParams
 
@@ -88,7 +90,7 @@ func (r *AuthRouter) ConfirmEmail(c *gin.Context) {
 // @ProduceAccessToken json
 // @Param              username body loginParams true "user credentials"
 // @Success            202
-// @Failure            401 {object} apiErrors.APIError
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *AuthRouter) Register(c *gin.Context) {
 	var params registerParams
 
@@ -117,4 +119,42 @@ type registerParams struct {
 	Email    string   `json:"email" binding:"required"`
 	Password string   `json:"password" binding:"required"`
 	RoleIDs  []uint64 `json:"roleIDs" binding:"required"`
+}
+
+// GetPasswordStrength returns password strength
+//
+// @Summary            Get strength of a password
+// @Description        Returns password strength
+// @Tags               Auth
+// @Router             /auth/password-strength [post]
+// @ProduceAccessToken json
+// @Param              id  body     passwordStrengthParams true "password"
+// @Success            200 {object} passwordStrengthResponse
+// @Failure            400 {object} apiErrors.APIError
+func (r *AuthRouter) GetPasswordStrength(c *gin.Context) {
+	var params passwordStrengthParams
+
+	err := c.ShouldBindJSON(&params)
+	if err != nil {
+		apiErrors.ParamsErrorResponse(c, err)
+		return
+	}
+
+	level, crackTime, entropy := r.service.GetPasswordStrength(params.Password)
+
+	c.JSON(http.StatusOK, passwordStrengthResponse{
+		Level:     level,
+		Entropy:   entropy,
+		CrackTime: crackTime,
+	})
+}
+
+type passwordStrengthParams struct {
+	Password string `json:"Password" binding:"required"`
+}
+
+type passwordStrengthResponse struct {
+	Level     int     `json:"Level"`
+	Entropy   float64 `json:"Entropy"`
+	CrackTime float64 `json:"CrackTime"`
 }

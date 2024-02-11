@@ -41,8 +41,48 @@ const docTemplate = `{
                     "202": {
                         "description": "Accepted"
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/password-strength": {
+            "post": {
+                "description": "Returns password strength",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get strength of a password",
+                "parameters": [
+                    {
+                        "description": "password",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.passwordStrengthParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/routing.passwordStrengthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -71,6 +111,12 @@ const docTemplate = `{
                 "responses": {
                     "202": {
                         "description": "Accepted"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     },
                     "401": {
                         "description": "Unauthorized",
@@ -2309,6 +2355,31 @@ const docTemplate = `{
                 },
                 "URL": {
                     "type": "string"
+                }
+            }
+        },
+        "routing.passwordStrengthParams": {
+            "type": "object",
+            "required": [
+                "Password"
+            ],
+            "properties": {
+                "Password": {
+                    "type": "string"
+                }
+            }
+        },
+        "routing.passwordStrengthResponse": {
+            "type": "object",
+            "properties": {
+                "CrackTime": {
+                    "type": "number"
+                },
+                "Entropy": {
+                    "type": "number"
+                },
+                "Level": {
+                    "type": "integer"
                 }
             }
         },

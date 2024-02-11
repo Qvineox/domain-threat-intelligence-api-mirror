@@ -7,6 +7,7 @@ import (
 	"errors"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgtype"
+	"github.com/nbutton23/zxcvbn-go"
 	"strings"
 	"time"
 )
@@ -153,8 +154,19 @@ func (s *AuthServiceImpl) Refresh(token string) (accessToken, refreshToken strin
 	panic("implement me")
 }
 
+func (s *AuthServiceImpl) GetPasswordStrength(password string) (level int, time float64, entropy float64) {
+	result := zxcvbn.PasswordStrength(password, []string{})
+
+	return result.Score, result.CrackTime, result.CrackTime
+}
+
 func (s *AuthServiceImpl) isValidByPasswordPolicy(password string) bool {
 	if len(password) < 8 {
+		return false
+	}
+
+	result := zxcvbn.PasswordStrength(password, []string{})
+	if result.Score <= 1 {
 		return false
 	}
 

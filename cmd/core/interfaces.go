@@ -128,6 +128,7 @@ type IAuthService interface {
 	Validate(accessToken string) (claims authEntities.AccessTokenClaims, err error)
 	Refresh(refreshToken string) (accessToken, newRefreshToken string, err error)
 
+	GetPasswordStrength(password string) (level int, time, entropy float64)
 	GetDomain() string
 }
 
