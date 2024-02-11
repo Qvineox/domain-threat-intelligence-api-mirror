@@ -51,7 +51,7 @@ var DefaultUserPermissionPresets = []PlatformUserRolesPreset{
 var DefaultUserPermissions = []PlatformUserPermission{
 	{
 		ID:          1001,
-		IsActive:    true,
+		IsActive:    false,
 		Name:        "auth::login",
 		Description: "Возможность входа в систему",
 	},

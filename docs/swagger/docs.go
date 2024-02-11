@@ -200,6 +200,11 @@ const docTemplate = `{
         },
         "/blacklists/domain": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Returns list of blacklisted domains by filter",
                 "tags": [
                     "Blacklists"
@@ -275,10 +280,21 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Accepts and saves list of blacklisted domains",
                 "tags": [
                     "Blacklists"
@@ -307,10 +323,21 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Accepts and deletes single blacklisted domain",
                 "tags": [
                     "Blacklists"
@@ -351,6 +378,11 @@ const docTemplate = `{
         },
         "/blacklists/email": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Returns list of blacklisted emails by filter",
                 "tags": [
                     "Blacklists"
@@ -426,10 +458,21 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Accepts and saves list of blacklisted emails",
                 "tags": [
                     "Blacklists"
@@ -458,10 +501,21 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Accepts and deletes single blacklisted email",
                 "tags": [
                     "Blacklists"
@@ -502,6 +556,11 @@ const docTemplate = `{
         },
         "/blacklists/export/csv": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Accepts filters and returns exported blacklisted hosts in CSV",
                 "tags": [
                     "Blacklists",
@@ -568,6 +627,11 @@ const docTemplate = `{
         },
         "/blacklists/export/json": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Accepts filters and returns exported blacklisted hosts in JSON",
                 "tags": [
                     "Blacklists",
@@ -634,6 +698,11 @@ const docTemplate = `{
         },
         "/blacklists/export/naumen": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Sends service call to Naumen Service Desk with hosts selected to block by filter",
                 "tags": [
                     "Blacklists",
@@ -694,12 +763,23 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/host": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Returns list of blacklisted hosts (all types) by filter",
                 "tags": [
                     "Blacklists"
@@ -775,12 +855,23 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/import/csv": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Accepts and imports blacklisted hosts from CSV file",
                 "tags": [
                     "Blacklists",
@@ -822,12 +913,23 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/import/event": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Returns import events without data",
                 "tags": [
                     "Blacklists",
@@ -882,45 +984,21 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
-                    }
-                }
-            }
-        },
-        "/blacklists/import/event/{event_id}": {
-            "get": {
-                "description": "Returns import event data with all included blacklisted hosts",
-                "tags": [
-                    "Blacklists",
-                    "Import"
-                ],
-                "summary": "Get import event",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Event ID",
-                        "name": "event_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
                     }
                 }
-            }
-        },
-        "/blacklists/import/events": {
+            },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Accepts and deletes single blacklist import event",
                 "tags": [
                     "Blacklists",
@@ -960,8 +1038,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/blacklists/import/event/{event_id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns import event data with all included blacklisted hosts",
+                "tags": [
+                    "Blacklists",
+                    "Import"
+                ],
+                "summary": "Get import event",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Event ID",
+                        "name": "event_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/blacklists/import/stix": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Accepts and imports blacklisted hosts from STIX 2.0 file",
                 "consumes": [
                     "multipart/form-data"
@@ -1006,12 +1133,23 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/ip": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Returns list of blacklisted IPs by filter",
                 "tags": [
                     "Blacklists"
@@ -1087,10 +1225,21 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Accepts and saves list of blacklisted IPs",
                 "tags": [
                     "Blacklists"
@@ -1119,10 +1268,21 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Accepts and deletes single blacklisted IP",
                 "tags": [
                     "Blacklists"
@@ -1163,6 +1323,11 @@ const docTemplate = `{
         },
         "/blacklists/sources": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Returns all available blacklist data sources",
                 "tags": [
                     "Blacklists"
@@ -1195,6 +1360,11 @@ const docTemplate = `{
         },
         "/blacklists/stats": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Returns data containing overall amount of blacklisted entities",
                 "tags": [
                     "Blacklists"
@@ -1224,6 +1394,11 @@ const docTemplate = `{
         },
         "/blacklists/url": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Returns list of blacklisted URLs by filter",
                 "tags": [
                     "Blacklists"
@@ -1299,10 +1474,21 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Accepts and saves list of blacklisted URLs",
                 "tags": [
                     "Blacklists"
@@ -1331,10 +1517,21 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Accepts and deletes single blacklisted URL",
                 "tags": [
                     "Blacklists"
@@ -1378,6 +1575,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Gets info about current dynamic application config",
@@ -1406,6 +1606,11 @@ const docTemplate = `{
         },
         "/system/dynamic/naumen": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Updates dynamic Naumen Service Desk configuration",
                 "tags": [
                     "Configuration"
@@ -1431,12 +1636,23 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/system/dynamic/naumen/blacklists": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Updates dynamic Naumen Service Desk service configuration",
                 "tags": [
                     "Configuration"
@@ -1462,12 +1678,23 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/system/dynamic/smtp": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Updates dynamic SMTP configuration",
                 "tags": [
                     "Configuration"
@@ -1490,6 +1717,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -1686,6 +1919,12 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
@@ -1727,6 +1966,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -1856,6 +2101,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }

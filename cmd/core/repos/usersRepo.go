@@ -52,14 +52,14 @@ func (repo *UsersRepoImpl) SelectUser(id uint64) (userEntities.PlatformUser, err
 func (repo *UsersRepoImpl) SelectUserByLogin(login string) (userEntities.PlatformUser, error) {
 	var user userEntities.PlatformUser
 
-	err := repo.Preload("Permissions").Where("login = ?", login).Limit(1).Find(&user).Error
+	err := repo.Preload("Permissions").Where("login = ? AND is_active = true", login).Limit(1).Find(&user).Error
 	return user, err
 }
 
 func (repo *UsersRepoImpl) SelectUserByRefreshToken(token string) (userEntities.PlatformUser, error) {
 	var user userEntities.PlatformUser
 
-	err := repo.Preload("Permissions").Where("refresh_token = ?", token).Limit(1).Find(&user).Error
+	err := repo.Preload("Permissions").Where("refresh_token = ? AND is_active = true", token).Limit(1).Find(&user).Error
 	return user, err
 }
 

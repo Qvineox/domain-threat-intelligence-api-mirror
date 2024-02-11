@@ -5,6 +5,7 @@ import (
 	"domain_threat_intelligence_api/cmd/core"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"slices"
 	"time"
 )
 
@@ -58,8 +59,50 @@ func (s *MiddlewareService) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("user_roles", claims.RoleIDs)
+		c.Set("user_permissions", claims.RoleIDs)
 		c.Set("user_id", claims.UserID)
+
+		c.Next()
+		return
+	}
+}
+
+func (s *MiddlewareService) RequireRole(permissionID uint64) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		v, ok := c.Get("user_permissions")
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusForbidden, apiErrors.APIError{
+				StatusCode:   http.StatusForbidden,
+				ErrorCode:    apiErrors.AuthPermissionInsufficientErrorCode,
+				ErrorMessage: "insufficient permissions",
+				ErrorModule:  "auth",
+			})
+			return
+		}
+
+		var permissions *[]uint64
+		permissions, ok = v.(*[]uint64)
+		// check if user has permission or admin
+
+		if !ok || len(*permissions) == 0 {
+			c.AbortWithStatusJSON(http.StatusForbidden, apiErrors.APIError{
+				StatusCode:   http.StatusForbidden,
+				ErrorCode:    apiErrors.AuthPermissionInsufficientErrorCode,
+				ErrorMessage: "insufficient permissions",
+				ErrorModule:  "auth",
+			})
+			return
+		}
+
+		if !slices.Contains(*permissions, permissionID) && !slices.Contains(*permissions, 1002) {
+			c.AbortWithStatusJSON(http.StatusForbidden, apiErrors.APIError{
+				StatusCode:   http.StatusForbidden,
+				ErrorCode:    apiErrors.AuthPermissionInsufficientErrorCode,
+				ErrorMessage: "insufficient permissions",
+				ErrorModule:  "auth",
+			})
+			return
+		}
 
 		c.Next()
 		return

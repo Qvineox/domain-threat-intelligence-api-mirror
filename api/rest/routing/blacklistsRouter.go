@@ -58,43 +58,51 @@ func NewBlacklistsRouter(service core.IBlacklistsService, path *gin.RouterGroup,
 	blacklistsGroup := path.Group("/blacklists")
 	blacklistsGroup.Use(auth.RequireAuth())
 
+	blacklistsWriteGroup := path.Group("")
+	blacklistsWriteGroup.Use(auth.RequireRole(4002))
+
 	{
 		blacklistsGroup.GET("/ip", router.GetBlackListedIPsByFilter)
-		blacklistsGroup.PUT("/ip", router.PutBlackListedIPs)
-		blacklistsGroup.DELETE("/ip", router.DeleteBlackListedIP)
+		blacklistsWriteGroup.PUT("/ip", router.PutBlackListedIPs)
+		blacklistsWriteGroup.DELETE("/ip", router.DeleteBlackListedIP)
 	}
 
 	{
 		blacklistsGroup.GET("/domain", router.GetBlackListedDomainsByFilter)
-		blacklistsGroup.PUT("/domain", router.PutBlackListedDomains)
-		blacklistsGroup.DELETE("/domain", router.DeleteBlackListedDomain)
+		blacklistsWriteGroup.PUT("/domain", router.PutBlackListedDomains)
+		blacklistsWriteGroup.DELETE("/domain", router.DeleteBlackListedDomain)
 	}
 
 	{
 		blacklistsGroup.GET("/url", router.GetBlackListedURLsByFilter)
-		blacklistsGroup.PUT("/url", router.PutBlackListedURLs)
-		blacklistsGroup.DELETE("/url", router.DeleteBlackListedURL)
+		blacklistsWriteGroup.PUT("/url", router.PutBlackListedURLs)
+		blacklistsWriteGroup.DELETE("/url", router.DeleteBlackListedURL)
 	}
 
 	{
 		blacklistsGroup.GET("/email", router.GetBlackListedEmailsByFilter)
-		blacklistsGroup.PUT("/email", router.PutBlackListedEmails)
-		blacklistsGroup.DELETE("/email", router.DeleteBlackListedEmail)
+		blacklistsWriteGroup.PUT("/email", router.PutBlackListedEmails)
+		blacklistsWriteGroup.DELETE("/email", router.DeleteBlackListedEmail)
 	}
 
 	blacklistsGroup.GET("/host", router.GetBlackListedHostsByFilter)
 
 	blacklistImportGroup := blacklistsGroup.Group("/import")
+	blacklistImportGroup.Use(auth.RequireRole(4003))
+
+	blacklistsImportWriteGroup := blacklistImportGroup.Group("")
+	blacklistsImportWriteGroup.Use(auth.RequireRole(4002))
 
 	{
 		blacklistImportGroup.POST("/csv", router.PostImportBlacklistsFromCSVFile)
 		blacklistImportGroup.POST("/stix", router.PostImportBlacklistsFromSTIXFile)
 		blacklistImportGroup.GET("/event", router.GetImportEventByFilter)
 		blacklistImportGroup.GET("/event/:event_id", router.GetImportEvent)
-		blacklistImportGroup.DELETE("/event", router.DeleteImportEvent)
+		blacklistsImportWriteGroup.DELETE("/event", router.DeleteImportEvent)
 	}
 
 	blacklistExportGroup := blacklistsGroup.Group("/export")
+	blacklistExportGroup.Use(auth.RequireRole(4004))
 
 	{
 		blacklistExportGroup.POST("/csv", router.PostExportBlacklistsToCSV)
@@ -102,7 +110,7 @@ func NewBlacklistsRouter(service core.IBlacklistsService, path *gin.RouterGroup,
 		blacklistExportGroup.POST("/naumen", router.PostExportBlacklistsToNaumen)
 	}
 
-	blacklistsGroup.GET("/sources", router.GetBlackListSources)
+	blacklistsGroup.GET("/sources", router.GetBlackListSources).Use(auth.RequireRole(4001))
 	blacklistsGroup.GET("/stats", router.GetStatistics)
 
 	router.recountStatistics()
@@ -115,6 +123,7 @@ func NewBlacklistsRouter(service core.IBlacklistsService, path *gin.RouterGroup,
 // @Summary            All hosts by filter
 // @Description        Returns list of blacklisted hosts (all types) by filter
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/host [get]
 // @ProduceAccessToken json
 // @Param              source_id[]     query    []uint64 false "Source type IDs" collectionFormat(multi)
@@ -126,7 +135,7 @@ func NewBlacklistsRouter(service core.IBlacklistsService, path *gin.RouterGroup,
 // @Param              limit           query    int      true  "Query limit"
 // @Param              offset          query    int      false "Query offset"
 // @Success            200             {object} []blacklistEntities.BlacklistedHost
-// @Failure            400             {object} apiErrors.APIError
+// @Failure            401,400         {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetBlackListedHostsByFilter(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -160,6 +169,7 @@ func (r *BlacklistsRouter) GetBlackListedHostsByFilter(c *gin.Context) {
 // @Summary            Blacklisted IPs by filter
 // @Description        Returns list of blacklisted IPs by filter
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/ip [get]
 // @ProduceAccessToken json
 // @Param              source_id       query    []uint64 false "Source type IDs" collectionFormat(multi)
@@ -171,7 +181,7 @@ func (r *BlacklistsRouter) GetBlackListedHostsByFilter(c *gin.Context) {
 // @Param              limit           query    int      true  "Query limit"
 // @Param              offset          query    int      false "Query offset"
 // @Success            200             {object} []blacklistEntities.BlacklistedIP
-// @Failure            400             {object} apiErrors.APIError
+// @Failure            401,400         {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetBlackListedIPsByFilter(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -212,6 +222,7 @@ func (r *BlacklistsRouter) GetBlackListedIPsByFilter(c *gin.Context) {
 // @Summary            Blacklisted domains by filter
 // @Description        Returns list of blacklisted domains by filter
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/domain [get]
 // @ProduceAccessToken json
 // @Param              source_id       query    []uint64 false "Source type IDs" collectionFormat(multi)
@@ -223,7 +234,7 @@ func (r *BlacklistsRouter) GetBlackListedIPsByFilter(c *gin.Context) {
 // @Param              limit           query    int      true  "Query limit"
 // @Param              offset          query    int      false "Query offset"
 // @Success            200             {object} []blacklistEntities.BlacklistedDomain
-// @Failure            400             {object} apiErrors.APIError
+// @Failure            401,400         {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetBlackListedDomainsByFilter(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -257,6 +268,7 @@ func (r *BlacklistsRouter) GetBlackListedDomainsByFilter(c *gin.Context) {
 // @Summary            Blacklisted URLs by filter
 // @Description        Returns list of blacklisted URLs by filter
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/url [get]
 // @ProduceAccessToken json
 // @Param              source_id       query    []uint64 false "Source type IDs" collectionFormat(multi)
@@ -268,7 +280,7 @@ func (r *BlacklistsRouter) GetBlackListedDomainsByFilter(c *gin.Context) {
 // @Param              limit           query    int      true  "Query limit"
 // @Param              offset          query    int      false "Query offset"
 // @Success            200             {object} []blacklistEntities.BlacklistedURL
-// @Failure            400             {object} apiErrors.APIError
+// @Failure            401,400         {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetBlackListedURLsByFilter(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -302,6 +314,7 @@ func (r *BlacklistsRouter) GetBlackListedURLsByFilter(c *gin.Context) {
 // @Summary            Blacklisted emails by filter
 // @Description        Returns list of blacklisted emails by filter
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/email [get]
 // @ProduceAccessToken json
 // @Param              source_id       query    []uint64 false "Source type IDs" collectionFormat(multi)
@@ -313,7 +326,7 @@ func (r *BlacklistsRouter) GetBlackListedURLsByFilter(c *gin.Context) {
 // @Param              limit           query    int      true  "Query limit"
 // @Param              offset          query    int      false "Query offset"
 // @Success            200             {object} []blacklistEntities.BlacklistedEmail
-// @Failure            400             {object} apiErrors.APIError
+// @Failure            401,400         {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetBlackListedEmailsByFilter(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -347,11 +360,12 @@ func (r *BlacklistsRouter) GetBlackListedEmailsByFilter(c *gin.Context) {
 // @Summary            Save blacklisted domains
 // @Description        Accepts and saves list of blacklisted domains
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/domain [put]
 // @ProduceAccessToken json
-// @Param              hosts body     blacklistInsertParams true "IPs to save"
-// @Success            201   {object} success.DatabaseResponse
-// @Failure            400   {object} apiErrors.APIError
+// @Param              hosts   body     blacklistInsertParams true "IPs to save"
+// @Success            201     {object} success.DatabaseResponse
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *BlacklistsRouter) PutBlackListedDomains(c *gin.Context) {
 	var params blacklistInsertParams
 
@@ -384,11 +398,12 @@ func (r *BlacklistsRouter) PutBlackListedDomains(c *gin.Context) {
 // @Summary            Save blacklisted ips
 // @Description        Accepts and saves list of blacklisted IPs
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/ip [put]
 // @ProduceAccessToken json
-// @Param              hosts body     blacklistInsertParams true "IPs to save"
-// @Success            201   {object} success.DatabaseResponse
-// @Failure            400   {object} apiErrors.APIError
+// @Param              hosts   body     blacklistInsertParams true "IPs to save"
+// @Success            201     {object} success.DatabaseResponse
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *BlacklistsRouter) PutBlackListedIPs(c *gin.Context) {
 	var params blacklistInsertParams
 
@@ -429,11 +444,12 @@ func (r *BlacklistsRouter) PutBlackListedIPs(c *gin.Context) {
 // @Summary            Save blacklisted URLs
 // @Description        Accepts and saves list of blacklisted URLs
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/url [put]
 // @ProduceAccessToken json
-// @Param              hosts body     blacklistInsertParams true "URLs to save"
-// @Success            201   {object} success.DatabaseResponse
-// @Failure            400   {object} apiErrors.APIError
+// @Param              hosts   body     blacklistInsertParams true "URLs to save"
+// @Success            201     {object} success.DatabaseResponse
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *BlacklistsRouter) PutBlackListedURLs(c *gin.Context) {
 	var params blacklistInsertParams
 
@@ -466,11 +482,12 @@ func (r *BlacklistsRouter) PutBlackListedURLs(c *gin.Context) {
 // @Summary            Save blacklisted emails
 // @Description        Accepts and saves list of blacklisted emails
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/email [put]
 // @ProduceAccessToken json
-// @Param              hosts body     blacklistInsertParams true "emails to save"
-// @Success            201   {object} success.DatabaseResponse
-// @Failure            400   {object} apiErrors.APIError
+// @Param              hosts   body     blacklistInsertParams true "emails to save"
+// @Success            201     {object} success.DatabaseResponse
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *BlacklistsRouter) PutBlackListedEmails(c *gin.Context) {
 	var params blacklistInsertParams
 
@@ -511,12 +528,13 @@ type blacklistInsertParams struct {
 // @Summary            Delete blacklisted IP
 // @Description        Accepts and deletes single blacklisted IP
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/ip [delete]
 // @ProduceAccessToken json
-// @Param              id  body     byUUIDParams true "record UUID to delete"
-// @Success            200 {object} success.DatabaseResponse
-// @Failure            400 {object} apiErrors.APIError
-// @Failure            401 {object} apiErrors.APIError
+// @Param              id      body     byUUIDParams true "record UUID to delete"
+// @Success            200     {object} success.DatabaseResponse
+// @Failure            401,400 {object} apiErrors.APIError
+// @Failure            401     {object} apiErrors.APIError
 func (r *BlacklistsRouter) DeleteBlackListedIP(c *gin.Context) {
 	var params byUUIDParams
 
@@ -547,12 +565,13 @@ func (r *BlacklistsRouter) DeleteBlackListedIP(c *gin.Context) {
 // @Summary            Delete blacklisted domain
 // @Description        Accepts and deletes single blacklisted domain
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/domain [delete]
 // @ProduceAccessToken json
-// @Param              id  body     byUUIDParams true "record UUID to delete"
-// @Success            200 {object} success.DatabaseResponse
-// @Failure            400 {object} apiErrors.APIError
-// @Failure            401 {object} apiErrors.APIError
+// @Param              id      body     byUUIDParams true "record UUID to delete"
+// @Success            200     {object} success.DatabaseResponse
+// @Failure            401,400 {object} apiErrors.APIError
+// @Failure            401     {object} apiErrors.APIError
 func (r *BlacklistsRouter) DeleteBlackListedDomain(c *gin.Context) {
 	var params byUUIDParams
 
@@ -583,12 +602,13 @@ func (r *BlacklistsRouter) DeleteBlackListedDomain(c *gin.Context) {
 // @Summary            Delete blacklisted URL
 // @Description        Accepts and deletes single blacklisted URL
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/url [delete]
 // @ProduceAccessToken json
-// @Param              id  body     byUUIDParams true "record UUID to delete"
-// @Success            200 {object} success.DatabaseResponse
-// @Failure            400 {object} apiErrors.APIError
-// @Failure            401 {object} apiErrors.APIError
+// @Param              id      body     byUUIDParams true "record UUID to delete"
+// @Success            200     {object} success.DatabaseResponse
+// @Failure            401,400 {object} apiErrors.APIError
+// @Failure            401     {object} apiErrors.APIError
 func (r *BlacklistsRouter) DeleteBlackListedURL(c *gin.Context) {
 	var params byUUIDParams
 
@@ -619,12 +639,13 @@ func (r *BlacklistsRouter) DeleteBlackListedURL(c *gin.Context) {
 // @Summary            Delete blacklisted email
 // @Description        Accepts and deletes single blacklisted email
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/email [delete]
 // @ProduceAccessToken json
-// @Param              id  body     byUUIDParams true "record UUID to delete"
-// @Success            200 {object} success.DatabaseResponse
-// @Failure            400 {object} apiErrors.APIError
-// @Failure            401 {object} apiErrors.APIError
+// @Param              id      body     byUUIDParams true "record UUID to delete"
+// @Success            200     {object} success.DatabaseResponse
+// @Failure            401,400 {object} apiErrors.APIError
+// @Failure            401     {object} apiErrors.APIError
 func (r *BlacklistsRouter) DeleteBlackListedEmail(c *gin.Context) {
 	var params byUUIDParams
 
@@ -663,13 +684,14 @@ type byIDParams struct {
 // @Summary            Import blacklisted hosts from CSV file
 // @Description        Accepts and imports blacklisted hosts from CSV file
 // @Tags               Blacklists, Import
+// @Security           ApiKeyAuth
 // @Router             /blacklists/import/csv [post]
 // @ProduceAccessToken json
 // @Param              file_upload   formData file   true "file to import"
 // @Param              discovered_at formData string true "discovery date"
 // @Param              extract_all   formData string true "other types extraction"
 // @Success            201           {object} blacklistEntities.BlacklistImportEvent
-// @Failure            400           {object} apiErrors.APIError
+// @Failure            401,400       {object} apiErrors.APIError
 func (r *BlacklistsRouter) PostImportBlacklistsFromCSVFile(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -739,6 +761,7 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromCSVFile(c *gin.Context) {
 // @Summary            Import blacklisted hosts from file (STIX 2.0)
 // @Description        Accepts and imports blacklisted hosts from STIX 2.0 file
 // @Tags               Blacklists, Import
+// @Security           ApiKeyAuth
 // @Router             /blacklists/import/stix [post]
 // @Accept             mpfd
 // @ProduceAccessToken json
@@ -746,7 +769,7 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromCSVFile(c *gin.Context) {
 // @Param              discovered_at formData string true "discovery date"
 // @Param              extract_all   formData string true "other types extraction"
 // @Success            201           {object} blacklistEntities.BlacklistImportEvent
-// @Failure            400           {object} apiErrors.APIError
+// @Failure            401,400       {object} apiErrors.APIError
 func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -819,11 +842,12 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 // @Summary            Get import event
 // @Description        Returns import event data with all included blacklisted hosts
 // @Tags               Blacklists, Import
+// @Security           ApiKeyAuth
 // @Router             /blacklists/import/event/{event_id} [get]
 // @ProduceAccessToken json
 // @Param              event_id path     int true "Event ID"
 // @Success            200      {object} blacklistEntities.BlacklistImportEvent
-// @Failure            400      {object} apiErrors.APIError
+// @Failure            401,400  {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetImportEvent(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("event_id"), 10, 64)
 	if err != nil {
@@ -848,6 +872,7 @@ func (r *BlacklistsRouter) GetImportEvent(c *gin.Context) {
 // @Summary            Get import events list
 // @Description        Returns import events without data
 // @Tags               Blacklists, Import
+// @Security           ApiKeyAuth
 // @Router             /blacklists/import/event [get]
 // @ProduceAccessToken json
 // @Param              created_after  query    string false "Created timestamp is after"
@@ -856,7 +881,7 @@ func (r *BlacklistsRouter) GetImportEvent(c *gin.Context) {
 // @Param              limit          query    int    true  "Query limit"
 // @Param              offset         query    int    false "Query offset"
 // @Success            200            {object} []blacklistEntities.BlacklistImportEvent
-// @Failure            400            {object} apiErrors.APIError
+// @Failure            401,400        {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetImportEventByFilter(c *gin.Context) {
 	var params blacklistEntities.BlacklistImportEventFilter
 
@@ -885,12 +910,13 @@ func (r *BlacklistsRouter) GetImportEventByFilter(c *gin.Context) {
 // @Summary            Delete blacklist import event
 // @Description        Accepts and deletes single blacklist import event
 // @Tags               Blacklists, Import
-// @Router             /blacklists/import/events [delete]
+// @Security           ApiKeyAuth
+// @Router             /blacklists/import/event [delete]
 // @ProduceAccessToken json
-// @Param              id  body     byIDParams true "record ID to delete"
-// @Success            200 {object} success.DatabaseResponse
-// @Failure            400 {object} apiErrors.APIError
-// @Failure            401 {object} apiErrors.APIError
+// @Param              id      body     byIDParams true "record ID to delete"
+// @Success            200     {object} success.DatabaseResponse
+// @Failure            401,400 {object} apiErrors.APIError
+// @Failure            401     {object} apiErrors.APIError
 func (r *BlacklistsRouter) DeleteImportEvent(c *gin.Context) {
 	var params byIDParams
 
@@ -913,6 +939,7 @@ func (r *BlacklistsRouter) DeleteImportEvent(c *gin.Context) {
 // @Summary            Exports blacklisted hosts into CSV
 // @Description        Accepts filters and returns exported blacklisted hosts in CSV
 // @Tags               Blacklists, Export
+// @Security           ApiKeyAuth
 // @Router             /blacklists/export/csv [post]
 // @ProduceAccessToken json
 // @Param              source_id[]       query []uint64 false "Source type IDs" collectionFormat(multi)
@@ -921,9 +948,9 @@ func (r *BlacklistsRouter) DeleteImportEvent(c *gin.Context) {
 // @Param              discovered_after  query string   false "Discovery timestamp is after"
 // @Param              discovered_before query string   false "Discovery timestamp is before"
 // @ProduceAccessToken application/csv
-// @Success            200 {file}   file
-// @Failure            400 {object} apiErrors.APIError
-// @Failure            401 {object} apiErrors.APIError
+// @Success            200     {file}   file
+// @Failure            401,400 {object} apiErrors.APIError
+// @Failure            401     {object} apiErrors.APIError
 func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -974,6 +1001,7 @@ func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
 // @Summary            Exports blacklisted hosts into JSON
 // @Description        Accepts filters and returns exported blacklisted hosts in JSON
 // @Tags               Blacklists, Export
+// @Security           ApiKeyAuth
 // @Router             /blacklists/export/json [post]
 // @ProduceAccessToken json
 // @Param              source_id[]       query []uint64 false "Source type IDs" collectionFormat(multi)
@@ -982,9 +1010,9 @@ func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
 // @Param              discovered_after  query string   false "Discovery timestamp is after"
 // @Param              discovered_before query string   false "Discovery timestamp is before"
 // @ProduceAccessToken application/json
-// @Success            200 {file}   file
-// @Failure            400 {object} apiErrors.APIError
-// @Failure            401 {object} apiErrors.APIError
+// @Success            200     {file}   file
+// @Failure            401,400 {object} apiErrors.APIError
+// @Failure            401     {object} apiErrors.APIError
 func (r *BlacklistsRouter) PostExportBlacklistsToJSON(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -1036,6 +1064,7 @@ func (r *BlacklistsRouter) PostExportBlacklistsToJSON(c *gin.Context) {
 // @Summary            Send hosts to Naumen Service Desk
 // @Description        Sends service call to Naumen Service Desk with hosts selected to block by filter
 // @Tags               Blacklists, Export
+// @Security           ApiKeyAuth
 // @Router             /blacklists/export/naumen [post]
 // @ProduceAccessToken json
 // @Param              source_id       query    []uint64 false "Source type IDs" collectionFormat(multi)
@@ -1045,7 +1074,7 @@ func (r *BlacklistsRouter) PostExportBlacklistsToJSON(c *gin.Context) {
 // @Param              created_before  query    string   false "Created timestamp is before"
 // @Param              search_string   query    string   false "Substring to search"
 // @Success            201             {object} serviceDeskEntities.ServiceDeskTicket
-// @Failure            400             {object} apiErrors.APIError
+// @Failure            401,400         {object} apiErrors.APIError
 func (r *BlacklistsRouter) PostExportBlacklistsToNaumen(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -1088,12 +1117,12 @@ func (r *BlacklistsRouter) PostExportBlacklistsToNaumen(c *gin.Context) {
 // @Summary            Returns amount of blacklisted entities
 // @Description        Returns data containing overall amount of blacklisted entities
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/stats [get]
 // @ProduceAccessToken json
 // @ProduceAccessToken application/json
-// @Success            200 {object} BlacklistedStatistics
-// @Failure            400 {object} apiErrors.APIError
-// @Failure            401 {object} apiErrors.APIError
+// @Success            200     {object} BlacklistedStatistics
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetStatistics(c *gin.Context) {
 	if r.cachedValues.stats.LastEval == nil || r.cachedValues.stats.LastEval.Before(time.Now().Add(-2*time.Hour)) {
 		r.recountStatistics()
@@ -1107,12 +1136,12 @@ func (r *BlacklistsRouter) GetStatistics(c *gin.Context) {
 // @Summary            Get blacklist sources
 // @Description        Returns all available blacklist data sources
 // @Tags               Blacklists
+// @Security           ApiKeyAuth
 // @Router             /blacklists/sources [get]
 // @ProduceAccessToken json
 // @ProduceAccessToken application/json
-// @Success            200 {object} []blacklistEntities.BlacklistSource
-// @Failure            400 {object} apiErrors.APIError
-// @Failure            401 {object} apiErrors.APIError
+// @Success            200     {object} []blacklistEntities.BlacklistSource
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetBlackListSources(c *gin.Context) {
 	sources, err := r.service.RetrieveAllSources()
 	if err != nil {
