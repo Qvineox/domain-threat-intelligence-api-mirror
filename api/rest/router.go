@@ -32,7 +32,7 @@ func CreateRouter(services Services, basePath string, authMiddleware *auth.Middl
 	routing.NewServiceDeskRouter(services.ServiceDeskService, baseRouteV1)
 	routing.NewUsersRouter(services.UsersService, baseRouteV1, authMiddleware)
 
-	routing.NewAuthRouter(services.AuthService, baseRouteV1)
+	routing.NewAuthRouter(services.AuthService, baseRouteV1, authMiddleware)
 
 	return router
 }

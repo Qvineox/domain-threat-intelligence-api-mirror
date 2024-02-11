@@ -27,7 +27,7 @@ func (repo *UsersRepoImpl) UpdateUser(user userEntities.PlatformUser) error {
 		return errors.New("user not found")
 	}
 
-	return repo.Omit("password_hash").Save(&user).Error
+	return repo.Omit("password_hash", "refresh_token").Save(&user).Error
 }
 
 func (repo *UsersRepoImpl) DeleteUser(id uint64) (int64, error) {
@@ -52,7 +52,14 @@ func (repo *UsersRepoImpl) SelectUser(id uint64) (userEntities.PlatformUser, err
 func (repo *UsersRepoImpl) SelectUserByLogin(login string) (userEntities.PlatformUser, error) {
 	var user userEntities.PlatformUser
 
-	err := repo.Preload("Permissions").Where("login = ?", login).Find(&user).Error
+	err := repo.Preload("Permissions").Where("login = ?", login).Limit(1).Find(&user).Error
+	return user, err
+}
+
+func (repo *UsersRepoImpl) SelectUserByRefreshToken(token string) (userEntities.PlatformUser, error) {
+	var user userEntities.PlatformUser
+
+	err := repo.Preload("Permissions").Where("refresh_token = ?", token).Limit(1).Find(&user).Error
 	return user, err
 }
 
@@ -68,5 +75,13 @@ func (repo *UsersRepoImpl) UpdateUserWithPasswordHash(user userEntities.Platform
 		return errors.New("user not found")
 	}
 
-	return repo.Save(user).Error
+	return repo.Omit("refresh_token").Save(user).Error
+}
+
+func (repo *UsersRepoImpl) UpdateUserWithRefreshToken(user userEntities.PlatformUser) error {
+	if user.ID == 0 {
+		return errors.New("user not found")
+	}
+
+	return repo.Omit("password_hash").Save(user).Error
 }

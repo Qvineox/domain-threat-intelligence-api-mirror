@@ -107,11 +107,15 @@ type IUsersRepo interface {
 	SelectUsers() ([]userEntities.PlatformUser, error)
 	SelectUser(id uint64) (userEntities.PlatformUser, error)
 	SelectUserByLogin(login string) (userEntities.PlatformUser, error)
+	SelectUserByRefreshToken(token string) (userEntities.PlatformUser, error)
 
 	SelectPermissions() ([]userEntities.PlatformUserPermission, error)
 
 	// UpdateUserWithPasswordHash is used only to update user password hash. Must be used when resetting or changing password
 	UpdateUserWithPasswordHash(user userEntities.PlatformUser) error
+
+	// UpdateUserWithRefreshToken is used only to update user refresh token. Must be used when resetting token, on login and logout.
+	UpdateUserWithRefreshToken(user userEntities.PlatformUser) error
 }
 
 type IAuthService interface {

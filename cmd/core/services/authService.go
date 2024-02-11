@@ -92,7 +92,13 @@ func (s *AuthServiceImpl) Login(login, password string) (accessToken, refreshTok
 		return "", "", err
 	}
 
-	refreshToken, err = s.accessTokenFactory.ProduceRefreshToken().Sing(s.signingMethod, s.refreshTokenKey)
+	refreshToken, err = s.accessTokenFactory.ProduceRefreshToken(user.ID).Sing(s.signingMethod, s.refreshTokenKey)
+	if err != nil {
+		return "", "", err
+	}
+
+	user.RefreshToken = refreshToken
+	err = s.repo.UpdateUserWithRefreshToken(user)
 	if err != nil {
 		return "", "", err
 	}
@@ -136,12 +142,20 @@ func (s *AuthServiceImpl) ResetPassword(user userEntities.PlatformUser) (userEnt
 }
 
 func (s *AuthServiceImpl) Logout(refreshToken string) error {
-	//TODO implement me
-	panic("implement me")
+	user, err := s.repo.SelectUserByRefreshToken(refreshToken)
+	if err != nil {
+		return err
+	} else if user.ID == 0 {
+		return errors.New("user not found")
+	}
+
+	user.RefreshToken = ""
+
+	return s.repo.UpdateUserWithRefreshToken(user)
 }
 
 func (s *AuthServiceImpl) Validate(accessToken string) (claims authEntities.AccessTokenClaims, err error) {
-	claims, err = s.verifyToken(s.signingMethod, accessToken, s.accessTokenKey)
+	claims, err = s.verifyAccessToken(s.signingMethod, accessToken, s.accessTokenKey)
 	if err != nil {
 		return authEntities.AccessTokenClaims{}, err
 	}
@@ -150,8 +164,39 @@ func (s *AuthServiceImpl) Validate(accessToken string) (claims authEntities.Acce
 }
 
 func (s *AuthServiceImpl) Refresh(token string) (accessToken, refreshToken string, err error) {
-	//TODO implement me
-	panic("implement me")
+	claims, err := s.verifyRefreshToken(s.signingMethod, token, s.refreshTokenKey)
+	if err != nil {
+		return "", "", err
+	}
+
+	if claims.UserID == 0 {
+		return "", "", errors.New("missing user id")
+	}
+
+	user, err := s.repo.SelectUser(claims.UserID)
+	if err != nil {
+		return "", "", err
+	} else if user.ID == 0 {
+		return "", "", errors.New("user not found")
+	}
+
+	accessToken, err = s.accessTokenFactory.ProduceAccessToken(user.GetRoleIDs(), user.ID).Sing(s.signingMethod, s.accessTokenKey)
+	if err != nil {
+		return "", "", err
+	}
+
+	refreshToken, err = s.accessTokenFactory.ProduceRefreshToken(user.ID).Sing(s.signingMethod, s.refreshTokenKey)
+	if err != nil {
+		return "", "", err
+	}
+
+	user.RefreshToken = refreshToken
+	err = s.repo.UpdateUserWithRefreshToken(user)
+	if err != nil {
+		return "", "", err
+	}
+
+	return accessToken, refreshToken, nil
 }
 
 func (s *AuthServiceImpl) GetPasswordStrength(password string) (level int, time float64, entropy float64) {
@@ -177,8 +222,31 @@ func (s *AuthServiceImpl) withSalt(password string) string {
 	return strings.Join([]string{password, s.salt}, "")
 }
 
-func (s *AuthServiceImpl) verifyToken(method *jwt.SigningMethodHMAC, tokenString string, key []byte) (authEntities.AccessTokenClaims, error) {
+func (s *AuthServiceImpl) verifyAccessToken(method *jwt.SigningMethodHMAC, tokenString string, key []byte) (authEntities.AccessTokenClaims, error) {
 	var claims authEntities.AccessTokenClaims
+
+	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
+		return key, nil
+	}, jwt.WithValidMethods([]string{method.Alg()}))
+
+	if token.Valid {
+		return claims, nil
+	}
+
+	switch {
+	case errors.Is(err, jwt.ErrTokenMalformed):
+		return claims, errors.New("token malformed")
+	case errors.Is(err, jwt.ErrTokenSignatureInvalid):
+		return claims, errors.New("invalid signature")
+	case errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet):
+		return claims, errors.New("token expired")
+	default:
+		return claims, errors.New("unexpected error")
+	}
+}
+
+func (s *AuthServiceImpl) verifyRefreshToken(method *jwt.SigningMethodHMAC, tokenString string, key []byte) (authEntities.RefreshTokenClaims, error) {
+	var claims authEntities.RefreshTokenClaims
 
 	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
 		return key, nil

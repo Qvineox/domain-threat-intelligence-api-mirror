@@ -19,6 +19,9 @@ type PlatformUser struct {
 	PasswordHash string `json:"-" gorm:"column:password_hash"`
 	IsActive     bool   `json:"IsActive" gorm:"column:is_active;default:true"`
 
+	// RefreshToken used to refresh token pair on auth
+	RefreshToken string `json:"-" gorm:"column:refresh_token"`
+
 	// Defines which roles user has
 	Permissions []PlatformUserPermission `json:"Permissions,omitempty" gorm:"many2many:platform_users_permissions;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 

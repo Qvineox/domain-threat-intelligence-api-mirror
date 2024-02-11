@@ -7,6 +7,8 @@ import (
 // RefreshTokenClaims used to re-login user automatically and protect from stolen auth data. This struct is usually created by TokenFactory
 type RefreshTokenClaims struct {
 	jwt.RegisteredClaims
+
+	UserID uint64 `json:"user_id"`
 }
 
 func (claims RefreshTokenClaims) Sing(method *jwt.SigningMethodHMAC, key []byte) (string, error) {

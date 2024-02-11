@@ -37,7 +37,7 @@ func (f *TokenFactory) ProduceAccessToken(roleIDs []uint64, userID uint64) Acces
 	return claims
 }
 
-func (f *TokenFactory) ProduceRefreshToken() RefreshTokenClaims {
+func (f *TokenFactory) ProduceRefreshToken(userID uint64) RefreshTokenClaims {
 	now := time.Now()
 
 	claims := RefreshTokenClaims{
@@ -50,6 +50,7 @@ func (f *TokenFactory) ProduceRefreshToken() RefreshTokenClaims {
 			IssuedAt:  jwt.NewNumericDate(now),
 			ID:        uuid.New().String(),
 		},
+		UserID: userID,
 	}
 
 	return claims

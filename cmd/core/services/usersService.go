@@ -84,6 +84,9 @@ func (s *UsersServiceImpl) ChangePassword(id uint64, oldPassword, newPassword st
 	}
 
 	user, err = s.auth.ChangePassword(user, oldPassword, newPassword)
+	if err != nil {
+		return err
+	}
 
 	err = s.repo.UpdateUserWithPasswordHash(user)
 	if err != nil {

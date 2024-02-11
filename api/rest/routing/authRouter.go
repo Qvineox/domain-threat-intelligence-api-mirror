@@ -1,31 +1,40 @@
 package routing
 
 import (
+	"domain_threat_intelligence_api/api/rest/auth"
 	apiErrors "domain_threat_intelligence_api/api/rest/error"
 	"domain_threat_intelligence_api/cmd/core"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 type AuthRouter struct {
-	service core.IAuthService
-	path    *gin.RouterGroup
+	service        core.IAuthService
+	path           *gin.RouterGroup
+	authMiddleware *auth.MiddlewareService
 }
 
-func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup) *AuthRouter {
+func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup, auth *auth.MiddlewareService) *AuthRouter {
 	router := AuthRouter{service: service, path: path}
 
 	authGroup := path.Group("/auth")
 
 	{
 		authGroup.POST("/login", router.Login)
-		authGroup.POST("/logout", router.Logout)
-		authGroup.POST("/refresh", router.Refresh)
 
 		authGroup.POST("/confirmation/:uuid", router.ConfirmEmail)
 		//authGroup.POST("/self-registration", router.Register) // self-registration ???
 
 		authGroup.POST("/password-strength", router.GetPasswordStrength)
+	}
+
+	authSecureGroup := authGroup.Group("")
+	authSecureGroup.Use(auth.RequireAuth())
+
+	{
+		authSecureGroup.POST("/logout", router.Logout)
+		authSecureGroup.POST("/refresh", router.Refresh)
 	}
 
 	return &router
@@ -40,9 +49,9 @@ func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup) *AuthRouter
 // @Tags               Auth
 // @Router             /auth/login [post]
 // @ProduceAccessToken json
-// @Param              username body loginParams true "user credentials"
-// @Success            202
-// @Failure            401,400 {object} apiErrors.APIError
+// @Param              username body     loginParams true "user credentials"
+// @Success            202      {object} tokenResponse
+// @Failure            401,400  {object} apiErrors.APIError
 func (r *AuthRouter) Login(c *gin.Context) {
 	var params loginParams
 
@@ -52,8 +61,6 @@ func (r *AuthRouter) Login(c *gin.Context) {
 		return
 	}
 
-	// TODO: session auth
-
 	accessToken, refreshToken, err := r.service.Login(params.Username, params.Password)
 	if err != nil {
 		apiErrors.AuthErrorResponse(c, err)
@@ -61,7 +68,9 @@ func (r *AuthRouter) Login(c *gin.Context) {
 	}
 
 	c.SetCookie("refresh_token", refreshToken, 60*60*48, "", r.service.GetDomain(), true, true)
-	c.JSON(http.StatusAccepted, accessToken)
+	c.JSON(http.StatusAccepted, tokenResponse{
+		AccessToken: accessToken,
+	})
 }
 
 type loginParams struct {
@@ -69,16 +78,72 @@ type loginParams struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func (r *AuthRouter) Logout(c *gin.Context) {
-
+type tokenResponse struct {
+	AccessToken string `json:"AccessToken"`
 }
 
-func (r *AuthRouter) Refresh(c *gin.Context) {
+// Logout removes auth info from cookie and database by provided refresh token
+//
+// @Summary            Removes user auth tokens
+// @Description        Removes auth info from cookie and database by provided refresh token
+// @Tags               Auth
+// @Security           ApiKeyAuth
+// @Router             /auth/logout [post]
+// @ProduceAccessToken json
+// @Success            202     {object} tokenResponse
+// @Failure            401,400 {object} apiErrors.APIError
+func (r *AuthRouter) Logout(c *gin.Context) {
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil {
+		apiErrors.ParamsErrorResponse(c, err)
+		return
+	} else if len(refreshToken) == 0 {
+		apiErrors.ParamsErrorResponse(c, errors.New("missing refresh token"))
+		return
+	}
 
+	err = r.service.Logout(refreshToken)
+	if err != nil {
+		return
+	}
+
+	c.SetCookie("refresh_token", "", 60*60*48, "", r.service.GetDomain(), true, true)
+	c.Status(http.StatusAccepted)
+}
+
+// Refresh gets refresh token from Cookie and updates user auth tokens
+//
+// @Summary            Updates user auth tokens
+// @Description        Gets refresh token from Cookie and updates user auth tokens
+// @Tags               Auth
+// @Security           ApiKeyAuth
+// @Router             /auth/refresh [post]
+// @ProduceAccessToken json
+// @Success            202     {object} tokenResponse
+// @Failure            401,400 {object} apiErrors.APIError
+func (r *AuthRouter) Refresh(c *gin.Context) {
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil {
+		apiErrors.ParamsErrorResponse(c, err)
+		return
+	} else if len(refreshToken) == 0 {
+		apiErrors.ParamsErrorResponse(c, errors.New("missing refresh token"))
+		return
+	}
+
+	accessToken, newRefreshToken, err := r.service.Refresh(refreshToken)
+	if err != nil {
+		return
+	}
+
+	c.SetCookie("refresh_token", newRefreshToken, 60*60*48, "", r.service.GetDomain(), true, true)
+	c.JSON(http.StatusAccepted, tokenResponse{
+		AccessToken: accessToken,
+	})
 }
 
 func (r *AuthRouter) ConfirmEmail(c *gin.Context) {
-
+	c.Status(http.StatusNotImplemented)
 }
 
 // Register accepts user account data and register new platform user

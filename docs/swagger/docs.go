@@ -39,7 +39,44 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "202": {
-                        "description": "Accepted"
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/routing.tokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Removes auth info from cookie and database by provided refresh token",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Removes user auth tokens",
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/routing.tokenResponse"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -83,6 +120,40 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/refresh": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Gets refresh token from Cookie and updates user auth tokens",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Updates user auth tokens",
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/routing.tokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -2408,6 +2479,14 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "User": {
+                    "type": "string"
+                }
+            }
+        },
+        "routing.tokenResponse": {
+            "type": "object",
+            "properties": {
+                "AccessToken": {
                     "type": "string"
                 }
             }
