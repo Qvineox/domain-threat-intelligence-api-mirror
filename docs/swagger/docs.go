@@ -19,12 +19,193 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/login": {
+            "post": {
+                "description": "Accepts login and password, return pair of auth tokens",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Authorizes user by login and password",
+                "parameters": [
+                    {
+                        "description": "user credentials",
+                        "name": "username",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.loginParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/routing.tokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Removes auth info from cookie and database by provided refresh token",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Removes user auth tokens",
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/routing.tokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/password-strength": {
+            "post": {
+                "description": "Returns password strength",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get strength of a password",
+                "parameters": [
+                    {
+                        "description": "password",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.passwordStrengthParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/routing.passwordStrengthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/refresh": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Gets refresh token from Cookie and updates user auth tokens",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Updates user auth tokens",
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/routing.tokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/registration": {
+            "post": {
+                "description": "Accepts user account data and register new platform user",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Creates new user with defined data",
+                "parameters": [
+                    {
+                        "description": "user credentials",
+                        "name": "username",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.loginParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/blacklists/domain": {
             "get": {
-                "description": "Returns list of blacklisted domains by filter",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Returns list of blacklisted domains by filter",
                 "tags": [
                     "Blacklists"
                 ],
@@ -99,14 +280,22 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "put": {
-                "description": "Accepts and saves list of blacklisted domains",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Accepts and saves list of blacklisted domains",
                 "tags": [
                     "Blacklists"
                 ],
@@ -134,14 +323,22 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "delete": {
-                "description": "Accepts and deletes single blacklisted domain",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Accepts and deletes single blacklisted domain",
                 "tags": [
                     "Blacklists"
                 ],
@@ -153,7 +350,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.deleteByUUIDParams"
+                            "$ref": "#/definitions/routing.byUUIDParams"
                         }
                     }
                 ],
@@ -169,16 +366,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/email": {
             "get": {
-                "description": "Returns list of blacklisted emails by filter",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Returns list of blacklisted emails by filter",
                 "tags": [
                     "Blacklists"
                 ],
@@ -253,14 +458,22 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "put": {
-                "description": "Accepts and saves list of blacklisted emails",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Accepts and saves list of blacklisted emails",
                 "tags": [
                     "Blacklists"
                 ],
@@ -288,14 +501,22 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "delete": {
-                "description": "Accepts and deletes single blacklisted email",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Accepts and deletes single blacklisted email",
                 "tags": [
                     "Blacklists"
                 ],
@@ -307,7 +528,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.deleteByUUIDParams"
+                            "$ref": "#/definitions/routing.byUUIDParams"
                         }
                     }
                 ],
@@ -323,17 +544,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/export/csv": {
             "post": {
-                "description": "Accepts filters and returns exported blacklisted hosts in CSV",
-                "produces": [
-                    "application/json",
-                    "application/csv"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Accepts filters and returns exported blacklisted hosts in CSV",
                 "tags": [
                     "Blacklists",
                     "Export"
@@ -387,17 +615,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/export/json": {
             "post": {
-                "description": "Accepts filters and returns exported blacklisted hosts in JSON",
-                "produces": [
-                    "application/json",
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Accepts filters and returns exported blacklisted hosts in JSON",
                 "tags": [
                     "Blacklists",
                     "Export"
@@ -451,16 +686,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/export/naumen": {
             "post": {
-                "description": "Sends service call to Naumen Service Desk with hosts selected to block by filter",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Sends service call to Naumen Service Desk with hosts selected to block by filter",
                 "tags": [
                     "Blacklists",
                     "Export"
@@ -520,16 +763,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/host": {
             "get": {
-                "description": "Returns list of blacklisted hosts (all types) by filter",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Returns list of blacklisted hosts (all types) by filter",
                 "tags": [
                     "Blacklists"
                 ],
@@ -604,16 +855,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/import/csv": {
             "post": {
-                "description": "Accepts and imports blacklisted hosts from CSV file",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Accepts and imports blacklisted hosts from CSV file",
                 "tags": [
                     "Blacklists",
                     "Import"
@@ -654,16 +913,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/import/event": {
             "get": {
-                "description": "Returns import events without data",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Returns import events without data",
                 "tags": [
                     "Blacklists",
                     "Import"
@@ -717,16 +984,68 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and deletes single blacklist import event",
+                "tags": [
+                    "Blacklists",
+                    "Import"
+                ],
+                "summary": "Delete blacklist import event",
+                "parameters": [
+                    {
+                        "description": "record ID to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.byIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/import/event/{event_id}": {
             "get": {
-                "description": "Returns import event data with all included blacklisted hosts",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Returns import event data with all included blacklisted hosts",
                 "tags": [
                     "Blacklists",
                     "Import"
@@ -753,41 +1072,9 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
-                    }
-                }
-            }
-        },
-        "/blacklists/import/events": {
-            "delete": {
-                "description": "Accepts and deletes single blacklist import event",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Blacklists",
-                    "Import"
-                ],
-                "summary": "Delete blacklist import event",
-                "parameters": [
-                    {
-                        "description": "record ID to delete",
-                        "name": "id",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/routing.deleteByIDParams"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/success.DatabaseResponse"
-                        }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -797,12 +1084,14 @@ const docTemplate = `{
         },
         "/blacklists/import/stix": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Accepts and imports blacklisted hosts from STIX 2.0 file",
                 "consumes": [
                     "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
                 ],
                 "tags": [
                     "Blacklists",
@@ -844,16 +1133,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/ip": {
             "get": {
-                "description": "Returns list of blacklisted IPs by filter",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Returns list of blacklisted IPs by filter",
                 "tags": [
                     "Blacklists"
                 ],
@@ -928,14 +1225,22 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "put": {
-                "description": "Accepts and saves list of blacklisted IPs",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Accepts and saves list of blacklisted IPs",
                 "tags": [
                     "Blacklists"
                 ],
@@ -963,14 +1268,22 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "delete": {
-                "description": "Accepts and deletes single blacklisted IP",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Accepts and deletes single blacklisted IP",
                 "tags": [
                     "Blacklists"
                 ],
@@ -982,7 +1295,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.deleteByUUIDParams"
+                            "$ref": "#/definitions/routing.byUUIDParams"
                         }
                     }
                 ],
@@ -998,17 +1311,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/sources": {
             "get": {
-                "description": "Returns all available blacklist data sources",
-                "produces": [
-                    "application/json",
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Returns all available blacklist data sources",
                 "tags": [
                     "Blacklists"
                 ],
@@ -1028,17 +1348,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/stats": {
             "get": {
-                "description": "Returns data containing overall amount of blacklisted entities",
-                "produces": [
-                    "application/json",
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Returns data containing overall amount of blacklisted entities",
                 "tags": [
                     "Blacklists"
                 ],
@@ -1055,16 +1382,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/blacklists/url": {
             "get": {
-                "description": "Returns list of blacklisted URLs by filter",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Returns list of blacklisted URLs by filter",
                 "tags": [
                     "Blacklists"
                 ],
@@ -1139,14 +1474,22 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "put": {
-                "description": "Accepts and saves list of blacklisted URLs",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Accepts and saves list of blacklisted URLs",
                 "tags": [
                     "Blacklists"
                 ],
@@ -1174,14 +1517,22 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             },
             "delete": {
-                "description": "Accepts and deletes single blacklisted URL",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Accepts and deletes single blacklisted URL",
                 "tags": [
                     "Blacklists"
                 ],
@@ -1193,7 +1544,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.deleteByUUIDParams"
+                            "$ref": "#/definitions/routing.byUUIDParams"
                         }
                     }
                 ],
@@ -1209,16 +1560,27 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/system/dynamic": {
             "get": {
-                "description": "Gets info about current dynamic application config",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Gets info about current dynamic application config",
                 "tags": [
                     "Configuration"
                 ],
@@ -1232,16 +1594,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/system/dynamic/naumen": {
             "post": {
-                "description": "Updates dynamic Naumen Service Desk configuration",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Updates dynamic Naumen Service Desk configuration",
                 "tags": [
                     "Configuration"
                 ],
@@ -1266,16 +1636,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/system/dynamic/naumen/blacklists": {
             "post": {
-                "description": "Updates dynamic Naumen Service Desk service configuration",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Updates dynamic Naumen Service Desk service configuration",
                 "tags": [
                     "Configuration"
                 ],
@@ -1300,16 +1678,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
         "/system/dynamic/smtp": {
             "post": {
-                "description": "Updates dynamic SMTP configuration",
-                "produces": [
-                    "application/json"
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
                 ],
+                "description": "Updates dynamic SMTP configuration",
                 "tags": [
                     "Configuration"
                 ],
@@ -1331,6 +1717,433 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns current session user in JWT token",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get current session user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/userEntities.PlatformUser"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/password/change": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Sets new password for user. Closes session",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Changes password for user",
+                "parameters": [
+                    {
+                        "description": "new password",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.changePasswordParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/password/reset": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Resets password for user",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Reset password",
+                "parameters": [
+                    {
+                        "description": "user to reset",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.byIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/permissions": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns all permissions",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get all available permissions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/userEntities.PlatformUserPermission"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/permissions/presets": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns all permission presets",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get all permission presets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/userEntities.PlatformUserRolesPreset"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and creates user account",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Create user account",
+                "parameters": [
+                    {
+                        "description": "user data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.userCreateParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and deletes single user account",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Delete user account",
+                "parameters": [
+                    {
+                        "description": "record ID to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.byIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and updates single user account",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update user account",
+                "parameters": [
+                    {
+                        "description": "user update",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.userUpdateParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user/{user_id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns single user account",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get single user account",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/userEntities.PlatformUser"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/users": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns all user accounts",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get all user accounts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/userEntities.PlatformUser"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -1759,7 +2572,7 @@ const docTemplate = `{
                 }
             }
         },
-        "routing.deleteByIDParams": {
+        "routing.byIDParams": {
             "type": "object",
             "required": [
                 "ID"
@@ -1770,13 +2583,47 @@ const docTemplate = `{
                 }
             }
         },
-        "routing.deleteByUUIDParams": {
+        "routing.byUUIDParams": {
             "type": "object",
             "required": [
                 "UUID"
             ],
             "properties": {
                 "UUID": {
+                    "type": "string"
+                }
+            }
+        },
+        "routing.changePasswordParams": {
+            "type": "object",
+            "required": [
+                "ID",
+                "NewPassword",
+                "OldPassword"
+            ],
+            "properties": {
+                "ID": {
+                    "type": "integer"
+                },
+                "NewPassword": {
+                    "type": "string"
+                },
+                "OldPassword": {
+                    "type": "string"
+                }
+            }
+        },
+        "routing.loginParams": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -1833,6 +2680,31 @@ const docTemplate = `{
                 }
             }
         },
+        "routing.passwordStrengthParams": {
+            "type": "object",
+            "required": [
+                "Password"
+            ],
+            "properties": {
+                "Password": {
+                    "type": "string"
+                }
+            }
+        },
+        "routing.passwordStrengthResponse": {
+            "type": "object",
+            "properties": {
+                "CrackTime": {
+                    "type": "number"
+                },
+                "Entropy": {
+                    "type": "number"
+                },
+                "Level": {
+                    "type": "integer"
+                }
+            }
+        },
         "routing.smtpConfigUpdateParams": {
             "type": "object",
             "required": [
@@ -1859,6 +2731,80 @@ const docTemplate = `{
                 },
                 "User": {
                     "type": "string"
+                }
+            }
+        },
+        "routing.tokenResponse": {
+            "type": "object",
+            "properties": {
+                "AccessToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "routing.userCreateParams": {
+            "type": "object",
+            "required": [
+                "email",
+                "fullName",
+                "login",
+                "password",
+                "roleIDs"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fullName": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "roleIDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "routing.userUpdateParams": {
+            "type": "object",
+            "required": [
+                "email",
+                "fullName",
+                "id",
+                "login",
+                "roleIDs"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fullName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "login": {
+                    "type": "string"
+                },
+                "roleIDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
@@ -1933,11 +2879,11 @@ const docTemplate = `{
                 "Login": {
                     "type": "string"
                 },
-                "Roles": {
+                "Permissions": {
                     "description": "Defines which roles user has",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/userEntities.PlatformUserRole"
+                        "$ref": "#/definitions/userEntities.PlatformUserPermission"
                     }
                 },
                 "UpdatedAt": {
@@ -1945,7 +2891,7 @@ const docTemplate = `{
                 }
             }
         },
-        "userEntities.PlatformUserRole": {
+        "userEntities.PlatformUserPermission": {
             "type": "object",
             "properties": {
                 "CreatedAt": {
@@ -1957,19 +2903,43 @@ const docTemplate = `{
                 "Description": {
                     "type": "string"
                 },
+                "ID": {
+                    "type": "integer"
+                },
                 "IsActive": {
                     "type": "boolean"
                 },
                 "Name": {
                     "type": "string"
                 },
-                "UUID": {
-                    "type": "integer"
-                },
                 "UpdatedAt": {
                     "type": "string"
                 }
             }
+        },
+        "userEntities.PlatformUserRolesPreset": {
+            "type": "object",
+            "properties": {
+                "Description": {
+                    "type": "string"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "RoleIDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "x-api-Key",
+            "in": "header"
         }
     }
 }`
@@ -1978,7 +2948,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.0.3",
 	Host:             "",
-	BasePath:         "/api/v1",
+	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "Domain Threat Intelligence API",
 	Description:      "API provided by DTI project",

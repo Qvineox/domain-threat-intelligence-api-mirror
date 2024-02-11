@@ -48,20 +48,26 @@ services:
       db_pass: $DB_PASS
       db_name: $DB_NAME
       db_timezone: $DB_TZ
+
       http_host: 0.0.0.0
       http_port: 80
-      http_base_path: $HTTP_BASE_PATH
-      http_api_version: $HTTP_API_VERSION
+
+      http_api_path: $HTTP_API_PATH
+
       http_swagger_enabled: $HTTP_SWAGGER_ENABLED
       http_swagger_host: $HTTP_SWAGGER_HOST
-      http_origin: 'https://$HTTP_SUBDOMAIN.qvineox.ru'
+      http_swagger_version: $HTTP_SWAGGER_VERSION
+
+      http_security_tls: $HTTP_SECURITY_TLS
+      http_security_origins: $HTTP_SECURITY_ORIGINS
+      http_security_domain: $HTTP_SECURITY_DOMAIN
     networks:
       - web
       - internal
     labels:
       - traefik.enable=true
       - traefik.http.routers.dti_api_web.service=dti_api_web
-      - traefik.http.routers.dti_api_web.rule=Host(`$HTTP_SUBDOMAIN.qvineox.ru`)
+      - traefik.http.routers.dti_api_web.rule=Host(`$TRAEFIK_HOST`)
       - traefik.http.routers.dti_api_web.tls=true
       - traefik.http.routers.dti_api_web.entrypoints=websec
       - traefik.http.services.dti_api_web.loadbalancer.server.port=80

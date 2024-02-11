@@ -29,6 +29,7 @@ const (
 	FileProcessingErrorCode
 	InternalUnidentifiedErrorCode
 	AuthFailedErrorCode
+	AuthPermissionInsufficientErrorCode
 )
 
 func ParamsErrorResponse(c *gin.Context, err error) {

@@ -1,7 +1,8 @@
 package routing
 
 import (
-	error "domain_threat_intelligence_api/api/rest/error"
+	"domain_threat_intelligence_api/api/rest/auth"
+	apiErrors "domain_threat_intelligence_api/api/rest/error"
 	"domain_threat_intelligence_api/cmd/core"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -10,19 +11,25 @@ import (
 type SystemStateRouter struct {
 	service core.ISystemStateService
 	path    *gin.RouterGroup
+	auth    *auth.MiddlewareService
 }
 
-func NewSystemStateRouter(service core.ISystemStateService, path *gin.RouterGroup) *SystemStateRouter {
+func NewSystemStateRouter(service core.ISystemStateService, path *gin.RouterGroup, auth *auth.MiddlewareService) *SystemStateRouter {
 	router := SystemStateRouter{service: service, path: path}
 
 	systemStateGroup := path.Group("/system")
+	systemStateGroup.Use(auth.RequireAuth())
+	systemStateGroup.Use(auth.RequireRole(6001))
+
+	systemWriteStateGroup := systemStateGroup.Group("")
+	systemWriteStateGroup.Use(auth.RequireRole(6002))
 
 	{
 		systemStateGroup.GET("/dynamic", router.GetDynamicConfig)
-		systemStateGroup.POST("/dynamic/smtp", router.PostUpdateSMTPConfig)
-		systemStateGroup.POST("/dynamic/naumen", router.PostUpdateNaumenConfig)
-		systemStateGroup.POST("/dynamic/naumen/blacklists", router.PostUpdateNaumenBlacklistServiceConfig)
 
+		systemWriteStateGroup.POST("/dynamic/smtp", router.PostUpdateSMTPConfig)
+		systemWriteStateGroup.POST("/dynamic/naumen", router.PostUpdateNaumenConfig)
+		systemWriteStateGroup.POST("/dynamic/naumen/blacklists", router.PostUpdateNaumenBlacklistServiceConfig)
 	}
 
 	return &router
@@ -30,17 +37,19 @@ func NewSystemStateRouter(service core.ISystemStateService, path *gin.RouterGrou
 
 // GetDynamicConfig returns info about current dynamic application config
 //
-// @Summary     View application dynamic config
-// @Description Gets info about current dynamic application config
-// @Tags        Configuration
-// @Router      /system/dynamic [get]
-// @Produce     json
-// @Success     200
-// @Failure     400 {object} error.APIError
+// @Summary            View application dynamic config
+// @Description        Gets info about current dynamic application config
+// @Tags               Configuration
+// @Security           ApiKeyAuth
+// @Router             /system/dynamic [get]
+// @ProduceAccessToken json
+// @Success            200
+// @Failure            401,400 {object} apiErrors.APIError
+// @Security           ApiKeyAuth
 func (r *SystemStateRouter) GetDynamicConfig(c *gin.Context) {
 	config, err := r.service.RetrieveDynamicConfig()
 	if err != nil {
-		error.InternalErrorResponse(c, err)
+		apiErrors.InternalErrorResponse(c, err)
 		return
 	}
 
@@ -49,26 +58,27 @@ func (r *SystemStateRouter) GetDynamicConfig(c *gin.Context) {
 
 // PostUpdateSMTPConfig updates dynamic SMTP configuration
 //
-// @Summary     Update dynamic SMTP configuration
-// @Description Updates dynamic SMTP configuration
-// @Tags        Configuration
-// @Router      /system/dynamic/smtp [post]
-// @Produce     json
-// @Param       smtpConfig body smtpConfigUpdateParams true "dynamic SMTP configuration"
-// @Success     202
-// @Failure     400 {object} error.APIError
+// @Summary            Update dynamic SMTP configuration
+// @Description        Updates dynamic SMTP configuration
+// @Tags               Configuration
+// @Security           ApiKeyAuth
+// @Router             /system/dynamic/smtp [post]
+// @ProduceAccessToken json
+// @Param              smtpConfig body smtpConfigUpdateParams true "dynamic SMTP configuration"
+// @Success            202
+// @Failure            401,400 {object} error.APIError
 func (r *SystemStateRouter) PostUpdateSMTPConfig(c *gin.Context) {
 	params := smtpConfigUpdateParams{}
 
 	err := c.ShouldBindJSON(&params)
 	if err != nil {
-		error.ParamsErrorResponse(c, err)
+		apiErrors.ParamsErrorResponse(c, err)
 		return
 	}
 
 	err = r.service.UpdateSMTPConfig(params.Enabled, params.Host, params.User, params.Password, params.Sender, params.UseTLS)
 	if err != nil {
-		error.ParamsErrorResponse(c, err)
+		apiErrors.ParamsErrorResponse(c, err)
 		return
 	}
 
@@ -86,26 +96,27 @@ type smtpConfigUpdateParams struct {
 
 // PostUpdateNaumenConfig updates dynamic Naumen Service Desk configuration
 //
-// @Summary     Update dynamic Naumen Service Desk configuration
-// @Description Updates dynamic Naumen Service Desk configuration
-// @Tags        Configuration
-// @Router      /system/dynamic/naumen [post]
-// @Produce     json
-// @Param       naumenConfig body naumenConfigUpdateParams true "dynamic naumen configuration"
-// @Success     202
-// @Failure     400 {object} error.APIError
+// @Summary            Update dynamic Naumen Service Desk configuration
+// @Description        Updates dynamic Naumen Service Desk configuration
+// @Tags               Configuration
+// @Security           ApiKeyAuth
+// @Router             /system/dynamic/naumen [post]
+// @ProduceAccessToken json
+// @Param              naumenConfig body naumenConfigUpdateParams true "dynamic naumen configuration"
+// @Success            202
+// @Failure            401,400 {object} error.APIError
 func (r *SystemStateRouter) PostUpdateNaumenConfig(c *gin.Context) {
 	params := naumenConfigUpdateParams{}
 
 	err := c.ShouldBindJSON(&params)
 	if err != nil {
-		error.ParamsErrorResponse(c, err)
+		apiErrors.ParamsErrorResponse(c, err)
 		return
 	}
 
 	err = r.service.UpdateNSDCredentials(params.Enabled, params.URL, params.ClientKey, params.ClientID, params.ClientGroupID)
 	if err != nil {
-		error.ParamsErrorResponse(c, err)
+		apiErrors.ParamsErrorResponse(c, err)
 		return
 	}
 
@@ -122,26 +133,27 @@ type naumenConfigUpdateParams struct {
 
 // PostUpdateNaumenBlacklistServiceConfig updates dynamic Naumen Service Desk service configuration
 //
-// @Summary     Update dynamic Naumen Service Desk service configuration
-// @Description Updates dynamic Naumen Service Desk service configuration
-// @Tags        Configuration
-// @Router      /system/dynamic/naumen/blacklists [post]
-// @Produce     json
-// @Param       naumenConfig body naumenBlacklistServiceConfigUpdateParams true "dynamic naumen service configuration"
-// @Success     202
-// @Failure     400 {object} error.APIError
+// @Summary            Update dynamic Naumen Service Desk service configuration
+// @Description        Updates dynamic Naumen Service Desk service configuration
+// @Tags               Configuration
+// @Security           ApiKeyAuth
+// @Router             /system/dynamic/naumen/blacklists [post]
+// @ProduceAccessToken json
+// @Param              naumenConfig body naumenBlacklistServiceConfigUpdateParams true "dynamic naumen service configuration"
+// @Success            202
+// @Failure            401,400 {object} error.APIError
 func (r *SystemStateRouter) PostUpdateNaumenBlacklistServiceConfig(c *gin.Context) {
 	params := naumenBlacklistServiceConfigUpdateParams{}
 
 	err := c.ShouldBindJSON(&params)
 	if err != nil {
-		error.ParamsErrorResponse(c, err)
+		apiErrors.ParamsErrorResponse(c, err)
 		return
 	}
 
 	err = r.service.UpdateNSDBlacklistServiceConfig(params.AgreementID, params.SLM, params.CallType, params.HostTypes)
 	if err != nil {
-		error.ParamsErrorResponse(c, err)
+		apiErrors.ParamsErrorResponse(c, err)
 		return
 	}
 

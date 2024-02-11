@@ -44,21 +44,26 @@ go build -ldflags="-s -w" -o .\build\bin\build.go ./cmd
 
 Following variables are used in application. These variables are also mapped in automated GitLab CI/CD:
 
-| Environment Variable | Is Required? | GitLab CI Variable    | Description                                                           | Example values    |
-|----------------------|--------------|-----------------------|-----------------------------------------------------------------------|-------------------|
-| db_host              |              | $DB_HOST              | Database host                                                         | 0.0.0.0, database |
-| db_port              |              | $DB_PORT              | Database port                                                         | 5432              |
-| db_user              |              | $DB_USER              | Database user                                                         | user              |
-| db_pass              |              | $DB_PASS              | Database user password                                                | password123!      |
-| db_name              |              | $DB_NAME              | Database name                                                         | database_name     |
-| db_timezone          |              | $DB_TZ                | Database timezone                                                     | Europe/Moscow     |
-| http_port            |              | $WEB_PORT             | REST port                                                             | 80                |
-| http_host            |              | $WEB_HOST             | REST host                                                             | localhost         |
-| http_base_path       | optional     | $HTTP_BASE_PATH       | REST endpoint path                                                    | /api/v1           |
-| http_api_version     | optional     | $HTTP_API_VERSION     | REST endpoint schema version                                          | v0.0.1            |
-| http_swagger_enabled | optional     | $HTTP_SWAGGER_ENABLED | Defines if [swagger](scripts%2Fswagger%2Freadme.md) routes will start | false             |   
-| http_swagger_host    | optional     | $HTTP_SWAGGER_HOST    | Defines [swagger](scripts%2Fswagger%2Freadme.md) API route            | localhost:7090    |   
-| allowed_origin       | optional     | $HTTP_SUBDOMAIN       | Defines if [swagger](scripts%2Fswagger%2Freadme.md) starts            | localhost         |   
+| Environment Variable  | Is Required? | GitLab CI Variable     | Description                          | Example values                       |
+|-----------------------|--------------|------------------------|--------------------------------------|--------------------------------------|
+| db_host               |              | $DB_HOST               | Database host                        | 0.0.0.0, database                    |
+| db_port               |              | $DB_PORT               | Database port                        | 5432                                 |
+| db_user               |              | $DB_USER               | Database user                        | user                                 |
+| db_pass               |              | $DB_PASS               | Database user password               | password123!                         |
+| db_name               |              | $DB_NAME               | Database name                        | database_name                        |
+| db_timezone           |              | $DB_TZ                 | Database timezone                    | Europe/Moscow                        |
+| http_port             |              | $HTTP_PORT             | REST port                            | 80                                   |
+| http_host             |              | $HTTP_HOST             | REST host                            | localhost                            |
+| http_api_path         | optional     | $HTTP_API_PATH         | REST endpoint path                   | /api/v1                              |
+| http_swagger_enabled  |              | $HTTP_SWAGGER_ENABLED  | Defines if Swagger routes will start | false                                |   
+| http_swagger_host     | optional     | $HTTP_SWAGGER_HOST     | Defines Swagger API host             | localhost:7090                       |   
+| http_swagger_version  | optional     | $HTTP_SWAGGER_VERSION  | Swagger endpoint schema version      | v0.0.1                               |   
+| http_security_tls     |              | $HTTP_SECURITY_TLS     | Defines if TLS encryption enabled    | false                                |   
+| http_security_origins | optional     | $HTTP_SECURITY_ORIGINS | Allowed origins                      | localhost, qvineox.ru                |   
+| http_security_domain  | optional     | $HTTP_SECURITY_DOMAIN  | Main domain for cookie auth          | qvineox.ru                           |   
+| -                     |              | $TRAEFIK_HOST          | Reverse proxy host rule              | domain-threat-intel-stage.qvineox.ru |   
+
+Additional configuration info can be found in [configs](configs) directory.
 
 ### Continuous integration using GitLab
 
@@ -114,7 +119,8 @@ favors directories such as /cmd, /internal, or /pkg.
 
 - [HABR - "Запускаем PostgreSQL в Docker: от простого к сложному" - 2021](https://habr.com/ru/articles/578744/)
 - [HABR - "Разбираемся с пакетом Context в Golang" - 2019](https://habr.com/ru/companies/nixys/articles/461723/)
+- [HABR - "Неочевидные проблемы с UUID ключами в PostgreSQL" - 2023](https://habr.com/ru/articles/747348/)
 - [YouTube - "Swagger for Go REST APIs: Quick & Easy Documentation with Gin" - 2023](https://youtu.be/0b_N4y8_9iI?si=hqdJT9NGcBtQJbkK)
 - [LogRocket - "Gin binding in Go: A tutorial with examples" - 2021](https://blog.logrocket.com/gin-binding-in-go-a-tutorial-with-examples/)
+- [LogRocket - "A guide to JWT authentication in Go" - 2022](https://blog.logrocket.com/jwt-authentication-go/)
 - [ZetCode - "Go CSV - read & write CSV" - 2023](https://zetcode.com/golang/csv/)
-- [HABR - "Неочевидные проблемы с UUID ключами в PostgreSQL" - 2023](https://habr.com/ru/articles/747348/)
