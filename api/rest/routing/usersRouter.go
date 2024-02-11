@@ -22,11 +22,12 @@ func NewUsersRouter(service core.IUsersService, path *gin.RouterGroup, authMiddl
 	r := UsersRouter{service: service, path: path, authMiddleware: authMiddleware}
 
 	userGroup := path.Group("/users")
-	userGroupInsecure := userGroup.Group("")
-	userWriteGroup := userGroup.Group("")
-
 	userGroup.Use(authMiddleware.RequireAuth())
 	userGroup.Use(authMiddleware.RequireRole(2001))
+
+	userGroupInsecure := userGroup.Group("")
+
+	userWriteGroup := userGroup.Group("")
 	userWriteGroup.Use(authMiddleware.RequireRole(2003))
 
 	{
