@@ -43,7 +43,7 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 
 	usersRepo := repos.NewUsersRepoImpl(dbConn)
 	domainServices.AuthService = services.NewAuthServiceImpl(usersRepo, "salt", staticCfg.WebServer.Security.Domain)
-	domainServices.UsersService = services.NewUsersServiceImpl(usersRepo)
+	domainServices.UsersService = services.NewUsersServiceImpl(usersRepo, domainServices.AuthService)
 
 	// web server configuration
 	webServer, err := rest.NewHTTPServer(

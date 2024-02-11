@@ -79,15 +79,18 @@ type IBlacklistsRepo interface {
 }
 
 type IUsersService interface {
-	// SaveUser updates only existing entities.PlatformUser, returns error if user doesn't exist, UUID should be defined.
+	// SaveUser updates only existing entities.PlatformUser, returns error if user doesn't exist, ID must be defined.
 	// This method doesn't update user password, use ResetPassword or ChangePassword
-	SaveUser(user userEntities.PlatformUser, roleIDs []uint64) error
+	SaveUser(user userEntities.PlatformUser, permissionIDs []uint64) error
+
+	CreateUser(user userEntities.PlatformUser, password string, permissionIDs []uint64) (uint64, error)
 
 	DeleteUser(id uint64) (int64, error)
 	RetrieveUsers() ([]userEntities.PlatformUser, error)
 	RetrieveUser(id uint64) (userEntities.PlatformUser, error)
 
-	RetrieveRoles() ([]userEntities.PlatformUserRole, error)
+	RetrievePermissions() ([]userEntities.PlatformUserPermission, error)
+	RetrievePermissionPresets() []userEntities.PlatformUserRolesPreset
 
 	// ResetPassword is used to send recovery messages to users
 	ResetPassword(id uint64) error
@@ -105,10 +108,10 @@ type IUsersRepo interface {
 	SelectUser(id uint64) (userEntities.PlatformUser, error)
 	SelectUserByLogin(login string) (userEntities.PlatformUser, error)
 
-	SelectRoles() ([]userEntities.PlatformUserRole, error)
+	SelectPermissions() ([]userEntities.PlatformUserPermission, error)
 
-	// UpdatePasswordHash is used only to update user password hash. Must be used when resetting or changing password
-	UpdatePasswordHash(id uint64, hash string) error
+	// UpdateUserWithPasswordHash is used only to update user password hash. Must be used when resetting or changing password
+	UpdateUserWithPasswordHash(user userEntities.PlatformUser) error
 }
 
 type IAuthService interface {
@@ -118,6 +121,9 @@ type IAuthService interface {
 	Register(login, password, fullName, email string, roleIDs []uint64) (uint64, error)
 	Login(login, password string) (accessToken, refreshToken string, err error)
 	Logout(refreshToken string) error
+
+	ChangePassword(user userEntities.PlatformUser, oldPassword, newPassword string) (userEntities.PlatformUser, error)
+	ResetPassword(user userEntities.PlatformUser) (userEntities.PlatformUser, error)
 
 	Validate(accessToken string) (claims authEntities.AccessTokenClaims, err error)
 	Refresh(refreshToken string) (accessToken, newRefreshToken string, err error)

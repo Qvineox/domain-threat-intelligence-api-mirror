@@ -41,6 +41,37 @@
                 }
             }
         },
+        "/auth/registration": {
+            "post": {
+                "description": "Accepts user account data and register new platform user",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Creates new user with defined data",
+                "parameters": [
+                    {
+                        "description": "user credentials",
+                        "name": "username",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.loginParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/blacklists/domain": {
             "get": {
                 "description": "Returns list of blacklisted domains by filter",
@@ -166,7 +197,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.deleteByUUIDParams"
+                            "$ref": "#/definitions/routing.byUUIDParams"
                         }
                     }
                 ],
@@ -179,6 +210,12 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -311,7 +348,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.deleteByUUIDParams"
+                            "$ref": "#/definitions/routing.byUUIDParams"
                         }
                     }
                 ],
@@ -324,6 +361,12 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -387,6 +430,12 @@
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
@@ -444,6 +493,12 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -753,7 +808,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.deleteByIDParams"
+                            "$ref": "#/definitions/routing.byIDParams"
                         }
                     }
                 ],
@@ -766,6 +821,12 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -948,7 +1009,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.deleteByUUIDParams"
+                            "$ref": "#/definitions/routing.byUUIDParams"
                         }
                     }
                 ],
@@ -961,6 +1022,12 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -990,6 +1057,12 @@
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
@@ -1010,6 +1083,12 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -1142,7 +1221,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.deleteByUUIDParams"
+                            "$ref": "#/definitions/routing.byUUIDParams"
                         }
                     }
                 ],
@@ -1155,6 +1234,12 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -1180,6 +1265,12 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -1304,30 +1395,208 @@
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
         },
-        "/users/roles": {
+        "/users/password/change": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Sets new password for user. Closes session",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Changes password for user",
+                "parameters": [
+                    {
+                        "description": "new password",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.changePasswordParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/password/reset": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Resets password for user",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Reset password",
+                "parameters": [
+                    {
+                        "description": "user to reset",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.byIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/permissions": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Returns all roles",
+                "description": "Returns all permissions",
                 "tags": [
                     "Users"
                 ],
-                "summary": "Get all roles",
+                "summary": "Get all available permissions",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/userEntities.PlatformUserRole"
+                                "$ref": "#/definitions/userEntities.PlatformUserPermission"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/permissions/presets": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns all permission presets",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get all permission presets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/userEntities.PlatformUserRolesPreset"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and creates user account",
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Create user account",
+                "parameters": [
+                    {
+                        "description": "user data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.userCreateParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
                         }
                     },
                     "400": {
@@ -1337,9 +1606,7 @@
                         }
                     }
                 }
-            }
-        },
-        "/users/user": {
+            },
             "delete": {
                 "security": [
                     {
@@ -1358,7 +1625,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.deleteByIDParams"
+                            "$ref": "#/definitions/routing.byIDParams"
                         }
                     }
                 ],
@@ -1371,6 +1638,12 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -1395,7 +1668,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/routing.userInsertParams"
+                            "$ref": "#/definitions/routing.userUpdateParams"
                         }
                     }
                 ],
@@ -1408,6 +1681,18 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
@@ -1479,6 +1764,12 @@
                         "schema": {
                             "$ref": "#/definitions/error.APIError"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
                     }
                 }
             }
@@ -1493,11 +1784,7 @@
                 },
                 "CreatedBy": {
                     "description": "CreatedBy defines import event creator identity",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/userEntities.PlatformUser"
-                        }
-                    ]
+                    "$ref": "#/definitions/userEntities.PlatformUser"
                 },
                 "CreatedByID": {
                     "type": "integer"
@@ -1512,7 +1799,7 @@
                     "type": "boolean"
                 },
                 "Summary": {
-                    "$ref": "#/definitions/datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary"
+                    "type": "object"
                 },
                 "Type": {
                     "type": "string"
@@ -1560,22 +1847,14 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1612,22 +1891,14 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1661,28 +1932,20 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Source defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
                 },
                 "Status": {
-                    "$ref": "#/definitions/blacklistEntities.HostStatus"
+                    "type": "string"
                 },
                 "Type": {
                     "description": "domain, url or IP",
@@ -1717,22 +1980,14 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1763,11 +2018,7 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
                 },
                 "ImportEventID": {
                     "type": "integer"
@@ -1777,11 +2028,7 @@
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
-                        }
-                    ]
+                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
                 },
                 "SourceID": {
                     "type": "integer"
@@ -1797,23 +2044,11 @@
                 }
             }
         },
-        "blacklistEntities.HostStatus": {
-            "type": "string",
-            "enum": [
-                "new"
-            ],
-            "x-enum-varnames": [
-                "HostStatusNew"
-            ]
-        },
-        "datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary": {
-            "type": "object"
-        },
         "error.APIError": {
             "type": "object",
             "properties": {
                 "ErrorCode": {
-                    "$ref": "#/definitions/error.CodeError"
+                    "type": "integer"
                 },
                 "ErrorMessage": {
                     "type": "string"
@@ -1825,39 +2060,6 @@
                     "type": "integer"
                 }
             }
-        },
-        "error.CodeError": {
-            "type": "integer",
-            "enum": [
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11,
-                12,
-                13
-            ],
-            "x-enum-varnames": [
-                "EncodingErrorCode",
-                "DecodingErrorCode",
-                "IncorrectParamsErrorCode",
-                "InsufficientParamsErrorCode",
-                "DatabaseErrorCode",
-                "DatabaseEntityNotFoundCode",
-                "FileDecodingErrorCode",
-                "FileReadingErrorCode",
-                "FileExtensionNotSupportedErrorCode",
-                "NotImplementedErrorCode",
-                "FileProcessingErrorCode",
-                "InternalUnidentifiedErrorCode",
-                "AuthFailedErrorCode"
-            ]
         },
         "gorm.DeletedAt": {
             "type": "object",
@@ -1897,22 +2099,9 @@
                     "$ref": "#/definitions/net.IPNet"
                 },
                 "status": {
-                    "$ref": "#/definitions/pgtype.Status"
+                    "type": "integer"
                 }
             }
-        },
-        "pgtype.Status": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2
-            ],
-            "x-enum-varnames": [
-                "Undefined",
-                "Null",
-                "Present"
-            ]
         },
         "routing.BlacklistedStatistics": {
             "type": "object",
@@ -2006,7 +2195,7 @@
                 }
             }
         },
-        "routing.deleteByIDParams": {
+        "routing.byIDParams": {
             "type": "object",
             "required": [
                 "ID"
@@ -2017,13 +2206,32 @@
                 }
             }
         },
-        "routing.deleteByUUIDParams": {
+        "routing.byUUIDParams": {
             "type": "object",
             "required": [
                 "UUID"
             ],
             "properties": {
                 "UUID": {
+                    "type": "string"
+                }
+            }
+        },
+        "routing.changePasswordParams": {
+            "type": "object",
+            "required": [
+                "ID",
+                "NewPassword",
+                "OldPassword"
+            ],
+            "properties": {
+                "ID": {
+                    "type": "integer"
+                },
+                "NewPassword": {
+                    "type": "string"
+                },
+                "OldPassword": {
                     "type": "string"
                 }
             }
@@ -2124,13 +2332,45 @@
                 }
             }
         },
-        "routing.userInsertParams": {
+        "routing.userCreateParams": {
+            "type": "object",
+            "required": [
+                "email",
+                "fullName",
+                "login",
+                "password",
+                "roleIDs"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fullName": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "roleIDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "routing.userUpdateParams": {
             "type": "object",
             "required": [
                 "email",
                 "fullName",
                 "id",
-                "isActive",
                 "login",
                 "roleIDs"
             ],
@@ -2229,11 +2469,11 @@
                 "Login": {
                     "type": "string"
                 },
-                "Roles": {
+                "Permissions": {
                     "description": "Defines which roles user has",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/userEntities.PlatformUserRole"
+                        "$ref": "#/definitions/userEntities.PlatformUserPermission"
                     }
                 },
                 "UpdatedAt": {
@@ -2241,7 +2481,7 @@
                 }
             }
         },
-        "userEntities.PlatformUserRole": {
+        "userEntities.PlatformUserPermission": {
             "type": "object",
             "properties": {
                 "CreatedAt": {
@@ -2253,17 +2493,34 @@
                 "Description": {
                     "type": "string"
                 },
+                "ID": {
+                    "type": "integer"
+                },
                 "IsActive": {
                     "type": "boolean"
                 },
                 "Name": {
                     "type": "string"
                 },
-                "UUID": {
-                    "type": "integer"
-                },
                 "UpdatedAt": {
                     "type": "string"
+                }
+            }
+        },
+        "userEntities.PlatformUserRolesPreset": {
+            "type": "object",
+            "properties": {
+                "Description": {
+                    "type": "string"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "RoleIDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         }

@@ -25,7 +25,7 @@ func runMigrations(database *gorm.DB) error {
 		networkEntities.NetworkNode{},
 		networkEntities.NetworkNodeScan{},
 		networkEntities.NetworkNodeLink{},
-		userEntities.PlatformUserRole{},
+		userEntities.PlatformUserPermission{},
 		userEntities.PlatformUser{},
 		scanEntities.ScanAgent{},
 	)
@@ -72,10 +72,10 @@ func migrateBlacklistSources(database *gorm.DB) error {
 }
 
 func migrateUserRoles(database *gorm.DB) error {
-	for _, r := range userEntities.DefaultUserRoles {
+	for _, r := range userEntities.DefaultUserPermissions {
 		err := database.
-			Where(userEntities.PlatformUserRole{ID: r.ID}).
-			Assign(userEntities.PlatformUserRole{Name: r.Name, Description: r.Description}).
+			Where(userEntities.PlatformUserPermission{ID: r.ID}).
+			Assign(userEntities.PlatformUserPermission{Name: r.Name, Description: r.Description}).
 			FirstOrCreate(&r).
 			Error
 
@@ -99,14 +99,14 @@ func createRootUser(database *gorm.DB) error {
 		return err
 	}
 
-	err = user.SetRoles([]uint64{1, 2, 3})
+	err = user.SetPermissions(userEntities.DefaultUserPermissionPresets[3].RoleIDs)
 	if err != nil {
 		return err
 	}
 
 	err = database.
 		Where(userEntities.PlatformUser{Login: user.Login}).
-		Assign(userEntities.PlatformUser{IsActive: user.IsActive, Email: user.Email, PasswordHash: user.PasswordHash, Roles: user.Roles}).
+		Assign(userEntities.PlatformUser{IsActive: user.IsActive, Email: user.Email, PasswordHash: user.PasswordHash, Permissions: user.Permissions}).
 		FirstOrCreate(&user).
 		Error
 

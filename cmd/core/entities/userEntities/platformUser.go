@@ -20,7 +20,7 @@ type PlatformUser struct {
 	IsActive     bool   `json:"IsActive" gorm:"column:is_active;default:true"`
 
 	// Defines which roles user has
-	Roles []PlatformUserRole `json:"Roles,omitempty" gorm:"many2many:platform_users_roles;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Permissions []PlatformUserPermission `json:"Permissions,omitempty" gorm:"many2many:platform_users_permissions;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
 	CreatedAt time.Time      `json:"CreatedAt"`
 	UpdatedAt time.Time      `json:"UpdatedAt"`
@@ -42,6 +42,8 @@ func NewPlatformUser(fullName, login, email, saltedPassword string, isActive boo
 		Login:        login,
 		Email:        email,
 		PasswordHash: hex.EncodeToString(hashedPass),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 		IsActive:     isActive,
 	}, nil
 }
@@ -73,13 +75,13 @@ func (user *PlatformUser) ComparePassword(saltedPassword string) (bool, error) {
 	return user.PasswordHash == hex.EncodeToString(hashedPass), nil
 }
 
-func (user *PlatformUser) SetRoles(roleIDs []uint64) error {
-	var userRoles []PlatformUserRole
+func (user *PlatformUser) SetPermissions(roleIDs []uint64) error {
+	var userRoles []PlatformUserPermission
 
 	for _, id := range roleIDs {
 		var found = false
 
-		for _, defRole := range DefaultUserRoles {
+		for _, defRole := range DefaultUserPermissions {
 			if id == defRole.ID {
 				userRoles = append(userRoles, defRole)
 				found = true
@@ -92,14 +94,14 @@ func (user *PlatformUser) SetRoles(roleIDs []uint64) error {
 		}
 	}
 
-	user.Roles = userRoles
+	user.Permissions = userRoles
 	return nil
 }
 
 func (user *PlatformUser) GetRoleIDs() []uint64 {
 	var ids []uint64
 
-	for _, r := range user.Roles {
+	for _, r := range user.Permissions {
 		ids = append(ids, r.ID)
 	}
 

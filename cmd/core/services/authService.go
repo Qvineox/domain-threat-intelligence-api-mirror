@@ -59,7 +59,7 @@ func (s *AuthServiceImpl) Register(login, password, fullName, email string, role
 		return 0, err
 	}
 
-	err = newUser.SetRoles(roleIDs)
+	err = newUser.SetPermissions(roleIDs)
 	if err != nil {
 		return 0, err
 	}
@@ -97,6 +97,41 @@ func (s *AuthServiceImpl) Login(login, password string) (accessToken, refreshTok
 	}
 
 	return accessToken, refreshToken, nil
+}
+
+func (s *AuthServiceImpl) ChangePassword(user userEntities.PlatformUser, oldPassword, newPassword string) (userEntities.PlatformUser, error) {
+	ok, err := user.ComparePassword(s.withSalt(oldPassword))
+	if err != nil {
+		return userEntities.PlatformUser{}, err
+	} else if !ok {
+		return user, errors.New("password invalid")
+	}
+
+	if !s.isValidByPasswordPolicy(newPassword) {
+		return user, errors.New("password not valid by policy")
+	}
+
+	err = user.SetPasswordHash(s.withSalt(newPassword))
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (s *AuthServiceImpl) ResetPassword(user userEntities.PlatformUser) (userEntities.PlatformUser, error) {
+	const defaultPass = "qwe123456" // TODO: generate new random password
+
+	if !s.isValidByPasswordPolicy(defaultPass) {
+		return user, errors.New("password not valid by policy")
+	}
+
+	err := user.SetPasswordHash(s.withSalt(defaultPass))
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
 }
 
 func (s *AuthServiceImpl) Logout(refreshToken string) error {

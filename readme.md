@@ -62,6 +62,8 @@ Following variables are used in application. These variables are also mapped in 
 | http_security_origins | optional     | $HTTP_SECURITY_ORIGINS | Allowed origins                      | localhost, qvineox.ru |   
 | http_security_domain  | optional     | $HTTP_SECURITY_DOMAIN  | Main domain for cookie auth          | qvineox.ru            |   
 
+Additional configuration info can be found in [configs](configs) directory.
+
 ### Continuous integration using GitLab
 
 All the files required to run automated GitLab CI are located in [build](build) directory.

@@ -23,7 +23,7 @@ func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup) *AuthRouter
 		authGroup.POST("/refresh", router.Refresh)
 
 		authGroup.POST("/confirmation/:uuid", router.ConfirmEmail)
-		authGroup.POST("/registration", router.Register)
+		//authGroup.POST("/self-registration", router.Register) // self-registration ???
 	}
 
 	return &router
@@ -33,14 +33,14 @@ func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup) *AuthRouter
 
 // Login accepts login and password, return pair of auth tokens
 //
-//	@Summary			Authorizes user by login and password
-//	@Description		Accepts login and password, return pair of auth tokens
-//	@Tags				Auth
-//	@Router				/auth/login [post]
-//	@ProduceAccessToken	json
-//	@Param				username	body	loginParams	true	"user credentials"
-//	@Success			202
-//	@Failure			401	{object}	apiErrors.APIError
+// @Summary            Authorizes user by login and password
+// @Description        Accepts login and password, return pair of auth tokens
+// @Tags               Auth
+// @Router             /auth/login [post]
+// @ProduceAccessToken json
+// @Param              username body loginParams true "user credentials"
+// @Success            202
+// @Failure            401 {object} apiErrors.APIError
 func (r *AuthRouter) Login(c *gin.Context) {
 	var params loginParams
 
@@ -79,6 +79,42 @@ func (r *AuthRouter) ConfirmEmail(c *gin.Context) {
 
 }
 
+// Register accepts user account data and register new platform user
+//
+// @Summary            Creates new user with defined data
+// @Description        Accepts user account data and register new platform user
+// @Tags               Auth
+// @Router             /auth/registration [post]
+// @ProduceAccessToken json
+// @Param              username body loginParams true "user credentials"
+// @Success            202
+// @Failure            401 {object} apiErrors.APIError
 func (r *AuthRouter) Register(c *gin.Context) {
+	var params registerParams
 
+	err := c.ShouldBindJSON(&params)
+	if err != nil {
+		apiErrors.ParamsErrorResponse(c, err)
+		return
+	}
+
+	userID, err := r.service.Register(params.Login, params.Password, params.FullName, params.Email, params.RoleIDs)
+	if err != nil {
+		apiErrors.ParamsErrorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, struct {
+		CreatedUserID uint64 `json:"createdUserID"`
+	}{
+		CreatedUserID: userID,
+	})
+}
+
+type registerParams struct {
+	Login    string   `json:"login" binding:"required"`
+	FullName string   `json:"fullName" binding:"required"`
+	Email    string   `json:"email" binding:"required"`
+	Password string   `json:"password" binding:"required"`
+	RoleIDs  []uint64 `json:"roleIDs" binding:"required"`
 }

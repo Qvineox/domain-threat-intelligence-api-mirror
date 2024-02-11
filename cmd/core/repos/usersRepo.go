@@ -20,8 +20,14 @@ func (repo *UsersRepoImpl) InsertUser(user userEntities.PlatformUser) (uint64, e
 }
 
 func (repo *UsersRepoImpl) UpdateUser(user userEntities.PlatformUser) error {
-	err := repo.Save(&user).Error
-	return err
+	current, err := repo.SelectUser(user.ID)
+	if err != nil {
+		return err
+	} else if current.ID == 0 {
+		return errors.New("user not found")
+	}
+
+	return repo.Omit("password_hash").Save(&user).Error
 }
 
 func (repo *UsersRepoImpl) DeleteUser(id uint64) (int64, error) {
@@ -32,42 +38,35 @@ func (repo *UsersRepoImpl) DeleteUser(id uint64) (int64, error) {
 func (repo *UsersRepoImpl) SelectUsers() ([]userEntities.PlatformUser, error) {
 	var users []userEntities.PlatformUser
 
-	err := repo.Select(&users).Error
+	err := repo.Find(&users).Error
 	return users, err
 }
 
 func (repo *UsersRepoImpl) SelectUser(id uint64) (userEntities.PlatformUser, error) {
 	var user userEntities.PlatformUser
 
-	err := repo.Find(&user, id).Error
+	err := repo.Preload("Permissions").Find(&user, id).Error
 	return user, err
 }
 
 func (repo *UsersRepoImpl) SelectUserByLogin(login string) (userEntities.PlatformUser, error) {
 	var user userEntities.PlatformUser
 
-	err := repo.Where("login = ?", login).Find(&user).Error
+	err := repo.Preload("Permissions").Where("login = ?", login).Find(&user).Error
 	return user, err
 }
 
-func (repo *UsersRepoImpl) SelectRoles() ([]userEntities.PlatformUserRole, error) {
-	var roles []userEntities.PlatformUserRole
+func (repo *UsersRepoImpl) SelectPermissions() ([]userEntities.PlatformUserPermission, error) {
+	var permissions []userEntities.PlatformUserPermission
 
-	err := repo.Select(&roles).Error
-	return roles, err
+	err := repo.Find(&permissions).Error
+	return permissions, err
 }
 
-func (repo *UsersRepoImpl) UpdatePasswordHash(id uint64, hash string) error {
-	user, err := repo.SelectUser(id)
-	if err != nil {
-		return err
-	}
-
+func (repo *UsersRepoImpl) UpdateUserWithPasswordHash(user userEntities.PlatformUser) error {
 	if user.ID == 0 {
 		return errors.New("user not found")
 	}
-
-	user.PasswordHash = hash
 
 	return repo.Save(user).Error
 }
