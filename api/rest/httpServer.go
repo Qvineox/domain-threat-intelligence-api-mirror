@@ -75,10 +75,15 @@ func (s *HTTPServer) EnableSwagger(host, version, path string) {
 func (s *HTTPServer) ConfigureCORS(allowedOrigins []string) {
 	slog.Info("cross-origin enabled for: " + strings.Join(allowedOrigins, ", "))
 
+	s.router.Use(func(context *gin.Context) {
+		slog.Debug(context.GetHeader("origin"))
+		slog.Debug(context.GetHeader("referrer"))
+	})
+
 	s.router.Use(cors.New(cors.Config{
 		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"OPTIONS", "GET", "PUT", "PATCH", "DELETE", "POST"},
-		AllowHeaders:     []string{"Origin", "Access-Control-Allow-Origin", "Accept", "Content-Type", "Content-Length", "Authorization", "X-Forwarded-*"},
+		AllowHeaders:     []string{"Origin", "Host", "Access-Control-Allow-Origin", "Accept", "Content-Type", "Content-Length", "Authorization", "X-Forwarded-*"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		AllowWildcard:    true,
