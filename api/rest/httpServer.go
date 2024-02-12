@@ -76,14 +76,27 @@ func (s *HTTPServer) ConfigureCORS(allowedOrigins []string) {
 	slog.Info("cross-origin enabled for: " + strings.Join(allowedOrigins, ", "))
 
 	s.router.Use(func(context *gin.Context) {
-		slog.Debug(context.GetHeader("origin"))
-		slog.Debug(context.GetHeader("referrer"))
+		slog.Info(context.GetHeader("origin"))
+		slog.Info(context.GetHeader("referrer"))
 	})
 
 	s.router.Use(cors.New(cors.Config{
-		AllowOrigins:     allowedOrigins,
-		AllowMethods:     []string{"OPTIONS", "GET", "PUT", "PATCH", "DELETE", "POST"},
-		AllowHeaders:     []string{"Origin", "Host", "Access-Control-Allow-Origin", "Accept", "Content-Type", "Content-Length", "Authorization", "X-Forwarded-*"},
+		AllowOrigins: allowedOrigins,
+		AllowMethods: []string{"OPTIONS", "GET", "PUT", "PATCH", "DELETE", "POST"},
+		AllowHeaders: []string{
+			"Origin",
+			"Host",
+			"Access-Control-Allow-Origin",
+			"Accept",
+			"Cache-Control",
+			"Content-Type",
+			"Content-Length",
+			"X-CSRF-Token",
+			"Accept-Encoding",
+			"Authorization",
+			"X-Forwarded-*",
+			"X-Requested-With",
+		},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		AllowWildcard:    true,
