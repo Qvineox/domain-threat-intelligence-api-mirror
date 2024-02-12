@@ -4,7 +4,6 @@ import (
 	"domain_threat_intelligence_api/api/rest/auth"
 	"domain_threat_intelligence_api/cmd/core"
 	"fmt"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -80,32 +79,48 @@ func (s *HTTPServer) ConfigureCORS(allowedOrigins []string) {
 		slog.Info(context.GetHeader("referrer"))
 	})
 
-	s.router.Use(cors.New(cors.Config{
-		//AllowAllOrigins: true,
-		AllowOrigins: allowedOrigins,
-		AllowMethods: []string{"OPTIONS", "GET", "PUT", "PATCH", "DELETE", "POST"},
-		AllowHeaders: []string{
-			"Origin",
-			"Referer",
-			"Host",
-			"Access-Control-Allow-Origin",
-			"Accept",
-			"Cache-Control",
-			"Content-Type",
-			"Content-Length",
-			"X-CSRF-Token",
-			"Accept-Encoding",
-			"Accept-Language",
-			"Authorization",
-			"User-Agent",
-			"X-Forwarded-*",
-			"X-Requested-With",
-		},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		AllowWildcard:    true,
-		MaxAge:           12 * time.Hour,
-	}))
+	s.router.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", strings.Join(allowedOrigins, ","))
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, ResponseType, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Expose-Headers", "'Authorization'")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, PATCH, DELETE")
+		c.Writer.Header().Set("Access-Control-Max-Age", "21600")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+
+		c.Next()
+	})
+
+	//s.router.Use(cors.New(cors.Config{
+	//	//AllowAllOrigins: true,
+	//	AllowOrigins: allowedOrigins,
+	//	AllowMethods: []string{"OPTIONS", "GET", "PUT", "PATCH", "DELETE", "POST"},
+	//	AllowHeaders: []string{
+	//		"Origin",
+	//		"Referer",
+	//		"Host",
+	//		"Access-Control-Allow-Origin",
+	//		"Accept",
+	//		"Cache-Control",
+	//		"Content-Type",
+	//		"Content-Length",
+	//		"X-CSRF-Token",
+	//		"Accept-Encoding",
+	//		"Accept-Language",
+	//		"Authorization",
+	//		"User-Agent",
+	//		"X-Forwarded-*",
+	//		"X-Requested-With",
+	//	},
+	//	ExposeHeaders:    []string{"Content-Length"},
+	//	AllowCredentials: true,
+	//	AllowWildcard:    true,
+	//	MaxAge:           12 * time.Hour,
+	//}))
 }
 
 func (s *HTTPServer) Start() error {
