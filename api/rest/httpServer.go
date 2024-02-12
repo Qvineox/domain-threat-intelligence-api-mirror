@@ -85,6 +85,7 @@ func (s *HTTPServer) ConfigureCORS(allowedOrigins []string) {
 		AllowMethods: []string{"OPTIONS", "GET", "PUT", "PATCH", "DELETE", "POST"},
 		AllowHeaders: []string{
 			"Origin",
+			"Referer",
 			"Host",
 			"Access-Control-Allow-Origin",
 			"Accept",
@@ -93,7 +94,9 @@ func (s *HTTPServer) ConfigureCORS(allowedOrigins []string) {
 			"Content-Length",
 			"X-CSRF-Token",
 			"Accept-Encoding",
+			"Accept-Language",
 			"Authorization",
+			"User-Agent",
 			"X-Forwarded-*",
 			"X-Requested-With",
 		},
