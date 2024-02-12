@@ -76,7 +76,7 @@ func (s *HTTPServer) ConfigureCORS(allowedOrigins []string) {
 	slog.Info("cross-origin enabled for: " + strings.Join(allowedOrigins, ", "))
 
 	s.router.Use(cors.New(cors.Config{
-		AllowOrigins:     allowedOrigins,
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"OPTIONS", "GET", "PUT", "PATCH", "DELETE", "POST"},
 		AllowHeaders:     []string{"Origin", "Accept", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
