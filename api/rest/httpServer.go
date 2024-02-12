@@ -79,7 +79,7 @@ func (s *HTTPServer) ConfigureCORS(allowedOrigins []string) {
 		AllowAllOrigins: true,
 		//AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"OPTIONS", "GET", "PUT", "PATCH", "DELETE", "POST"},
-		AllowHeaders:     []string{"Origin", "Accept", "Content-Type", "Authorization", "X-Forwarded-*"},
+		AllowHeaders:     []string{"Origin", "Access-Control-Allow-Origin", "Accept", "Content-Type", "Authorization", "X-Forwarded-*"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
