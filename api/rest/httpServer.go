@@ -78,7 +78,7 @@ func (s *HTTPServer) ConfigureCORS(allowedOrigins []string) {
 	s.router.Use(cors.New(cors.Config{
 		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"OPTIONS", "GET", "PUT", "PATCH", "DELETE", "POST"},
-		AllowHeaders:     []string{"Origin", "Access-Control-Allow-Origin", "Accept", "Content-Type", "Authorization", "X-Forwarded-*"},
+		AllowHeaders:     []string{"Origin", "Access-Control-Allow-Origin", "Accept", "Content-Type", "Content-Length", "Authorization", "X-Forwarded-*"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		AllowWildcard:    true,
