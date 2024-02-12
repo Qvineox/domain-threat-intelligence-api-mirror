@@ -81,7 +81,8 @@ func (s *HTTPServer) ConfigureCORS(allowedOrigins []string) {
 	})
 
 	s.router.Use(cors.New(cors.Config{
-		AllowOrigins: allowedOrigins,
+		AllowAllOrigins: true,
+		//AllowOrigins: allowedOrigins,
 		AllowMethods: []string{"OPTIONS", "GET", "PUT", "PATCH", "DELETE", "POST"},
 		AllowHeaders: []string{
 			"Origin",
