@@ -3,7 +3,9 @@ package rest
 import (
 	"domain_threat_intelligence_api/api/rest/auth"
 	"domain_threat_intelligence_api/api/rest/routing"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 // ref: https://github.com/swaggo/gin-swagger/issues/90
@@ -19,8 +21,31 @@ import (
 // @securityDefinitions.apikey ApiKeyAuth
 // @in                         header
 // @name                       x-api-Key
-func CreateRouter(services Services, basePath string, authMiddleware *auth.MiddlewareService) *gin.Engine {
+func CreateRouter(services Services, basePath string, allowedOrigins []string, authMiddleware *auth.MiddlewareService) *gin.Engine {
 	router := gin.Default()
+
+	// CORS configurations
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: allowedOrigins,
+		AllowMethods: []string{"OPTIONS", "GET", "PUT", "PATCH", "DELETE", "POST"},
+		AllowHeaders: []string{
+			"Accept",
+			"Cache-Control",
+			"Content-Type",
+			"Content-Length",
+			"X-CSRF-Token",
+			"X-API-Key",
+			"Accept-Encoding",
+			"Accept-Language",
+			"Authorization",
+			"X-Forwarded-*",
+			"X-Requested-With",
+		},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		AllowWildcard:    true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	router.MaxMultipartMemory = 16 << 25
 

@@ -7,9 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"log/slog"
 	"net/http"
-	"strings"
 	"time"
 
 	swaggerDocs "domain_threat_intelligence_api/docs/swagger" // needs to be imported to use Enabled docs
@@ -23,7 +21,7 @@ type HTTPServer struct {
 	port uint64
 }
 
-func NewHTTPServer(host, path string, port uint64, services Services) (*HTTPServer, error) {
+func NewHTTPServer(host, path string, allowedOrigins []string, port uint64, services Services) (*HTTPServer, error) {
 	s := &HTTPServer{}
 
 	if len(host) == 0 {
@@ -42,7 +40,7 @@ func NewHTTPServer(host, path string, port uint64, services Services) (*HTTPServ
 	authMiddleware := auth.NewMiddlewareService(services.AuthService)
 
 	// gin router initialization
-	s.router = CreateRouter(services, path, authMiddleware)
+	s.router = CreateRouter(services, path, allowedOrigins, authMiddleware)
 
 	// http server creation
 	address := fmt.Sprintf("%s:%d", s.host, s.port)
@@ -69,58 +67,6 @@ func (s *HTTPServer) EnableSwagger(host, version, path string) {
 	)
 
 	s.router.GET("/swagger/*any", h)
-}
-
-func (s *HTTPServer) ConfigureCORS(allowedOrigins []string) {
-	slog.Info("cross-origin enabled for: " + strings.Join(allowedOrigins, ", "))
-
-	s.router.Use(func(context *gin.Context) {
-		slog.Info(context.GetHeader("origin"))
-		slog.Info(context.GetHeader("referrer"))
-	})
-
-	s.router.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", strings.Join(allowedOrigins, ","))
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, ResponseType, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Expose-Headers", "'Authorization'")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, PATCH, DELETE")
-		c.Writer.Header().Set("Access-Control-Max-Age", "21600")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusNoContent)
-			return
-		}
-
-		c.Next()
-	})
-
-	//s.router.Use(cors.New(cors.Config{
-	//	//AllowAllOrigins: true,
-	//	AllowOrigins: allowedOrigins,
-	//	AllowMethods: []string{"OPTIONS", "GET", "PUT", "PATCH", "DELETE", "POST"},
-	//	AllowHeaders: []string{
-	//		"Origin",
-	//		"Referer",
-	//		"Host",
-	//		"Access-Control-Allow-Origin",
-	//		"Accept",
-	//		"Cache-Control",
-	//		"Content-Type",
-	//		"Content-Length",
-	//		"X-CSRF-Token",
-	//		"Accept-Encoding",
-	//		"Accept-Language",
-	//		"Authorization",
-	//		"User-Agent",
-	//		"X-Forwarded-*",
-	//		"X-Requested-With",
-	//	},
-	//	ExposeHeaders:    []string{"Content-Length"},
-	//	AllowCredentials: true,
-	//	AllowWildcard:    true,
-	//	MaxAge:           12 * time.Hour,
-	//}))
 }
 
 func (s *HTTPServer) Start() error {

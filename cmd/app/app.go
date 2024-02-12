@@ -49,10 +49,9 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 	webServer, err := rest.NewHTTPServer(
 		staticCfg.WebServer.Host,
 		staticCfg.WebServer.API.Path,
+		staticCfg.WebServer.Security.AllowedOrigins,
 		staticCfg.WebServer.Port,
 		domainServices)
-
-	webServer.ConfigureCORS(staticCfg.WebServer.Security.AllowedOrigins)
 
 	if staticCfg.WebServer.Swagger.Enabled {
 		webServer.EnableSwagger(
