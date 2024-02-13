@@ -22,6 +22,7 @@ func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup, auth *auth.
 
 	{
 		authGroup.POST("/login", router.Login)
+		authGroup.POST("/refresh", router.Refresh)
 
 		authGroup.POST("/confirmation/:uuid", router.ConfirmEmail)
 		//authGroup.POST("/self-registration", router.Register) // self-registration ???
@@ -34,7 +35,6 @@ func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup, auth *auth.
 
 	{
 		authSecureGroup.POST("/logout", router.Logout)
-		authSecureGroup.POST("/refresh", router.Refresh)
 	}
 
 	return &router

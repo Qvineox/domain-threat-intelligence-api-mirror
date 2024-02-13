@@ -20,7 +20,7 @@ type StaticConfig struct {
 		Password string `env-required:"true" env:"db_pass" json:"password"`
 		Name     string `env-required:"true" env:"db_name" json:"name"`
 		Timezone string `env-required:"true" env:"db_timezone" json:"timezone"`
-	} `env-required:"true" json:"database"`
+	} `json:"database"`
 
 	WebServer struct {
 		Host string `env-required:"true" env:"http_host" json:"host"`
@@ -34,14 +34,14 @@ type StaticConfig struct {
 			Enabled bool   `env-default:"false" env:"http_swagger_enabled" json:"enabled"`
 			Host    string `env-default:"localhost:7090" env:"http_swagger_host" json:"host"`
 			Version string `env-default:"v0.0.1" env:"http_swagger_version" json:"version"`
-		} `env-required:"false" json:"swagger"`
+		} `json:"swagger"`
 
 		Security struct {
-			UseTLS         bool     `env-default:"false" env:"http_security_tls" json:"tls"`
-			AllowedOrigins []string `env-required:"false" env:"http_security_origins" json:"origins"`
-			Domain         string   `env-required:"false" env:"http_security_domain" json:"domain"`
-		} `env-required:"true" json:"security"`
-	} `env-required:"true" json:"http"`
+			UseTLS         bool     `env:"http_security_tls" json:"tls"`
+			AllowedOrigins []string `env:"http_security_origins" json:"origins"`
+			Domain         string   `env:"http_security_domain" json:"domain"`
+		} `json:"security"`
+	} `json:"http"`
 
 	Logging struct {
 		Level string `env-default:"info" env:"log_level" json:"level"`
