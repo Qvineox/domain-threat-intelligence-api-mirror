@@ -79,7 +79,7 @@ func (r *UsersRouter) PutUser(c *gin.Context) {
 		Login:    params.Login,
 		Email:    params.Email,
 		IsActive: params.IsActive,
-	}, params.Password, params.RoleIDs)
+	}, params.Password, params.PermissionIDs)
 
 	if err != nil {
 		apiErrors.DatabaseErrorResponse(c, err)
@@ -90,12 +90,12 @@ func (r *UsersRouter) PutUser(c *gin.Context) {
 }
 
 type userCreateParams struct {
-	Login    string   `json:"login" binding:"required"`
-	FullName string   `json:"fullName" binding:"required"`
-	Email    string   `json:"email" binding:"required"`
-	Password string   `json:"password" binding:"required"`
-	IsActive bool     `json:"isActive"`
-	RoleIDs  []uint64 `json:"roleIDs" binding:"required"`
+	Login         string   `json:"login" binding:"required"`
+	FullName      string   `json:"fullName" binding:"required"`
+	Email         string   `json:"email" binding:"required"`
+	Password      string   `json:"password" binding:"required"`
+	IsActive      bool     `json:"isActive"`
+	PermissionIDs []uint64 `json:"permissionIDs" binding:"required"`
 }
 
 // PatchUser accepts and updates single user account
@@ -124,7 +124,7 @@ func (r *UsersRouter) PatchUser(c *gin.Context) {
 		Login:    params.Login,
 		Email:    params.Email,
 		IsActive: params.IsActive,
-	}, params.RoleIDs)
+	}, params.PermissionIDs)
 
 	if err != nil {
 		if err.Error() == "user not found" {
@@ -140,12 +140,12 @@ func (r *UsersRouter) PatchUser(c *gin.Context) {
 }
 
 type userUpdateParams struct {
-	ID       uint64   `json:"id" binding:"required"`
-	Login    string   `json:"login" binding:"required"`
-	FullName string   `json:"fullName" binding:"required"`
-	Email    string   `json:"email" binding:"required"`
-	IsActive bool     `json:"isActive"`
-	RoleIDs  []uint64 `json:"roleIDs" binding:"required"`
+	ID            uint64   `json:"id" binding:"required"`
+	Login         string   `json:"login" binding:"required"`
+	FullName      string   `json:"fullName" binding:"required"`
+	Email         string   `json:"email" binding:"required"`
+	IsActive      bool     `json:"isActive"`
+	PermissionIDs []uint64 `json:"permissionIDs" binding:"required"`
 }
 
 // DeleteUser accepts and deletes single user account

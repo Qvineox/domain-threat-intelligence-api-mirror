@@ -1170,8 +1170,21 @@ func (r *BlacklistsRouter) recountStatistics() {
 		return
 	}
 
-	var discovery HostsByDate
-	var creation HostsByDate
+	var discovery = HostsByDate{
+		Dates:   make([]string, 0),
+		IPs:     make([]uint64, 0),
+		Domains: make([]uint64, 0),
+		URLs:    make([]uint64, 0),
+		Emails:  make([]uint64, 0),
+	}
+
+	var creation = HostsByDate{
+		Dates:   make([]string, 0),
+		IPs:     make([]uint64, 0),
+		Domains: make([]uint64, 0),
+		URLs:    make([]uint64, 0),
+		Emails:  make([]uint64, 0),
+	}
 
 	for _, v := range statisticsByCreationDate {
 		date := v.Date.Format("02.01.2006")

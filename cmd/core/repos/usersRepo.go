@@ -27,7 +27,12 @@ func (repo *UsersRepoImpl) UpdateUser(user userEntities.PlatformUser) error {
 		return errors.New("user not found")
 	}
 
-	return repo.Omit("password_hash", "refresh_token").Save(&user).Error
+	err = repo.Omit("password_hash", "refresh_token").Save(&user).Error
+	if err != nil {
+		return err
+	}
+
+	return repo.Model(&user).Association("Permissions").Replace(user.Permissions)
 }
 
 func (repo *UsersRepoImpl) DeleteUser(id uint64) (int64, error) {

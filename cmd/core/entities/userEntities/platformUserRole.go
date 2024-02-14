@@ -20,7 +20,7 @@ type PlatformUserPermission struct {
 type PlatformUserRolesPreset struct {
 	Name        string   `json:"Name"`
 	Description string   `json:"Description"`
-	RoleIDs     []uint64 `json:"RoleIDs"`
+	RoleIDs     []uint64 `json:"PermissionIDs"`
 }
 
 var DefaultUserPermissionPresets = []PlatformUserRolesPreset{

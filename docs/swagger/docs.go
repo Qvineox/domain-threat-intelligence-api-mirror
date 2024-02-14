@@ -2749,7 +2749,7 @@ const docTemplate = `{
                 "fullName",
                 "login",
                 "password",
-                "roleIDs"
+                "permissionIDs"
             ],
             "properties": {
                 "email": {
@@ -2767,7 +2767,7 @@ const docTemplate = `{
                 "password": {
                     "type": "string"
                 },
-                "roleIDs": {
+                "permissionIDs": {
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -2782,7 +2782,7 @@ const docTemplate = `{
                 "fullName",
                 "id",
                 "login",
-                "roleIDs"
+                "permissionIDs"
             ],
             "properties": {
                 "email": {
@@ -2800,7 +2800,7 @@ const docTemplate = `{
                 "login": {
                     "type": "string"
                 },
-                "roleIDs": {
+                "permissionIDs": {
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -2926,7 +2926,7 @@ const docTemplate = `{
                 "Name": {
                     "type": "string"
                 },
-                "RoleIDs": {
+                "PermissionIDs": {
                     "type": "array",
                     "items": {
                         "type": "integer"
