@@ -54,7 +54,7 @@ deploy to staging:
   stage: deploy
   environment:
     name: Stage
-    url: https://domain-threat-intel-stage.qvineox.ru/
+    url: https://domain-threat-intel-api-stage.qvineox.ru/swagger/index.html
   script:
     - docker pull $IMAGE_TAG
     - docker compose -f build/docker/docker-compose.stage.yml up -d
