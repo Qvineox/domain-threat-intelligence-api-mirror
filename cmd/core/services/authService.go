@@ -252,7 +252,7 @@ func (s *AuthServiceImpl) verifyRefreshToken(method *jwt.SigningMethodHMAC, toke
 		return key, nil
 	}, jwt.WithValidMethods([]string{method.Alg()}))
 
-	if token.Valid {
+	if token != nil && token.Valid {
 		return claims, nil
 	}
 
