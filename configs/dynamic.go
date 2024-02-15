@@ -13,8 +13,9 @@ import (
 )
 
 type DynamicConfigProvider struct {
-	config dynamicConfig
-	path   string
+	config         dynamicConfig
+	path           string
+	updateNotifier chan bool
 }
 
 type dynamicConfig struct {
@@ -23,6 +24,13 @@ type dynamicConfig struct {
 }
 
 type smtpConfig struct {
+	Enabled bool `env-default:"false" json:"Enabled"`
+
+	Host     string `json:"Host"`
+	User     string `json:"User"`
+	Password string `json:"Password"`
+	Port     int    `json:"Port"`
+	SSL      bool   `json:"SSL"`
 }
 
 type integrationsConfig struct {
@@ -46,29 +54,31 @@ type naumenConfig struct {
 }
 
 // NewDynamicConfigProvider creates or reads dynamic configuration. If dynamic file exists, recovers values or creates new file.
-func NewDynamicConfigProvider() (*DynamicConfigProvider, error) {
+func NewDynamicConfigProvider() (*DynamicConfigProvider, error, chan bool) {
 	slog.Info("loading dynamic configuration...")
 	var provider = DynamicConfigProvider{
 		config: dynamicConfig{},
 	}
 
+	provider.updateNotifier = make(chan bool, 1)
+
 	currentDir, err := os.Getwd()
 	if err != nil {
-		return nil, err
+		return nil, err, nil
 	}
 
 	provider.path = filepath.Join(currentDir, "configs", "config.dynamic.json")
 
 	err = cleanenv.ReadConfig(provider.path, &provider.config)
 	if err == nil {
-		return &provider, err
+		return &provider, err, provider.updateNotifier
 	}
 
 	// check if file not found
 	var pathErr *os.PathError
 	ok := errors.As(err, &pathErr)
 	if !ok {
-		return nil, err
+		return nil, err, nil
 	}
 
 	slog.Warn("dynamic config file missing, creating...")
@@ -76,17 +86,17 @@ func NewDynamicConfigProvider() (*DynamicConfigProvider, error) {
 	_, err = os.Create(provider.path)
 	if err != nil {
 		slog.Error("failed to create dynamic config file: " + err.Error())
-		return nil, err
+		return nil, err, nil
 	}
 
 	// fill file with default values
 	_ = provider.SetDefaultValues()
 	err = provider.WriteToFile()
 	if err != nil {
-		return nil, err
+		return nil, err, nil
 	}
 
-	return &provider, err
+	return &provider, err, provider.updateNotifier
 }
 
 func (d *DynamicConfigProvider) StartWatcher() {
@@ -133,6 +143,8 @@ func (d *DynamicConfigProvider) StartWatcher() {
 						slog.Error("failed to decode file: " + err.Error())
 					}
 				}
+
+				d.updateNotifier <- true
 			default:
 				slog.Debug("unhandled dynamic configuration event: " + e.String())
 			}
@@ -251,4 +263,22 @@ func (d *DynamicConfigProvider) GetBlacklistServiceConfig() (aID, slm uint64, ca
 	}
 
 	return s.AgreementID, s.Slm, s.CallType, s.Types, nil
+}
+
+func (d *DynamicConfigProvider) IsSMTPEnabled() bool {
+	return d.config.SMTP.Enabled
+}
+
+func (d *DynamicConfigProvider) GetSMTPCredentials() (host, user, password string, port int, ssl bool, err error) {
+	if !d.IsSMTPEnabled() {
+		return "", "", "", 0, false, errors.New("smtp disabled")
+	}
+
+	n := d.config.SMTP
+
+	if len(n.Host) == 0 || n.Port == 0 {
+		return "", "", "", 0, false, errors.New("smtp disabled")
+	}
+
+	return n.Host, n.User, n.Password, n.Port, n.SSL, nil
 }

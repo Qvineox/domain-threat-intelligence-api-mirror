@@ -156,6 +156,11 @@ type IServiceDeskService interface {
 	SendBlacklistedHosts([]blacklistEntities.BlacklistedHost) (ticket serviceDeskEntities.ServiceDeskTicket, err error)
 }
 
+type ISMTPService interface {
+	IsAvailable() bool
+	SendMessage(to, cc []string, subject, body string) error
+}
+
 type IServiceDeskRepo interface {
 	SaveTicket(ticket serviceDeskEntities.ServiceDeskTicket) (serviceDeskEntities.ServiceDeskTicket, error)
 	SelectTicketsByFilter(filter serviceDeskEntities.ServiceDeskSearchFilter) ([]serviceDeskEntities.ServiceDeskTicket, error)

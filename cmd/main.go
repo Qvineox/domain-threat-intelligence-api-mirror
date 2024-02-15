@@ -13,7 +13,7 @@ func main() {
 		return
 	}
 
-	dynamicCfg, err := configs.NewDynamicConfigProvider()
+	dynamicCfg, err, dynamicUpdateChan := configs.NewDynamicConfigProvider()
 	if err != nil {
 		panic(err)
 		return
@@ -22,7 +22,7 @@ func main() {
 	go dynamicCfg.StartWatcher()
 
 	// starting the application
-	err = app.StartApp(staticCfg, dynamicCfg)
+	err = app.StartApp(staticCfg, dynamicCfg, dynamicUpdateChan)
 	if err != nil {
 		panic(err)
 		return
