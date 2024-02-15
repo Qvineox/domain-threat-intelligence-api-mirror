@@ -5,6 +5,7 @@ import (
 	"domain_threat_intelligence_api/cmd/core/repos"
 	"domain_threat_intelligence_api/cmd/core/services"
 	"domain_threat_intelligence_api/cmd/integrations/naumen"
+	"domain_threat_intelligence_api/cmd/mail"
 	"domain_threat_intelligence_api/configs"
 	"fmt"
 	"gorm.io/driver/postgres"
@@ -12,7 +13,7 @@ import (
 	"log/slog"
 )
 
-func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigProvider) error {
+func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigProvider, dynamicUpdateChan chan bool) error {
 	slog.Info("application starting...")
 	slog.Info("establishing database connection...")
 
@@ -34,15 +35,16 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 	// domain services initialization
 	domainServices := rest.Services{}
 
-	// integrations
+	// integrations and mail client
 	domainServices.ServiceDeskService = naumen.NewServiceDeskClient(repos.NewServiceDeskRepoImpl(dbConn), dynamicCfg)
+	domainServices.SMTPService = mail.NewSMTPClient(dynamicCfg, dynamicUpdateChan)
 
 	// creating repositories and services
 	domainServices.BlacklistService = services.NewBlackListsServiceImpl(repos.NewBlacklistsRepoImpl(dbConn), domainServices.ServiceDeskService)
 	domainServices.SystemStateService = services.NewSystemStateServiceImpl(dynamicCfg)
 
 	usersRepo := repos.NewUsersRepoImpl(dbConn)
-	domainServices.AuthService = services.NewAuthServiceImpl(usersRepo, "salt", staticCfg.WebServer.Security.Domain)
+	domainServices.AuthService = services.NewAuthServiceImpl(usersRepo, domainServices.SMTPService, "salt", staticCfg.WebServer.Security.Domain, staticCfg.WebServer.Security.AllowedOrigins[0])
 	domainServices.UsersService = services.NewUsersServiceImpl(usersRepo, domainServices.AuthService)
 
 	// web server configuration

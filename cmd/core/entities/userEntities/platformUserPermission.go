@@ -115,4 +115,10 @@ var DefaultUserPermissions = []PlatformUserPermission{
 		Name:        "config::modify",
 		Description: "Изменение конфигурации платформы",
 	},
+	{
+		ID:          6003,
+		IsActive:    true,
+		Name:        "config::reset",
+		Description: "Сброс конфигурации платформы",
+	},
 }

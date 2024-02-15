@@ -76,5 +76,10 @@ System uses permission based auth model, so every process has its oven defined r
     <td>config::modify</td>
     <td>Изменение конфигурации платформы</td>
   </tr>
+<tr>
+    <td>6003</td>
+    <td>config::reset</td>
+    <td>Сброс конфигурации платформы</td>
+  </tr>
 </table>
 

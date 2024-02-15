@@ -1,6 +1,9 @@
 package services
 
-import "domain_threat_intelligence_api/cmd/integrations/naumen"
+import (
+	"domain_threat_intelligence_api/cmd/integrations/naumen"
+	"domain_threat_intelligence_api/cmd/mail"
+)
 
 type SystemStateServiceImpl struct {
 	dynamicConfig ISystemDynamicConfig
@@ -8,6 +11,7 @@ type SystemStateServiceImpl struct {
 
 type ISystemDynamicConfig interface {
 	naumen.INaumenDynamicConfig
+	mail.ISMTPDynamicConfig
 
 	GetCurrentState() ([]byte, error)
 	SetDefaultValues() error
@@ -25,9 +29,8 @@ func (s *SystemStateServiceImpl) ReturnToDefault() error {
 	return s.dynamicConfig.SetDefaultValues()
 }
 
-func (s *SystemStateServiceImpl) UpdateSMTPConfig(enabled bool, host, user, password, sender string, useTLS bool) error {
-	//TODO implement me
-	panic("implement me")
+func (s *SystemStateServiceImpl) UpdateSMTPConfig(enabled, SSL bool, host, user, password string, port int) error {
+	return s.dynamicConfig.SetSMTPConfig(host, user, password, port, SSL, enabled)
 }
 
 func (s *SystemStateServiceImpl) UpdateNSDCredentials(enabled bool, host, clientKey string, clientID, clientGroupID uint64) error {

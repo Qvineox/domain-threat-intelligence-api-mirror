@@ -79,4 +79,5 @@ type Services struct {
 	ServiceDeskService core.IServiceDeskService
 	UsersService       core.IUsersService
 	AuthService        core.IAuthService
+	SMTPService        core.ISMTPService
 }

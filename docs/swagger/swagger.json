@@ -2622,12 +2622,15 @@
         "routing.naumenBlacklistServiceConfigUpdateParams": {
             "type": "object",
             "required": [
+                "AgreementID",
                 "CallType",
                 "HostTypes",
-                "SLM",
-                "agreementID"
+                "SLM"
             ],
             "properties": {
+                "AgreementID": {
+                    "type": "integer"
+                },
                 "CallType": {
                     "type": "string"
                 },
@@ -2638,9 +2641,6 @@
                     }
                 },
                 "SLM": {
-                    "type": "integer"
-                },
-                "agreementID": {
                     "type": "integer"
                 }
             }
@@ -2736,7 +2736,6 @@
         "routing.userCreateParams": {
             "type": "object",
             "required": [
-                "email",
                 "fullName",
                 "login",
                 "password",
@@ -2769,7 +2768,6 @@
         "routing.userUpdateParams": {
             "type": "object",
             "required": [
-                "email",
                 "fullName",
                 "id",
                 "login",
