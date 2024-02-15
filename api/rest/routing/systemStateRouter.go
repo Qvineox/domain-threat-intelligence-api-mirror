@@ -32,6 +32,13 @@ func NewSystemStateRouter(service core.ISystemStateService, path *gin.RouterGrou
 		systemWriteStateGroup.POST("/dynamic/naumen/blacklists", router.PostUpdateNaumenBlacklistServiceConfig)
 	}
 
+	systemResetStateGroup := systemStateGroup.Group("")
+	systemResetStateGroup.Use(auth.RequireRole(6003))
+
+	{
+		systemResetStateGroup.POST("/dynamic/reset", router.PostResetConfig)
+	}
+
 	return &router
 }
 
@@ -76,7 +83,7 @@ func (r *SystemStateRouter) PostUpdateSMTPConfig(c *gin.Context) {
 		return
 	}
 
-	err = r.service.UpdateSMTPConfig(params.Enabled, params.Host, params.User, params.Password, params.Sender, params.UseTLS)
+	err = r.service.UpdateSMTPConfig(params.Enabled, params.SSL, params.Host, params.User, params.Password, params.Port)
 	if err != nil {
 		apiErrors.ParamsErrorResponse(c, err)
 		return
@@ -90,8 +97,8 @@ type smtpConfigUpdateParams struct {
 	Host     string `json:"Host" binding:"required"`
 	User     string `json:"User" binding:"required"`
 	Password string `json:"Password" binding:"required"`
-	Sender   string `json:"Sender" binding:"required"`
-	UseTLS   bool   `json:"UseTLS"`
+	Port     int    `json:"Port" binding:"required"`
+	SSL      bool   `json:"SSL"`
 }
 
 // PostUpdateNaumenConfig updates dynamic Naumen Service Desk configuration
@@ -161,8 +168,28 @@ func (r *SystemStateRouter) PostUpdateNaumenBlacklistServiceConfig(c *gin.Contex
 }
 
 type naumenBlacklistServiceConfigUpdateParams struct {
-	AgreementID uint64   `json:"agreementID" binding:"required"`
+	AgreementID uint64   `json:"AgreementID" binding:"required"`
 	SLM         uint64   `json:"SLM" binding:"required"`
 	CallType    string   `json:"CallType" binding:"required"`
 	HostTypes   []string `json:"HostTypes" binding:"required"`
+}
+
+// PostResetConfig resets all dynamic configuration variables
+//
+// @Summary            Return all dynamic configuration variables to default
+// @Description        Resets all dynamic configuration variables
+// @Tags               Configuration
+// @Security           ApiKeyAuth
+// @Router             /system/dynamic/reset [post]
+// @ProduceAccessToken json
+// @Success            202
+// @Failure            401,400 {object} error.APIError
+func (r *SystemStateRouter) PostResetConfig(c *gin.Context) {
+	err := r.service.ReturnToDefault()
+	if err != nil {
+		apiErrors.ParamsErrorResponse(c, err)
+		return
+	}
+
+	c.Status(http.StatusAccepted)
 }

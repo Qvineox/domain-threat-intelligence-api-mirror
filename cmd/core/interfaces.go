@@ -141,7 +141,7 @@ type ISystemStateService interface {
 	RetrieveDynamicConfig() ([]byte, error)
 	ReturnToDefault() error
 
-	UpdateSMTPConfig(enabled bool, host, user, password, sender string, useTLS bool) error
+	UpdateSMTPConfig(enabled, SSL bool, host, user, password string, port int) error
 	UpdateNSDCredentials(enabled bool, host, clientKey string, clientID, clientGroupID uint64) error
 	UpdateNSDBlacklistServiceConfig(id, slm uint64, callType string, types []string) error
 }

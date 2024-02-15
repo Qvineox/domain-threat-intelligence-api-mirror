@@ -2631,12 +2631,15 @@ const docTemplate = `{
         "routing.naumenBlacklistServiceConfigUpdateParams": {
             "type": "object",
             "required": [
+                "AgreementID",
                 "CallType",
                 "HostTypes",
-                "SLM",
-                "agreementID"
+                "SLM"
             ],
             "properties": {
+                "AgreementID": {
+                    "type": "integer"
+                },
                 "CallType": {
                     "type": "string"
                 },
@@ -2647,9 +2650,6 @@ const docTemplate = `{
                     }
                 },
                 "SLM": {
-                    "type": "integer"
-                },
-                "agreementID": {
                     "type": "integer"
                 }
             }
@@ -2745,7 +2745,6 @@ const docTemplate = `{
         "routing.userCreateParams": {
             "type": "object",
             "required": [
-                "email",
                 "fullName",
                 "login",
                 "password",
@@ -2778,7 +2777,6 @@ const docTemplate = `{
         "routing.userUpdateParams": {
             "type": "object",
             "required": [
-                "email",
                 "fullName",
                 "id",
                 "login",

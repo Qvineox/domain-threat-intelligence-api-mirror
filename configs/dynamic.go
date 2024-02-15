@@ -219,8 +219,8 @@ func (d *DynamicConfigProvider) SetNaumenConfig(enabled bool, host, key string, 
 
 	d.config.Integrations.Naumen.Enabled = enabled
 
-	d.config.Integrations.Naumen.ClientGroupID = uID
-	d.config.Integrations.Naumen.ClientID = gID
+	d.config.Integrations.Naumen.ClientGroupID = gID
+	d.config.Integrations.Naumen.ClientID = uID
 	d.config.Integrations.Naumen.ClientKey = key
 
 	d.config.Integrations.Naumen.Url = host
@@ -281,4 +281,26 @@ func (d *DynamicConfigProvider) GetSMTPCredentials() (host, user, password strin
 	}
 
 	return n.Host, n.User, n.Password, n.Port, n.SSL, nil
+}
+
+func (d *DynamicConfigProvider) SetSMTPConfig(host, user, password string, port int, ssl, enabled bool) error {
+	if len(host) == 0 || port == 0 {
+		return errors.New("smtp configuration incomplete")
+	}
+
+	d.config.SMTP.Enabled = enabled
+	d.config.SMTP.SSL = ssl
+
+	d.config.SMTP.Host = host
+	d.config.SMTP.Port = port
+
+	d.config.SMTP.User = user
+	d.config.SMTP.Password = password
+
+	err := d.WriteToFile()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

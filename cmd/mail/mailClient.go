@@ -17,6 +17,8 @@ type Client struct {
 type ISMTPDynamicConfig interface {
 	IsSMTPEnabled() bool
 	GetSMTPCredentials() (host, user, password string, port int, ssl bool, err error)
+
+	SetSMTPConfig(host, user, password string, port int, ssl, enabled bool) error
 }
 
 func NewSMTPClient(config ISMTPDynamicConfig, updateChan chan bool) *Client {
