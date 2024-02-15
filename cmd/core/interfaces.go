@@ -127,7 +127,7 @@ type IAuthService interface {
 	Logout(refreshToken string) error
 
 	ChangePassword(user userEntities.PlatformUser, oldPassword, newPassword string) (userEntities.PlatformUser, error)
-	ResetPassword(user userEntities.PlatformUser) (userEntities.PlatformUser, error)
+	ResetPassword(user userEntities.PlatformUser, newPassword string) (userEntities.PlatformUser, error)
 
 	Validate(accessToken string) (claims authEntities.AccessTokenClaims, err error)
 	Refresh(refreshToken string) (accessToken, newRefreshToken string, err error)

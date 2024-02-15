@@ -8,6 +8,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgtype"
 	"github.com/nbutton23/zxcvbn-go"
+	"log/slog"
+	"math/rand"
 	"strings"
 	"time"
 )
@@ -28,10 +30,10 @@ type AuthServiceImpl struct {
 
 func NewAuthServiceImpl(repo core.IUsersRepo, salt, domain string) *AuthServiceImpl {
 	s := AuthServiceImpl{repo: repo, salt: salt, domain: domain, signingMethod: jwt.SigningMethodHS512}
-	s.accessTokenKey = []byte("5xLJT9hThRym6u")
-	s.accessTokenFactory = authEntities.NewTokenFactory(domain, "access_token", []string{"users"}, 20*time.Minute)
 
-	s.refreshTokenKey = []byte("9WJrdq7imvMgmf")
+	s.accessTokenKey, s.refreshTokenKey = generateRandomTokenKeys()
+
+	s.accessTokenFactory = authEntities.NewTokenFactory(domain, "access_token", []string{"users"}, 20*time.Minute)
 	s.refreshTokenFactory = authEntities.NewTokenFactory(domain, "refresh_token", []string{"users"}, 48*60*time.Minute)
 
 	return &s
@@ -126,14 +128,8 @@ func (s *AuthServiceImpl) ChangePassword(user userEntities.PlatformUser, oldPass
 	return user, nil
 }
 
-func (s *AuthServiceImpl) ResetPassword(user userEntities.PlatformUser) (userEntities.PlatformUser, error) {
-	const defaultPass = "qwe123456" // TODO: generate new random password
-
-	if !s.isValidByPasswordPolicy(defaultPass) {
-		return user, errors.New("password not valid by policy")
-	}
-
-	err := user.SetPasswordHash(s.withSalt(defaultPass))
+func (s *AuthServiceImpl) ResetPassword(user userEntities.PlatformUser, newPassword string) (userEntities.PlatformUser, error) {
+	err := user.SetPasswordHash(s.withSalt(newPassword))
 	if err != nil {
 		return user, err
 	}
@@ -185,7 +181,7 @@ func (s *AuthServiceImpl) Refresh(token string) (accessToken, refreshToken strin
 		return "", "", err
 	}
 
-	refreshToken, err = s.accessTokenFactory.ProduceRefreshToken(user.ID).Sing(s.signingMethod, s.refreshTokenKey)
+	refreshToken, err = s.refreshTokenFactory.ProduceRefreshToken(user.ID).Sing(s.signingMethod, s.refreshTokenKey)
 	if err != nil {
 		return "", "", err
 	}
@@ -266,4 +262,22 @@ func (s *AuthServiceImpl) verifyRefreshToken(method *jwt.SigningMethodHMAC, toke
 	default:
 		return claims, errors.New("unexpected error")
 	}
+}
+
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+
+func generateRandomTokenKeys() ([]byte, []byte) {
+	slog.Info("generating token keys...")
+
+	accessTokenKey := make([]byte, 16)
+	for i := range accessTokenKey {
+		accessTokenKey[i] = byte(letters[rand.Intn(len(letters))])
+	}
+
+	refreshTokenKey := make([]byte, 16)
+	for i := range refreshTokenKey {
+		refreshTokenKey[i] = byte(letters[rand.Intn(len(letters))])
+	}
+
+	return accessTokenKey, refreshTokenKey
 }

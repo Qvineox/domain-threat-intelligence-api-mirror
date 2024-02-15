@@ -4,6 +4,8 @@ import (
 	"domain_threat_intelligence_api/cmd/core"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"errors"
+	"math/rand"
+	"strings"
 )
 
 type UsersServiceImpl struct {
@@ -65,7 +67,7 @@ func (s *UsersServiceImpl) ResetPassword(id uint64) error {
 		return errors.New("user not found")
 	}
 
-	user, err = s.auth.ResetPassword(user)
+	user, err = s.auth.ResetPassword(user, s.generateRandomSolidPassword())
 
 	err = s.repo.UpdateUserWithPasswordHash(user)
 	if err != nil {
@@ -103,4 +105,21 @@ func (s *UsersServiceImpl) isValidByPasswordPolicy(password string) bool {
 	}
 
 	return true
+}
+
+func (s *UsersServiceImpl) generateRandomSolidPassword() string {
+	var notSolid = true
+	var password = ""
+
+	for notSolid {
+		runes := make([]string, 12)
+		for i := range runes {
+			runes[i] = string(letters[rand.Intn(len(letters))])
+		}
+
+		password = strings.Join(runes, "")
+		notSolid = !s.isValidByPasswordPolicy(password)
+	}
+
+	return password
 }

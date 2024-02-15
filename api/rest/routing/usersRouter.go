@@ -92,7 +92,7 @@ func (r *UsersRouter) PutUser(c *gin.Context) {
 type userCreateParams struct {
 	Login         string   `json:"login" binding:"required"`
 	FullName      string   `json:"fullName" binding:"required"`
-	Email         string   `json:"email" binding:"required"`
+	Email         string   `json:"email"`
 	Password      string   `json:"password" binding:"required"`
 	IsActive      bool     `json:"isActive"`
 	PermissionIDs []uint64 `json:"permissionIDs" binding:"required"`
@@ -143,7 +143,7 @@ type userUpdateParams struct {
 	ID            uint64   `json:"id" binding:"required"`
 	Login         string   `json:"login" binding:"required"`
 	FullName      string   `json:"fullName" binding:"required"`
-	Email         string   `json:"email" binding:"required"`
+	Email         string   `json:"email"`
 	IsActive      bool     `json:"isActive"`
 	PermissionIDs []uint64 `json:"permissionIDs" binding:"required"`
 }
