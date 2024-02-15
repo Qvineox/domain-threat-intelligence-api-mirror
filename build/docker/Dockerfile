@@ -20,7 +20,4 @@ FROM alpine:3.19.1 as web_server
 COPY --from=builder /app_build .
 RUN mkdir configs
 
-# TODO: add certificates
-# TODO: add environment variables
-
 CMD ["./go_build_stage.exe"]

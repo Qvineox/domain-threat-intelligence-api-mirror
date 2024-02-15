@@ -133,6 +133,7 @@ func (r *AuthRouter) Refresh(c *gin.Context) {
 
 	accessToken, newRefreshToken, err := r.service.Refresh(refreshToken)
 	if err != nil {
+		apiErrors.AuthErrorResponse(c, err)
 		return
 	}
 
