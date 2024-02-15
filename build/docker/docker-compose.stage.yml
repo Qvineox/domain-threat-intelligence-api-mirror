@@ -67,7 +67,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.dti_api.service=dti_api
-      - traefik.http.routers.dti_api.rule=Host(`$TRAEFIK_HOST`) && Path(`/$TRAEFIK_PATH`)
+      - traefik.http.routers.dti_api.rule=Host(`$TRAEFIK_HOST`) && PathPrefix(`/$TRAEFIK_PATH`)
       - traefik.http.routers.dti_api.tls=true
       - traefik.http.routers.dti_api.entrypoints=websec
       - traefik.http.services.dti_api.loadbalancer.server.port=80
