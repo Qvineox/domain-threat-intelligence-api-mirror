@@ -7,3 +7,4 @@ build/bin
 /configs/config.static.json
 docs/examples
 /configs/dynamic.old.json
+.env
