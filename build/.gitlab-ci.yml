@@ -37,7 +37,7 @@ build docker image:
   image: docker:25.0.2
   extends: .registry_setup
   script:
-    - docker build . -t $IMAGE_TAG -f ./build/docker/Dockerfile
+    - docker build . -t $IMAGE_TAG -f ./build/docker
     - docker push $IMAGE_TAG
   tags:
     - docker
