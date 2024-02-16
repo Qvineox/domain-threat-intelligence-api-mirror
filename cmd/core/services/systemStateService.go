@@ -29,8 +29,8 @@ func (s *SystemStateServiceImpl) ReturnToDefault() error {
 	return s.dynamicConfig.SetDefaultValues()
 }
 
-func (s *SystemStateServiceImpl) UpdateSMTPConfig(enabled, SSL bool, host, user, password string, port int) error {
-	return s.dynamicConfig.SetSMTPConfig(host, user, password, port, SSL, enabled)
+func (s *SystemStateServiceImpl) UpdateSMTPConfig(enabled, SSL, useAuth bool, host, user, password string, port int) error {
+	return s.dynamicConfig.SetSMTPConfig(host, user, "", password, port, SSL, useAuth, enabled)
 }
 
 func (s *SystemStateServiceImpl) UpdateNSDCredentials(enabled bool, host, clientKey string, clientID, clientGroupID uint64) error {

@@ -75,7 +75,7 @@ func (s *AuthServiceImpl) Register(login, password, fullName, email string, role
 		return 0, err
 	}
 
-	if s.smtp.IsAvailable() && len(newUser.Email) != 0 {
+	if len(newUser.Email) != 0 {
 		var message = "<html>"
 		message += fmt.Sprintf("<h2>Добрый день, %s!</h2>", newUser.FullName)
 		message += "<h3>Для Вас была создана учетная запись Threat Intel Platform (рабочее название).</h3>"
@@ -85,7 +85,7 @@ func (s *AuthServiceImpl) Register(login, password, fullName, email string, role
 		message += fmt.Sprintf("<a href=\"%s\">Ссылка для входа</а>", s.loginURL)
 		message += "</html>"
 
-		_ = s.smtp.SendMessage([]string{newUser.Email}, nil, "Добро пожаловать", message)
+		_ = s.smtp.SendMessage([]string{newUser.Email}, nil, nil, "Добро пожаловать", message)
 	}
 
 	return rows, err
@@ -146,13 +146,13 @@ func (s *AuthServiceImpl) ChangePassword(user userEntities.PlatformUser, oldPass
 		return user, err
 	}
 
-	if s.smtp.IsAvailable() && len(user.Email) != 0 {
+	if len(user.Email) != 0 {
 		var message = "<html>"
 		message += fmt.Sprintf("<h2>Добрый день, %s!</h2>", user.FullName)
 		message += "<h3>Для Вашей учетной записи был изменен пароль.</h3>"
 		message += "<p>Чтобы получить новый пароль, обратитесь к администратору.</p>"
 
-		_ = s.smtp.SendMessage([]string{user.Email}, nil, "Ваш пароль был изменен", message)
+		_ = s.smtp.SendMessage([]string{user.Email}, nil, nil, "Ваш пароль был изменен", message)
 	}
 
 	return user, nil
@@ -164,14 +164,14 @@ func (s *AuthServiceImpl) ResetPassword(user userEntities.PlatformUser, newPassw
 		return user, err
 	}
 
-	if s.smtp.IsAvailable() && len(user.Email) != 0 {
+	if len(user.Email) != 0 {
 		var message = "<html>"
 		message += fmt.Sprintf("<h2>Добрый день, %s!</h2>", user.FullName)
 		message += "<h3>Для Вашей учетной записи был сброшен пароль.</h3>"
 		message += fmt.Sprintf("<p>Новый пароль: %s.</p>", newPassword)
 		message += "</html>"
 
-		_ = s.smtp.SendMessage([]string{user.Email}, nil, "Ваш пароль был сброшен", message)
+		_ = s.smtp.SendMessage([]string{user.Email}, nil, nil, "Ваш пароль был сброшен", message)
 	}
 
 	return user, nil

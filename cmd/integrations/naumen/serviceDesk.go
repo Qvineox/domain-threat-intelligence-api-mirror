@@ -45,6 +45,8 @@ func NewServiceDeskClient(repo core.IServiceDeskRepo, dynamicConfig INaumenDynam
 
 	if !client.IsAvailable() {
 		slog.Warn("required config values not provided. naumen service desk integration not available.")
+	} else {
+		slog.Info("naumen service desk integration configured successfully.")
 	}
 
 	return &client

@@ -44,15 +44,15 @@ func NewSystemStateRouter(service core.ISystemStateService, path *gin.RouterGrou
 
 // GetDynamicConfig returns info about current dynamic application config
 //
-// @Summary            View application dynamic config
-// @Description        Gets info about current dynamic application config
-// @Tags               Configuration
-// @Security           ApiKeyAuth
-// @Router             /system/dynamic [get]
-// @ProduceAccessToken json
-// @Success            200
-// @Failure            401,400 {object} apiErrors.APIError
-// @Security           ApiKeyAuth
+//	@Summary			View application dynamic config
+//	@Description		Gets info about current dynamic application config
+//	@Tags				Configuration
+//	@Security			ApiKeyAuth
+//	@Router				/system/dynamic [get]
+//	@ProduceAccessToken	json
+//	@Success			200
+//	@Failure			401,400	{object}	apiErrors.APIError
+//	@Security			ApiKeyAuth
 func (r *SystemStateRouter) GetDynamicConfig(c *gin.Context) {
 	config, err := r.service.RetrieveDynamicConfig()
 	if err != nil {
@@ -65,15 +65,15 @@ func (r *SystemStateRouter) GetDynamicConfig(c *gin.Context) {
 
 // PostUpdateSMTPConfig updates dynamic SMTP configuration
 //
-// @Summary            Update dynamic SMTP configuration
-// @Description        Updates dynamic SMTP configuration
-// @Tags               Configuration
-// @Security           ApiKeyAuth
-// @Router             /system/dynamic/smtp [post]
-// @ProduceAccessToken json
-// @Param              smtpConfig body smtpConfigUpdateParams true "dynamic SMTP configuration"
-// @Success            202
-// @Failure            401,400 {object} error.APIError
+//	@Summary			Update dynamic SMTP configuration
+//	@Description		Updates dynamic SMTP configuration
+//	@Tags				Configuration
+//	@Security			ApiKeyAuth
+//	@Router				/system/dynamic/smtp [post]
+//	@ProduceAccessToken	json
+//	@Param				smtpConfig	body	smtpConfigUpdateParams	true	"dynamic SMTP configuration"
+//	@Success			202
+//	@Failure			401,400	{object}	error.APIError
 func (r *SystemStateRouter) PostUpdateSMTPConfig(c *gin.Context) {
 	params := smtpConfigUpdateParams{}
 
@@ -83,7 +83,7 @@ func (r *SystemStateRouter) PostUpdateSMTPConfig(c *gin.Context) {
 		return
 	}
 
-	err = r.service.UpdateSMTPConfig(params.Enabled, params.SSL, params.Host, params.User, params.Password, params.Port)
+	err = r.service.UpdateSMTPConfig(params.Enabled, params.SSL, params.UseAuth, params.Host, params.User, params.Password, params.Port)
 	if err != nil {
 		apiErrors.ParamsErrorResponse(c, err)
 		return
@@ -95,23 +95,25 @@ func (r *SystemStateRouter) PostUpdateSMTPConfig(c *gin.Context) {
 type smtpConfigUpdateParams struct {
 	Enabled  bool   `json:"Enabled"`
 	Host     string `json:"Host" binding:"required"`
-	User     string `json:"User" binding:"required"`
-	Password string `json:"Password" binding:"required"`
 	Port     int    `json:"Port" binding:"required"`
+	UseAuth  bool   `json:"UseAuth"`
+	User     string `json:"User" binding:"required"`
+	From     string `json:"From" binding:"required"`
+	Password string `json:"Password"`
 	SSL      bool   `json:"SSL"`
 }
 
 // PostUpdateNaumenConfig updates dynamic Naumen Service Desk configuration
 //
-// @Summary            Update dynamic Naumen Service Desk configuration
-// @Description        Updates dynamic Naumen Service Desk configuration
-// @Tags               Configuration
-// @Security           ApiKeyAuth
-// @Router             /system/dynamic/naumen [post]
-// @ProduceAccessToken json
-// @Param              naumenConfig body naumenConfigUpdateParams true "dynamic naumen configuration"
-// @Success            202
-// @Failure            401,400 {object} error.APIError
+//	@Summary			Update dynamic Naumen Service Desk configuration
+//	@Description		Updates dynamic Naumen Service Desk configuration
+//	@Tags				Configuration
+//	@Security			ApiKeyAuth
+//	@Router				/system/dynamic/naumen [post]
+//	@ProduceAccessToken	json
+//	@Param				naumenConfig	body	naumenConfigUpdateParams	true	"dynamic naumen configuration"
+//	@Success			202
+//	@Failure			401,400	{object}	error.APIError
 func (r *SystemStateRouter) PostUpdateNaumenConfig(c *gin.Context) {
 	params := naumenConfigUpdateParams{}
 
@@ -140,15 +142,15 @@ type naumenConfigUpdateParams struct {
 
 // PostUpdateNaumenBlacklistServiceConfig updates dynamic Naumen Service Desk service configuration
 //
-// @Summary            Update dynamic Naumen Service Desk service configuration
-// @Description        Updates dynamic Naumen Service Desk service configuration
-// @Tags               Configuration
-// @Security           ApiKeyAuth
-// @Router             /system/dynamic/naumen/blacklists [post]
-// @ProduceAccessToken json
-// @Param              naumenConfig body naumenBlacklistServiceConfigUpdateParams true "dynamic naumen service configuration"
-// @Success            202
-// @Failure            401,400 {object} error.APIError
+//	@Summary			Update dynamic Naumen Service Desk service configuration
+//	@Description		Updates dynamic Naumen Service Desk service configuration
+//	@Tags				Configuration
+//	@Security			ApiKeyAuth
+//	@Router				/system/dynamic/naumen/blacklists [post]
+//	@ProduceAccessToken	json
+//	@Param				naumenConfig	body	naumenBlacklistServiceConfigUpdateParams	true	"dynamic naumen service configuration"
+//	@Success			202
+//	@Failure			401,400	{object}	error.APIError
 func (r *SystemStateRouter) PostUpdateNaumenBlacklistServiceConfig(c *gin.Context) {
 	params := naumenBlacklistServiceConfigUpdateParams{}
 
@@ -176,14 +178,14 @@ type naumenBlacklistServiceConfigUpdateParams struct {
 
 // PostResetConfig resets all dynamic configuration variables
 //
-// @Summary            Return all dynamic configuration variables to default
-// @Description        Resets all dynamic configuration variables
-// @Tags               Configuration
-// @Security           ApiKeyAuth
-// @Router             /system/dynamic/reset [post]
-// @ProduceAccessToken json
-// @Success            202
-// @Failure            401,400 {object} error.APIError
+//	@Summary			Return all dynamic configuration variables to default
+//	@Description		Resets all dynamic configuration variables
+//	@Tags				Configuration
+//	@Security			ApiKeyAuth
+//	@Router				/system/dynamic/reset [post]
+//	@ProduceAccessToken	json
+//	@Success			202
+//	@Failure			401,400	{object}	error.APIError
 func (r *SystemStateRouter) PostResetConfig(c *gin.Context) {
 	err := r.service.ReturnToDefault()
 	if err != nil {

@@ -141,7 +141,7 @@ type ISystemStateService interface {
 	RetrieveDynamicConfig() ([]byte, error)
 	ReturnToDefault() error
 
-	UpdateSMTPConfig(enabled, SSL bool, host, user, password string, port int) error
+	UpdateSMTPConfig(enabled, SSL, UseAuth bool, host, user, password string, port int) error
 	UpdateNSDCredentials(enabled bool, host, clientKey string, clientID, clientGroupID uint64) error
 	UpdateNSDBlacklistServiceConfig(id, slm uint64, callType string, types []string) error
 }
@@ -157,8 +157,7 @@ type IServiceDeskService interface {
 }
 
 type ISMTPService interface {
-	IsAvailable() bool
-	SendMessage(to, cc []string, subject, body string) error
+	SendMessage(to, cc, bcc []string, subject, body string) error
 }
 
 type IServiceDeskRepo interface {

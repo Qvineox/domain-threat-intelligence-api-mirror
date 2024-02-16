@@ -1679,6 +1679,37 @@
                 }
             }
         },
+        "/system/dynamic/reset": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Resets all dynamic configuration variables",
+                "tags": [
+                    "Configuration"
+                ],
+                "summary": "Return all dynamic configuration variables to default",
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/system/dynamic/smtp": {
             "post": {
                 "security": [
@@ -2152,7 +2183,11 @@
                 },
                 "CreatedBy": {
                     "description": "CreatedBy defines import event creator identity",
-                    "$ref": "#/definitions/userEntities.PlatformUser"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/userEntities.PlatformUser"
+                        }
+                    ]
                 },
                 "CreatedByID": {
                     "type": "integer"
@@ -2167,7 +2202,7 @@
                     "type": "boolean"
                 },
                 "Summary": {
-                    "type": "object"
+                    "$ref": "#/definitions/datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary"
                 },
                 "Type": {
                     "type": "string"
@@ -2215,14 +2250,22 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -2259,14 +2302,22 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -2300,20 +2351,28 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Source defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
                 },
                 "Status": {
-                    "type": "string"
+                    "$ref": "#/definitions/blacklistEntities.HostStatus"
                 },
                 "Type": {
                     "description": "domain, url or IP",
@@ -2348,14 +2407,22 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -2386,7 +2453,11 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
@@ -2396,7 +2467,11 @@
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -2412,11 +2487,23 @@
                 }
             }
         },
+        "blacklistEntities.HostStatus": {
+            "type": "string",
+            "enum": [
+                "new"
+            ],
+            "x-enum-varnames": [
+                "HostStatusNew"
+            ]
+        },
+        "datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary": {
+            "type": "object"
+        },
         "error.APIError": {
             "type": "object",
             "properties": {
                 "ErrorCode": {
-                    "type": "integer"
+                    "$ref": "#/definitions/error.CodeError"
                 },
                 "ErrorMessage": {
                     "type": "string"
@@ -2428,6 +2515,41 @@
                     "type": "integer"
                 }
             }
+        },
+        "error.CodeError": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14
+            ],
+            "x-enum-varnames": [
+                "EncodingErrorCode",
+                "DecodingErrorCode",
+                "IncorrectParamsErrorCode",
+                "InsufficientParamsErrorCode",
+                "DatabaseErrorCode",
+                "DatabaseEntityNotFoundCode",
+                "FileDecodingErrorCode",
+                "FileReadingErrorCode",
+                "FileExtensionNotSupportedErrorCode",
+                "NotImplementedErrorCode",
+                "FileProcessingErrorCode",
+                "InternalUnidentifiedErrorCode",
+                "AuthFailedErrorCode",
+                "AuthPermissionInsufficientErrorCode"
+            ]
         },
         "gorm.DeletedAt": {
             "type": "object",
@@ -2467,9 +2589,22 @@
                     "$ref": "#/definitions/net.IPNet"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/pgtype.Status"
                 }
             }
+        },
+        "pgtype.Status": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "Undefined",
+                "Null",
+                "Present"
+            ]
         },
         "routing.BlacklistedStatistics": {
             "type": "object",
@@ -2699,14 +2834,17 @@
         "routing.smtpConfigUpdateParams": {
             "type": "object",
             "required": [
+                "From",
                 "Host",
-                "Password",
-                "Sender",
+                "Port",
                 "User"
             ],
             "properties": {
                 "Enabled": {
                     "type": "boolean"
+                },
+                "From": {
+                    "type": "string"
                 },
                 "Host": {
                     "type": "string"
@@ -2714,10 +2852,10 @@
                 "Password": {
                     "type": "string"
                 },
-                "Sender": {
-                    "type": "string"
+                "Port": {
+                    "type": "integer"
                 },
-                "UseTLS": {
+                "SSL": {
                     "type": "boolean"
                 },
                 "User": {
