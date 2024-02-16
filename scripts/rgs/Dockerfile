@@ -4,6 +4,9 @@ LABEL authors="Yaroslav_Lysak@rgs.ru"
 RUN go env -w CGO_ENABLED=0
 RUN go env -w GOOS=linux
 
+ENV http_proxy='http://proxy-h.rgs.ru:3128/'
+ENV https_proxy='http://proxy-h.rgs.ru:3128/'
+
 COPY . /src
 WORKDIR /src
 

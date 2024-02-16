@@ -10,7 +10,9 @@ networks:
 
 services:
   api:
-    build: ../../build/docker/Dockerfile
+    build:
+      context: ../../.
+      dockerfile: scripts/rgs/Dockerfile
     container_name: domain_threat_intel_api
     hostname: dti_api
     restart: unless-stopped
@@ -42,7 +44,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.dti_api.service=dti_api
-      - traefik.http.routers.dti_api.rule=Host(`domain-threat-intel.rgs.ru`) && PathPrefix(`/api`)
+      - traefik.http.routers.dti_api.rule=Host(`domain-threat-intel.rgs.ru`) && (PathPrefix(`/api`) || PathPrefix(`/swagger`))
       - traefik.http.routers.dti_api.tls=true
       - traefik.http.routers.dti_api.entrypoints=websecure
       - traefik.http.services.dti_api.loadbalancer.server.port=80
