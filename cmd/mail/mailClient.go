@@ -8,21 +8,30 @@ import (
 )
 
 type Client struct {
-	isAvailable    bool
-	config         ISMTPDynamicConfig
+	config ISMTPDynamicConfig
+
 	dialer         *gomail.Dialer
 	updateListener chan bool
 }
 
 type ISMTPDynamicConfig interface {
 	IsSMTPEnabled() bool
-	GetSMTPCredentials() (host, user, password string, port int, ssl bool, err error)
+	GetSMTPCredentials() (user, password string, err error)
+	GetSMTPSettings() (host, from string, port int, ssl bool, err error)
 
-	SetSMTPConfig(host, user, password string, port int, ssl, enabled bool) error
+	SetSMTPConfig(host, user, from, password string, port int, ssl, useAuth, enabled bool) error
 }
 
 func NewSMTPClient(config ISMTPDynamicConfig, updateChan chan bool) *Client {
-	host, user, password, port, ssl, err := config.GetSMTPCredentials()
+	host, _, port, ssl, err := config.GetSMTPSettings()
+	if err != nil {
+		slog.Warn("required smtp settings not provided. client not available.")
+	}
+
+	user, password, err := config.GetSMTPCredentials()
+	if err != nil {
+		slog.Warn("required smtp credentials not provided. client not available.")
+	}
 
 	client := Client{
 		config:         config,
@@ -32,7 +41,6 @@ func NewSMTPClient(config ISMTPDynamicConfig, updateChan chan bool) *Client {
 
 	client.dialer.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	client.dialer.SSL = ssl
-	client.isAvailable = err == nil
 
 	go client.ListenConfigUpdates()
 
@@ -45,16 +53,17 @@ func (client *Client) ListenConfigUpdates() {
 	for {
 		msg := <-client.updateListener
 		if msg == true {
-			slog.Info("smtp config updated")
+			slog.Info("smtp config update triggered")
 
-			if !client.config.IsSMTPEnabled() {
-				client.isAvailable = false
+			host, _, port, ssl, err := client.config.GetSMTPSettings()
+			if err != nil {
+				slog.Warn("required smtp settings not provided. client not available: " + err.Error())
 				return
 			}
 
-			host, user, password, port, ssl, err := client.config.GetSMTPCredentials()
+			user, password, err := client.config.GetSMTPCredentials()
 			if err != nil {
-				client.isAvailable = false
+				slog.Warn("required smtp credentials not provided. client not available: " + err.Error())
 				return
 			}
 
@@ -62,7 +71,7 @@ func (client *Client) ListenConfigUpdates() {
 			client.dialer.SSL = ssl
 			client.dialer.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
-			client.isAvailable = true
+			slog.Info("smtp config updated")
 		} else {
 			slog.Warn("smtp config change listener stopped")
 			break
@@ -70,24 +79,28 @@ func (client *Client) ListenConfigUpdates() {
 	}
 }
 
-func (client *Client) IsAvailable() bool {
-	return client.isAvailable
-}
+func (client *Client) SendMessage(to, cc, bcc []string, subject, body string) error {
+	_, from, _, _, err := client.config.GetSMTPSettings()
+	if err != nil {
+		return err
+	}
 
-func (client *Client) SendMessage(to, cc []string, subject, body string) error {
 	if to == nil {
+		slog.Warn("receiver address not defined")
 		return errors.New("receivers' addresses not defined")
 	}
 
 	message := gomail.NewMessage()
 
-	message.SetHeader("From", client.dialer.Username)
+	message.SetHeader("From", from)
 	message.SetHeader("To", to...)
+	message.SetHeader("Cc", cc...)
+	message.SetHeader("Bcc", bcc...)
 
 	message.SetHeader("Subject", subject)
 	message.SetBody("text/html", body)
 
-	err := client.dialer.DialAndSend(message)
+	err = client.dialer.DialAndSend(message)
 	if err != nil {
 		slog.Error("failed to send email: " + err.Error())
 		return err

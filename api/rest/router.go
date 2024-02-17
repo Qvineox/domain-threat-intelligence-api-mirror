@@ -3,6 +3,7 @@ package rest
 import (
 	"domain_threat_intelligence_api/api/rest/auth"
 	"domain_threat_intelligence_api/api/rest/routing"
+	"domain_threat_intelligence_api/cmd/loggers"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"time"
@@ -13,7 +14,7 @@ import (
 // CreateRouter initializes application routing and all route groups
 //
 // @title                      Domain Threat Intelligence API
-// @version                    0.0.3
+// @version                    0.0.4
 // @description                API provided by DTI project
 // @contact.name               Yaroslav Lysak
 // @contact.url                https://t.me/Qvineox
@@ -22,7 +23,11 @@ import (
 // @in                         header
 // @name                       x-api-Key
 func CreateRouter(services Services, basePath string, allowedOrigins []string, authMiddleware *auth.MiddlewareService) *gin.Engine {
-	router := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
+
+	// logging
+	router.Use(loggers.NewGINLogger().ProvideMiddleware(), gin.Recovery())
 
 	// CORS configurations
 	router.Use(cors.New(cors.Config{

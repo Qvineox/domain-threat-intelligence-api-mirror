@@ -568,10 +568,10 @@ func (s *BlackListsServiceImpl) ExportToCSV(filter blacklistEntities.BlacklistSe
 
 	var lines [][]string
 
-	lines = append(lines, []string{"UUID", "Identity", "Source", "CreatedAt", "UpdatedAt"})
+	lines = append(lines, []string{"UUID", "Type", "Identity", "Source", "CreatedAt", "UpdatedAt"})
 
 	for _, v := range hosts {
-		lines = append(lines, []string{fmt.Sprintf("%x", v.UUID.Bytes), v.Host, v.Source.Name, v.CreatedAt.Format("02.01.2006"), v.UpdatedAt.Format("02.01.2006")})
+		lines = append(lines, []string{fmt.Sprintf("%x", v.UUID.Bytes), v.Type, v.Host, v.Source.Name, v.CreatedAt.Format("02.01.2006"), v.UpdatedAt.Format("02.01.2006")})
 	}
 
 	var buf bytes.Buffer

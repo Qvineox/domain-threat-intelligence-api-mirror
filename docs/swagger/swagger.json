@@ -7,7 +7,7 @@
             "name": "Yaroslav Lysak",
             "url": "https://t.me/Qvineox"
         },
-        "version": "0.0.3"
+        "version": "0.0.4"
     },
     "paths": {
         "/auth/login": {
@@ -1092,15 +1092,8 @@
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "file to import",
+                        "description": "files to import",
                         "name": "file_upload",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "discovery date",
-                        "name": "discovered_at",
                         "in": "formData",
                         "required": true
                     },
@@ -1660,6 +1653,37 @@
                         }
                     }
                 ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/dynamic/reset": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Resets all dynamic configuration variables",
+                "tags": [
+                    "Configuration"
+                ],
+                "summary": "Return all dynamic configuration variables to default",
                 "responses": {
                     "202": {
                         "description": "Accepted"
@@ -2699,14 +2723,17 @@
         "routing.smtpConfigUpdateParams": {
             "type": "object",
             "required": [
+                "From",
                 "Host",
-                "Password",
-                "Sender",
+                "Port",
                 "User"
             ],
             "properties": {
                 "Enabled": {
                     "type": "boolean"
+                },
+                "From": {
+                    "type": "string"
                 },
                 "Host": {
                     "type": "string"
@@ -2714,10 +2741,13 @@
                 "Password": {
                     "type": "string"
                 },
-                "Sender": {
-                    "type": "string"
+                "Port": {
+                    "type": "integer"
                 },
-                "UseTLS": {
+                "SSL": {
+                    "type": "boolean"
+                },
+                "UseAuth": {
                     "type": "boolean"
                 },
                 "User": {

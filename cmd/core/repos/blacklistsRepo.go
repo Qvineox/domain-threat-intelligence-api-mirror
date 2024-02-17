@@ -436,7 +436,7 @@ func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter blacklistEntities.B
 		return nil, err
 	}
 
-	//query := r.Raw("SELECT uuid, abbrev(ip_address) AS host, 'ip' AS type, description, source_id, created_at, updated_at, deleted_at FROM blacklisted_ips "+
+	// query := r.Raw("SELECT uuid, abbrev(ip_address) AS host, 'ip' AS type, description, source_id, created_at, updated_at, deleted_at FROM blacklisted_ips "+
 	//	"UNION "+
 	//	"SELECT uuid, url AS host, 'url' AS type, description, source_id, created_at, updated_at, deleted_at FROM blacklisted_urls "+
 	//	"UNION "+
@@ -499,7 +499,7 @@ func (r *BlacklistsRepoImpl) SelectByCreationDateStatistics(startDate, endDate t
 		emailQuery = emailQuery.Where("created_at < ?", endDate)
 	}
 
-	err := r.Raw("? UNION ? UNION ? UNION ? ORDER BY date DESC",
+	err := r.Raw("? UNION ? UNION ? UNION ? ORDER BY date ASC",
 		ipQuery,
 		urlQuery,
 		domainQuery,
@@ -535,7 +535,7 @@ func (r *BlacklistsRepoImpl) SelectByDiscoveryDateStatistics(startDate, endDate 
 		emailQuery = emailQuery.Where("discovered_at < ?", endDate)
 	}
 
-	err := r.Raw("? UNION ? UNION ? UNION ? ORDER BY date DESC",
+	err := r.Raw("? UNION ? UNION ? UNION ? ORDER BY date ASC",
 		ipQuery,
 		urlQuery,
 		domainQuery,

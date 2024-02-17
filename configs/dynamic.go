@@ -25,9 +25,11 @@ type dynamicConfig struct {
 
 type smtpConfig struct {
 	Enabled bool `env-default:"false" json:"Enabled"`
+	UseAuth bool `env-default:"false" json:"UseAuth"`
 
 	Host     string `json:"Host"`
 	User     string `json:"User"`
+	From     string `json:"From"`
 	Password string `json:"Password"`
 	Port     int    `json:"Port"`
 	SSL      bool   `json:"SSL"`
@@ -269,33 +271,44 @@ func (d *DynamicConfigProvider) IsSMTPEnabled() bool {
 	return d.config.SMTP.Enabled
 }
 
-func (d *DynamicConfigProvider) GetSMTPCredentials() (host, user, password string, port int, ssl bool, err error) {
-	if !d.IsSMTPEnabled() {
-		return "", "", "", 0, false, errors.New("smtp disabled")
-	}
-
+func (d *DynamicConfigProvider) GetSMTPSettings() (host, from string, port int, ssl bool, err error) {
 	n := d.config.SMTP
 
-	if len(n.Host) == 0 || n.Port == 0 {
-		return "", "", "", 0, false, errors.New("smtp disabled")
+	if len(n.Host) == 0 || len(n.From) == 0 || n.Port == 0 {
+		return "", "", 0, false, errors.New("smtp settings not provided. smtp disabled")
 	}
 
-	return n.Host, n.User, n.Password, n.Port, n.SSL, nil
+	return n.Host, n.From, n.Port, n.SSL, nil
 }
 
-func (d *DynamicConfigProvider) SetSMTPConfig(host, user, password string, port int, ssl, enabled bool) error {
-	if len(host) == 0 || port == 0 {
+func (d *DynamicConfigProvider) GetSMTPCredentials() (user, password string, err error) {
+	n := d.config.SMTP
+
+	if n.UseAuth && (len(n.Host) == 0 || len(n.User) == 0 || n.Port == 0) {
+		return "", "", errors.New("smtp credentials not provided")
+	}
+
+	return "", "", nil
+}
+
+func (d *DynamicConfigProvider) SetSMTPConfig(host, user, from, password string, port int, ssl, useAuth, enabled bool) error {
+	if len(host) == 0 || port == 0 || len(from) == 0 {
 		return errors.New("smtp configuration incomplete")
 	}
 
 	d.config.SMTP.Enabled = enabled
+	d.config.SMTP.UseAuth = useAuth
 	d.config.SMTP.SSL = ssl
 
+	// auth credentials can be empty
 	d.config.SMTP.Host = host
 	d.config.SMTP.Port = port
 
 	d.config.SMTP.User = user
 	d.config.SMTP.Password = password
+
+	// sender name
+	d.config.SMTP.From = from
 
 	err := d.WriteToFile()
 	if err != nil {

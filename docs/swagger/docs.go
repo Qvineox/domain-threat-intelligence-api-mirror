@@ -1101,15 +1101,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "file to import",
+                        "description": "files to import",
                         "name": "file_upload",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "discovery date",
-                        "name": "discovered_at",
                         "in": "formData",
                         "required": true
                     },
@@ -1669,6 +1662,37 @@ const docTemplate = `{
                         }
                     }
                 ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/system/dynamic/reset": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Resets all dynamic configuration variables",
+                "tags": [
+                    "Configuration"
+                ],
+                "summary": "Return all dynamic configuration variables to default",
                 "responses": {
                     "202": {
                         "description": "Accepted"
@@ -2708,14 +2732,17 @@ const docTemplate = `{
         "routing.smtpConfigUpdateParams": {
             "type": "object",
             "required": [
+                "From",
                 "Host",
-                "Password",
-                "Sender",
+                "Port",
                 "User"
             ],
             "properties": {
                 "Enabled": {
                     "type": "boolean"
+                },
+                "From": {
+                    "type": "string"
                 },
                 "Host": {
                     "type": "string"
@@ -2723,10 +2750,13 @@ const docTemplate = `{
                 "Password": {
                     "type": "string"
                 },
-                "Sender": {
-                    "type": "string"
+                "Port": {
+                    "type": "integer"
                 },
-                "UseTLS": {
+                "SSL": {
+                    "type": "boolean"
+                },
+                "UseAuth": {
                     "type": "boolean"
                 },
                 "User": {
@@ -2944,7 +2974,7 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "0.0.3",
+	Version:          "0.0.4",
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{},

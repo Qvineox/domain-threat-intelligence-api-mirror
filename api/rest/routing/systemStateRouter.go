@@ -83,7 +83,7 @@ func (r *SystemStateRouter) PostUpdateSMTPConfig(c *gin.Context) {
 		return
 	}
 
-	err = r.service.UpdateSMTPConfig(params.Enabled, params.SSL, params.Host, params.User, params.Password, params.Port)
+	err = r.service.UpdateSMTPConfig(params.Enabled, params.SSL, params.UseAuth, params.Host, params.User, params.Password, params.Port)
 	if err != nil {
 		apiErrors.ParamsErrorResponse(c, err)
 		return
@@ -95,9 +95,11 @@ func (r *SystemStateRouter) PostUpdateSMTPConfig(c *gin.Context) {
 type smtpConfigUpdateParams struct {
 	Enabled  bool   `json:"Enabled"`
 	Host     string `json:"Host" binding:"required"`
-	User     string `json:"User" binding:"required"`
-	Password string `json:"Password" binding:"required"`
 	Port     int    `json:"Port" binding:"required"`
+	UseAuth  bool   `json:"UseAuth"`
+	User     string `json:"User" binding:"required"`
+	From     string `json:"From" binding:"required"`
+	Password string `json:"Password"`
 	SSL      bool   `json:"SSL"`
 }
 
