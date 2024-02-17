@@ -215,6 +215,7 @@ func (s *ServiceDeskClient) buildHostsDescription(stats blacklistStats) (string,
 
 	desc += "<p>Добрый день!</p>"
 	desc += fmt.Sprintf("<p>От ФинЦЕРТ'а поступило %d новых адресов для блокировки. Адреса указаны в приложенном файле.</p>", stats.ip+stats.domain+stats.url+stats.email)
+	desc += "<p>Прошу добавить в черный список ФинЦЕРТ. Также необходимо заблокировать данные адреса в ИС Qrator.</p>"
 
 	desc += "<table>"
 	desc += "<thead><tr><td>Тип хоста</td><td>Количество</td></tr></thead>"

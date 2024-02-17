@@ -164,5 +164,5 @@ type IServiceDeskRepo interface {
 	SaveTicket(ticket serviceDeskEntities.ServiceDeskTicket) (serviceDeskEntities.ServiceDeskTicket, error)
 	SelectTicketsByFilter(filter serviceDeskEntities.ServiceDeskSearchFilter) ([]serviceDeskEntities.ServiceDeskTicket, error)
 	DeleteTicket(id uint64) error
-	//SelectTicket(id uint64)
+	// SelectTicket(id uint64)
 }
