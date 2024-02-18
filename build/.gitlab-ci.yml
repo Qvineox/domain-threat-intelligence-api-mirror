@@ -5,7 +5,6 @@ stages:
 
 include:
   - template: Security/SAST.gitlab-ci.yml
-  - template: Jobs/Container-Scanning.gitlab-ci.yml
 
 
 .registry_setup:
@@ -74,7 +73,6 @@ trivy image scan:
   image:
     name: docker.io/aquasec/trivy:latest
     entrypoint: [ "" ]
-  extends: .registry_setup
   variables:
     TRIVY_USERNAME: "$CI_REGISTRY_USER"
     TRIVY_PASSWORD: "$CI_REGISTRY_PASSWORD"
@@ -82,13 +80,9 @@ trivy image scan:
 
     TRIVY_NO_PROGRESS: "true"
     TRIVY_CACHE_DIR: ".trivycache/"
-    TRIVY_INSECURE: "true"
+#    TRIVY_INSECURE: "true"
 
-    #    FULL_IMAGE_NAME: "$IMAGE_TAG"
-
-    HTTP_PROXY: "$PROXY_URL"
-    HTTPS_PROXY: "$PROXY_URL"
-    NO_PROXY: ".rgs.ru"
+    FULL_IMAGE_NAME: "$CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_BRANCH-$CI_COMMIT_REF_SLUG"
   script:
     # подготовка trivy: очистка кэша, обновление базы данных уязвимостей
     - trivy --version
