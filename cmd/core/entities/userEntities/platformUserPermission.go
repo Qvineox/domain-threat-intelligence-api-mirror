@@ -178,7 +178,7 @@ var DefaultUserPermissions = []PlatformUserPermission{
 	{
 		ID:          5201,
 		IsActive:    true,
-		Name:        "scanning::agents::modify",
+		Name:        "scanning::agents::view",
 		Description: "Просмотр агентов сканирования",
 	},
 	{
