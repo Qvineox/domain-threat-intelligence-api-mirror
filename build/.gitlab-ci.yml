@@ -9,7 +9,7 @@ include:
 
 .registry_setup:
   variables:
-    IMAGE_TAG: $CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_REF_SLUG
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_BRANCH-$CI_COMMIT_REF_SLUG
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   tags:
@@ -32,8 +32,11 @@ include:
 #  tags:
 #    - docker-in-docker
 
-build docker image:
+build staging docker image:
   stage: build
+  environment:
+    name: Stage
+    url: https://domain-threat-intel-api-stage.qvineox.ru/swagger/index.html
   image: docker:25.0.2
   extends: .registry_setup
   script:
@@ -45,9 +48,28 @@ build docker image:
     refs:
       - stage
 
+build production docker image:
+  stage: build
+  environment:
+    name: Production
+    url: https://domain-threat-intel.qvineox.ru
+  image: docker:25.0.2
+  extends: .registry_setup
+  script:
+    - docker build . -t $IMAGE_TAG -f ./build/docker/Dockerfile
+    - docker push $IMAGE_TAG
+  tags:
+    - docker
+  only:
+    refs:
+      - main
+
 sast:
   allow_failure: true
   stage: test
+  only:
+    - main
+    - stage
 
 deploy to staging:
   extends: .registry_setup
@@ -64,4 +86,17 @@ deploy to staging:
     refs:
       - stage
 
+deploy to production:
+  extends: .registry_setup
+  stage: deploy
+  environment:
+    name: Production
+    url: https://domain-threat-intel.qvineox.ru
+  script:
+    - docker pull $IMAGE_TAG
+    - docker compose -f build/docker/docker-compose.stage.yml up -d
+  tags:
+    - shell
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
 
