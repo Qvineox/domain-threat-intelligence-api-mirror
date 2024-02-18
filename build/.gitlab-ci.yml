@@ -72,7 +72,7 @@ trivy image scan:
   stage: test
   allow_failure: true
   image:
-    name: docker/aquasec/trivy:latest
+    name: docker.io/aquasec/trivy:latest
     entrypoint: [ "" ]
   extends: .registry_setup
   variables:
