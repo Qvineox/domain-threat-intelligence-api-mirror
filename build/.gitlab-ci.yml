@@ -146,7 +146,7 @@ deploy to production:
     - docker compose -f build/docker/docker-compose.stage.yml up -d
   tags:
     - shell
-  rules:
-    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
-      when: manual
+  only:
+    refs:
+      - main
 

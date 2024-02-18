@@ -138,10 +138,6 @@ type IAuthService interface {
 
 // ISystemStateService holds collection of services that provide info about system configuration, state and status
 type ISystemStateService interface {
-	UpdateSMTPConfig(enabled bool, host, user, password, sender string, useTLS bool) error
-	UpdateNSDCredentials(enabled bool, url, clientID, clientGroupID, clientKey string) error
-	UpdateNSDBlacklistServiceConfig(id, slm int, callType string, types []string) error
-
 	RetrieveDynamicConfig() ([]byte, error)
 	ReturnToDefault() error
 
