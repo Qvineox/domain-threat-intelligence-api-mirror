@@ -66,13 +66,17 @@ build production docker image:
       - main
 
 sast:
-  allow_failure: true
   stage: test
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "stage"'
 
 container_scanning:
+  stage: test
   variables:
     CS_DEFAULT_BRANCH_IMAGE: $CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_BRANCH-$CI_COMMIT_REF_SLUG
   rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "stage"'
 
 deploy to staging:
@@ -103,4 +107,5 @@ deploy to production:
     - shell
   rules:
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+      when: manual
 
