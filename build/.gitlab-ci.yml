@@ -67,9 +67,6 @@ build production docker image:
 sast:
   allow_failure: true
   stage: test
-  only:
-    - main
-    - stage
 
 deploy to staging:
   extends: .registry_setup
