@@ -72,10 +72,8 @@ sast:
 container_scanning:
   variables:
     CS_DEFAULT_BRANCH_IMAGE: $CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_BRANCH-$CI_COMMIT_REF_SLUG
-  only:
-    refs:
-      - main
-      - stage
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "stage"'
 
 deploy to staging:
   extends: .registry_setup
