@@ -436,7 +436,7 @@ func (r *BlacklistsRepoImpl) SelectHostsUnionByFilter(filter blacklistEntities.B
 		return nil, err
 	}
 
-	//query := r.Raw("SELECT uuid, abbrev(ip_address) AS host, 'ip' AS type, description, source_id, created_at, updated_at, deleted_at FROM blacklisted_ips "+
+	// query := r.Raw("SELECT uuid, abbrev(ip_address) AS host, 'ip' AS type, description, source_id, created_at, updated_at, deleted_at FROM blacklisted_ips "+
 	//	"UNION "+
 	//	"SELECT uuid, url AS host, 'url' AS type, description, source_id, created_at, updated_at, deleted_at FROM blacklisted_urls "+
 	//	"UNION "+
@@ -499,7 +499,43 @@ func (r *BlacklistsRepoImpl) SelectByCreationDateStatistics(startDate, endDate t
 		emailQuery = emailQuery.Where("created_at < ?", endDate)
 	}
 
-	err := r.Raw("? UNION ? UNION ? UNION ? ORDER BY date DESC",
+	err := r.Raw("? UNION ? UNION ? UNION ? ORDER BY date ASC",
+		ipQuery,
+		urlQuery,
+		domainQuery,
+		emailQuery,
+	).Scan(&byDate).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return byDate, nil
+}
+
+func (r *BlacklistsRepoImpl) SelectByDiscoveryDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error) {
+	var byDate []blacklistEntities.BlacklistedByDate
+
+	ipQuery := r.Model(&blacklistEntities.BlacklistedIP{}).Select("date(discovered_at) AS date, count(*), 'ip' AS type").Group("date(discovered_at)")
+	urlQuery := r.Model(&blacklistEntities.BlacklistedURL{}).Select("date(discovered_at) AS date, count(*), 'url' AS type").Group("date(discovered_at)")
+	domainQuery := r.Model(&blacklistEntities.BlacklistedDomain{}).Select("date(discovered_at) AS date, count(*), 'domain' AS type").Group("date(discovered_at)")
+	emailQuery := r.Model(&blacklistEntities.BlacklistedDomain{}).Select("date(discovered_at) AS date, count(*), 'email' AS type").Group("date(discovered_at)")
+
+	if !startDate.IsZero() {
+		ipQuery = ipQuery.Where("discovered_at > ?", startDate)
+		urlQuery = urlQuery.Where("discovered_at > ?", startDate)
+		domainQuery = domainQuery.Where("discovered_at > ?", startDate)
+		emailQuery = emailQuery.Where("discovered_at > ?", startDate)
+	}
+
+	if !endDate.IsZero() {
+		ipQuery = ipQuery.Where("discovered_at < ?", endDate)
+		urlQuery = urlQuery.Where("discovered_at < ?", endDate)
+		domainQuery = domainQuery.Where("discovered_at < ?", endDate)
+		emailQuery = emailQuery.Where("discovered_at < ?", endDate)
+	}
+
+	err := r.Raw("? UNION ? UNION ? UNION ? ORDER BY date ASC",
 		ipQuery,
 		urlQuery,
 		domainQuery,

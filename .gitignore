@@ -1,8 +1,10 @@
 .idea
-configs/config.json
+configs/config.static.json
 scripts/docker/docker-compose.yml
 go.sum
 build/bin
-/configs/dynamic.json
+/configs/config.dynamic.json
+/configs/config.static.json
 docs/examples
 /configs/dynamic.old.json
+.env

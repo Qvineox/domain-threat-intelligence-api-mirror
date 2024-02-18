@@ -5,7 +5,6 @@ import (
 	"domain_threat_intelligence_api/cmd/core"
 	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/serviceDeskEntities"
-	"domain_threat_intelligence_api/configs"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,13 +23,21 @@ type ServiceDeskClient struct {
 	repo       core.IServiceDeskRepo
 	httpClient http.Client
 
-	dynamic *configs.DynamicConfigProvider
+	dynamicConfig INaumenDynamicConfig
 }
 
-func NewServiceDeskClient(repo core.IServiceDeskRepo, dynamicConfig *configs.DynamicConfigProvider) *ServiceDeskClient {
+type INaumenDynamicConfig interface {
+	IsNaumenEnabled() bool
+	GetNaumenCredentials() (url, key string, uID, gID uint64, err error)
+	GetBlacklistServiceConfig() (aID, slm uint64, callType string, types []string, err error)
+	SetNaumenConfig(enabled bool, host, key string, uID, gID uint64) (err error)
+	SetNaumenBlacklistServiceConfig(aID, slm uint64, callType string, types []string) (err error)
+}
+
+func NewServiceDeskClient(repo core.IServiceDeskRepo, dynamicConfig INaumenDynamicConfig) *ServiceDeskClient {
 	client := ServiceDeskClient{
-		repo:    repo,
-		dynamic: dynamicConfig,
+		repo:          repo,
+		dynamicConfig: dynamicConfig,
 		httpClient: http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -38,13 +45,15 @@ func NewServiceDeskClient(repo core.IServiceDeskRepo, dynamicConfig *configs.Dyn
 
 	if !client.IsAvailable() {
 		slog.Warn("required config values not provided. naumen service desk integration not available.")
+	} else {
+		slog.Info("naumen service desk integration configured successfully.")
 	}
 
 	return &client
 }
 
 func (s *ServiceDeskClient) IsAvailable() bool {
-	return s.dynamic.IsNaumenEnabled()
+	return s.dynamicConfig.IsNaumenEnabled()
 }
 
 func (s *ServiceDeskClient) RetrieveTicketsByFilter(filter serviceDeskEntities.ServiceDeskSearchFilter) ([]serviceDeskEntities.ServiceDeskTicket, error) {
@@ -70,18 +79,13 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 	}
 
 	// get service configuration
-	url, key, emp, ou, err := s.dynamic.GetNaumenCredentials()
-	if err != nil {
-		return serviceDeskEntities.ServiceDeskTicket{}, err
-	}
-
-	ag, slm, callType, err := s.dynamic.GetNaumenBlacklistService()
+	url, key, emp, ou, err := s.dynamicConfig.GetNaumenCredentials()
 	if err != nil {
 		return serviceDeskEntities.ServiceDeskTicket{}, err
 	}
 
 	// filter hosts to send by preconfigured types
-	types, err := s.dynamic.GetNaumenBlacklistTypes()
+	ag, slm, callType, types, err := s.dynamicConfig.GetBlacklistServiceConfig()
 	if err != nil {
 		return serviceDeskEntities.ServiceDeskTicket{}, err
 	}
@@ -109,12 +113,7 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 		}
 	}
 
-	// check if at least 1 host left unfiltered
-	if len(filteredHosts) == 0 {
-		return serviceDeskEntities.ServiceDeskTicket{}, errors.New("there are no hosts to send")
-	}
-
-	requestAttributes.SubjectTicket = "Черный список ФинЦЕРТ. Заблокировать доступ."
+	requestAttributes.SubjectTicket = "Заблокировать доступ к/от указанных адресов. Добавить в черный список ФинЦЕРТ."
 
 	description, err := s.buildHostsDescription(stats)
 	if err != nil {
@@ -124,8 +123,8 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 	requestAttributes.DescriptionInRTF = description
 	requestAttributes.Agreement = fmt.Sprintf("agreement$%d", ag)
 	requestAttributes.Service = fmt.Sprintf("slmService$%d", slm)
-	requestAttributes.ClientEmployee = fmt.Sprintf("employee$%s", emp)
-	requestAttributes.ClientOU = fmt.Sprintf("ou$%s", ou)
+	requestAttributes.ClientEmployee = fmt.Sprintf("employee$%d", emp)
+	requestAttributes.ClientOU = fmt.Sprintf("ou$%d", ou)
 
 	bytes_, err := json.Marshal(requestAttributes)
 	if err != nil {
@@ -145,7 +144,7 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 	}
 
 	response, err := s.httpClient.Do(request)
-	if err != nil || response.StatusCode != http.StatusCreated {
+	if err != nil || response.StatusCode == http.StatusBadRequest || response.StatusCode == http.StatusUnauthorized {
 		if response != nil {
 			text, err_ := io.ReadAll(response.Body)
 			if err_ != nil {
@@ -163,11 +162,7 @@ func (s *ServiceDeskClient) SendBlacklistedHosts(hosts []blacklistEntities.Black
 
 		err = json.NewDecoder(response.Body).Decode(&responseBody)
 		if err != nil {
-			// naumen returns plain text error with error status
-			plainError, _ := io.ReadAll(response.Body)
-			errorText := string(plainError)
-
-			return serviceDeskEntities.ServiceDeskTicket{}, errors.New(err.Error() + ": " + errorText)
+			return serviceDeskEntities.ServiceDeskTicket{}, err
 		} else if len(responseBody.UUID) == 0 {
 			return serviceDeskEntities.ServiceDeskTicket{}, errors.New("missing naumen uuid")
 		} else {
@@ -216,13 +211,14 @@ type blacklistStats struct {
 }
 
 func (s *ServiceDeskClient) buildHostsDescription(stats blacklistStats) (string, error) {
-	var desc = "<style>table{border-collapse: collapse;} thead{background-color:#7f96b9; font-weight:bold;} td{border: 1px solid; text-align: center;}</style>"
+	var desc = "<style>table{width:100%;border-collapse: collapse;} thead{background-color:#7f96b9; font-weight:bold;} td{border: 1px solid; text-align: center;}</style>"
 
 	desc += "<p>Добрый день!</p>"
-	desc += fmt.Sprintf("<p>От ФинЦЕРТ поступило %d новых адресов для блокировки. Просьба заблокировать сетевой доступ до и от указанных адресов.<br/><br/><b>Адреса указаны в приложенном файле.</b></p>", stats.ip+stats.domain+stats.url+stats.email)
+	desc += fmt.Sprintf("<p>От ФинЦЕРТ'а поступило %d новых адресов для блокировки. Адреса указаны в приложенном файле.</p>", stats.ip+stats.domain+stats.url+stats.email)
+	desc += "<p>Прошу добавить в черный список ФинЦЕРТ. Также необходимо заблокировать данные адреса в ИС Qrator.</p>"
 
 	desc += "<table>"
-	desc += "<thead><tr><td style=\"width: 250px;\">Тип хоста</td><td style=\"width: 150px;\">Количество</td></tr></thead>"
+	desc += "<thead><tr><td>Тип хоста</td><td>Количество</td></tr></thead>"
 	desc += "<tbody>"
 
 	if stats.ip > 0 {
@@ -266,16 +262,11 @@ func (s *ServiceDeskClient) buildHostsFile(hosts []blacklistEntities.Blacklisted
 		return nil, err
 	}
 
-	err = file.Close()
-	if err != nil {
-		return nil, err
-	}
-
 	return file, nil
 }
 
 func (s *ServiceDeskClient) appendFile(ticketID string, filePath string) error {
-	url, key, _, _, err := s.dynamic.GetNaumenCredentials()
+	url, key, _, _, err := s.dynamicConfig.GetNaumenCredentials()
 	if err != nil {
 		return err
 	}

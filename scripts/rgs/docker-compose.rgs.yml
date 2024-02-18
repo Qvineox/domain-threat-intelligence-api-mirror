@@ -1,0 +1,50 @@
+version: '3.9'
+
+name: dti
+
+networks:
+  internal:
+    external: false
+  web:
+    external: true
+
+services:
+  api:
+    build:
+      context: ../../.
+      dockerfile: scripts/rgs/Dockerfile
+    container_name: domain_threat_intel_api
+    hostname: dti_api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      db_host: $DB_HOST
+      db_port: $DB_PORT
+      db_user: $DB_USER
+      db_pass: $DB_PASS
+      db_name: $DB_NAME
+      db_timezone: $DB_TZ
+
+      http_host: 0.0.0.0
+      http_port: 80
+
+      http_api_path: $HTTP_API_PATH
+
+      http_swagger_enabled: $HTTP_SWAGGER_ENABLED
+      http_swagger_host: $HTTP_SWAGGER_HOST
+      http_swagger_version: $HTTP_SWAGGER_VERSION
+
+      http_security_tls: $HTTP_SECURITY_TLS
+      http_security_origins: $HTTP_SECURITY_ORIGINS
+      http_security_domain: $HTTP_SECURITY_DOMAIN
+    networks:
+      - web
+      - internal
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dti_api.service=dti_api
+      - traefik.http.routers.dti_api.rule=Host(`domain-threat-intel.rgs.ru`) && (PathPrefix(`/api`) || PathPrefix(`/swagger`))
+      - traefik.http.routers.dti_api.tls=true
+      - traefik.http.routers.dti_api.entrypoints=websecure
+      - traefik.http.services.dti_api.loadbalancer.server.port=80

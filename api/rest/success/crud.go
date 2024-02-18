@@ -18,6 +18,13 @@ func SavedResponse(c *gin.Context, rows int64) {
 	})
 }
 
+func PatchedResponse(c *gin.Context) {
+	c.JSON(http.StatusOK, DatabaseResponse{
+		StatusCode:   http.StatusOK,
+		RowsAffected: 1,
+	})
+}
+
 func SavedResponseWithWarnings(c *gin.Context, rows int64, errs []error) {
 	var errors []string
 	for _, e := range errs {

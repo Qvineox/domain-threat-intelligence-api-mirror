@@ -1,22 +1,27 @@
 package rest
 
 import (
+	"domain_threat_intelligence_api/api/rest/auth"
 	"domain_threat_intelligence_api/cmd/core"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
 	"time"
 
-	_ "domain_threat_intelligence_api/docs/swagger" // needs to be imported to use Swagger docs
+	swaggerDocs "domain_threat_intelligence_api/docs/swagger" // needs to be imported to use Enabled docs
 )
 
 type HTTPServer struct {
-	server         *http.Server
-	host           string
-	port           uint64
-	swaggerEnabled bool
+	server *http.Server
+	router *gin.Engine
+
+	host string
+	port uint64
 }
 
-func NewHTTPServer(host string, port uint64, swagger bool, services Services, allowedOrigins []string) (*HTTPServer, error) {
+func NewHTTPServer(host, path string, allowedOrigins []string, port uint64, services Services) (*HTTPServer, error) {
 	s := &HTTPServer{}
 
 	if len(host) == 0 {
@@ -31,26 +36,37 @@ func NewHTTPServer(host string, port uint64, swagger bool, services Services, al
 		s.port = port
 	}
 
-	// gin router initialization
-	router := CreateRouter(services, allowedOrigins)
+	// auth middleware construction
+	authMiddleware := auth.NewMiddlewareService(services.AuthService)
 
-	// swagger routing
-	s.swaggerEnabled = swagger
-	if s.swaggerEnabled {
-		handleSwagger(router)
-	}
+	// gin router initialization
+	s.router = CreateRouter(services, path, allowedOrigins, authMiddleware)
 
 	// http server creation
 	address := fmt.Sprintf("%s:%d", s.host, s.port)
 	s.server = &http.Server{
 		Addr:           address,
-		Handler:        router,
+		Handler:        s.router,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
 
 	return s, nil
+}
+
+func (s *HTTPServer) EnableSwagger(host, version, path string) {
+	swaggerDocs.SwaggerInfo.Host = host
+	swaggerDocs.SwaggerInfo.Version = version
+	swaggerDocs.SwaggerInfo.BasePath = path
+
+	h := ginSwagger.WrapHandler(
+		swaggerFiles.Handler,
+		ginSwagger.PersistAuthorization(true),
+		ginSwagger.DocExpansion("none"),
+	)
+
+	s.router.GET("/swagger/*any", h)
 }
 
 func (s *HTTPServer) Start() error {
@@ -61,4 +77,7 @@ type Services struct {
 	BlacklistService   core.IBlacklistsService
 	SystemStateService core.ISystemStateService
 	ServiceDeskService core.IServiceDeskService
+	UsersService       core.IUsersService
+	AuthService        core.IAuthService
+	SMTPService        core.ISMTPService
 }

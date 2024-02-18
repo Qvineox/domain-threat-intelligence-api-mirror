@@ -1,0 +1,152 @@
+stages:
+  - build
+  - test
+  - deploy
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
+
+
+.registry_setup:
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_REF_SLUG
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  tags:
+    - docker
+#  only:
+#    refs:
+#      - master
+
+#build gateway docker image:
+#  stage: build
+#  extends: .dind_build_setup
+#  variables:
+#    IMAGE_TAG: $CI_REGISTRY_IMAGE/gateway:$CI_COMMIT_REF_SLUG
+#  script:
+#    - mkdir $CI_PROJECT_DIR/gateway/config/certificates
+#    - cp $CERT $CI_PROJECT_DIR/gateway/config/certificates/cert.crt
+#    - cp $CERT_PRIVATE_KEY $CI_PROJECT_DIR/gateway/config/certificates/key.key
+#    - docker build -t $IMAGE_TAG ./gateway
+#    - docker push $IMAGE_TAG
+#  tags:
+#    - docker-in-docker
+
+build staging docker image:
+  stage: build
+  environment:
+    name: Stage
+    url: https://domain-threat-intel-api-stage.qvineox.ru/swagger/index.html
+  image: docker:25.0.2
+  extends: .registry_setup
+  script:
+    - docker build . -t $IMAGE_TAG -f ./build/docker/Dockerfile
+    - docker push $IMAGE_TAG
+  tags:
+    - docker
+  only:
+    refs:
+      - stage
+
+build production docker image:
+  stage: build
+  environment:
+    name: Production
+    url: https://domain-threat-intel.qvineox.ru
+  image: docker:25.0.2
+  extends: .registry_setup
+  script:
+    - docker build . -t $IMAGE_TAG -f ./build/docker/Dockerfile
+    - docker push $IMAGE_TAG
+  tags:
+    - docker
+  only:
+    refs:
+      - main
+
+sast:
+  stage: test
+
+trivy image scan:
+  stage: test
+  allow_failure: true
+  image:
+    name: docker.io/aquasec/trivy:latest
+    entrypoint: [ "" ]
+  variables:
+    TRIVY_USERNAME: "$CI_REGISTRY_USER"
+    TRIVY_PASSWORD: "$CI_REGISTRY_PASSWORD"
+    TRIVY_AUTH_URL: "$CI_REGISTRY"
+
+    TRIVY_NO_PROGRESS: "true"
+    TRIVY_CACHE_DIR: ".trivycache/"
+#    TRIVY_INSECURE: "true"
+
+    FULL_IMAGE_NAME: "$CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_REF_SLUG"
+  script:
+    # подготовка trivy: очистка кэша, обновление базы данных уязвимостей
+    - trivy --version
+    - time trivy image --clear-cache
+    - time trivy image --download-db-only --no-progress --cache-dir .trivycache/
+
+    # формирование отчета в формате GitLab (не работает в community версии)
+    - time trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl" --output "$CI_PROJECT_DIR/gl-code-scanning-report.json" $FULL_IMAGE_NAME
+
+    # формирование отчета в текстовый файл
+    - time trivy image --exit-code 0 --cache-dir .trivycache/ --no-progress --output "$CI_PROJECT_DIR/gl-code-scanning-report.txt" $FULL_IMAGE_NAME
+
+    # формирование SBOM файла
+    - time trivy image --exit-code 0 --cache-dir .trivycache/ --format cyclonedx --no-progress --output "$CI_PROJECT_DIR/gl-code-sbom.cdx.json" $FULL_IMAGE_NAME
+
+    # вывести ошибку, если найдена критическая уязвимость
+    # - time trivy image --exit-code 1 --cache-dir .trivycache/ --severity CRITICAL --no-progress $CI_PROJECT_DIR
+  cache:
+    paths:
+      - .trivycache/
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - "$CI_PROJECT_DIR/gl-code-scanning-report.txt"
+      - "$CI_PROJECT_DIR/gl-code-sbom.cdx.json"
+    reports:
+      codequality: gl-code-scanning-report.json
+      cyclonedx: gl-code-sbom.cdx.json
+  tags:
+    - docker
+  only:
+    refs:
+      - stage
+      - main
+
+
+deploy to staging:
+  extends: .registry_setup
+  stage: deploy
+  environment:
+    name: Stage
+    url: https://domain-threat-intel-api-stage.qvineox.ru/swagger/index.html
+  script:
+    - docker pull $IMAGE_TAG
+    - docker compose -f build/docker/docker-compose.stage.yml up -d
+  tags:
+    - shell
+  only:
+    refs:
+      - stage
+
+deploy to production:
+  extends: .registry_setup
+  stage: deploy
+  environment:
+    name: Production
+    url: https://domain-threat-intel.qvineox.ru
+  script:
+    - docker pull $IMAGE_TAG
+    - docker compose -f build/docker/docker-compose.stage.yml up -d
+  tags:
+    - shell
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+      when: manual
+

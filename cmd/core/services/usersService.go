@@ -4,75 +4,98 @@ import (
 	"domain_threat_intelligence_api/cmd/core"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"errors"
-	"github.com/jackc/pgtype"
+	"math/rand"
 	"strings"
 )
 
 type UsersServiceImpl struct {
-	repo         core.IUsersRepo
-	passwordSalt string
+	repo core.IUsersRepo
+	auth core.IAuthService
 }
 
-func (s *UsersServiceImpl) CreateUser(login, password, fullName, email string, roleIDs []uint64) (pgtype.UUID, error) {
-	if len(password) == 0 || len(login) == 0 {
-		return pgtype.UUID{}, errors.New("password or login empty")
-	}
-
-	if !s.isValidByPasswordPolicy(password) {
-		return pgtype.UUID{}, errors.New("password not valid by policy")
-	}
-
-	newUser, err := userEntities.NewPlatformUser(fullName, login, email, strings.Join([]string{password, s.passwordSalt}, ""), true)
-	if err != nil {
-		return pgtype.UUID{}, err
-	}
-
-	err = newUser.SetRoles(roleIDs)
-	if err != nil {
-		return pgtype.UUID{}, err
-	}
-
-	return s.repo.InsertUser(*newUser)
+func NewUsersServiceImpl(repo core.IUsersRepo, auth core.IAuthService) *UsersServiceImpl {
+	return &UsersServiceImpl{repo: repo, auth: auth}
 }
 
-func (s *UsersServiceImpl) SaveUser(user userEntities.PlatformUser, roleIDs []uint64) (pgtype.UUID, error) {
-	err := user.SetRoles(roleIDs)
+func (s *UsersServiceImpl) SaveUser(user userEntities.PlatformUser, permissionIDs []uint64) error {
+	err := user.SetPermissions(permissionIDs)
 	if err != nil {
-		return pgtype.UUID{}, err
+		return err
 	}
 
 	return s.repo.UpdateUser(user)
 }
 
-func (s *UsersServiceImpl) DeleteUser(uuid pgtype.UUID) error {
-	return s.repo.DeleteUser(uuid)
+func (s *UsersServiceImpl) CreateUser(user userEntities.PlatformUser, password string, permissionIDs []uint64) (uint64, error) {
+	err := user.SetPermissions(permissionIDs)
+	if err != nil {
+		return 0, err
+	}
+
+	userID, err := s.auth.Register(user.Login, password, user.FullName, user.Email, permissionIDs)
+	if err != nil {
+		return 0, err
+	}
+
+	return userID, nil
+}
+
+func (s *UsersServiceImpl) DeleteUser(id uint64) (int64, error) {
+	return s.repo.DeleteUser(id)
 }
 
 func (s *UsersServiceImpl) RetrieveUsers() ([]userEntities.PlatformUser, error) {
 	return s.repo.SelectUsers()
 }
-func (s *UsersServiceImpl) RetrieveUser(uuid pgtype.UUID) (userEntities.PlatformUser, error) {
-	return s.repo.SelectUser(uuid)
+func (s *UsersServiceImpl) RetrieveUser(id uint64) (userEntities.PlatformUser, error) {
+	return s.repo.SelectUser(id)
 }
 
-func (s *UsersServiceImpl) RetrieveRoles() ([]userEntities.PlatformUserRole, error) {
-	return s.repo.SelectRoles()
+func (s *UsersServiceImpl) RetrievePermissions() ([]userEntities.PlatformUserPermission, error) {
+	return s.repo.SelectPermissions()
 }
 
-func (s *UsersServiceImpl) ResetPassword(uuid pgtype.UUID) error {
-	//TODO implement me
-	return errors.New("not implemented")
+func (s *UsersServiceImpl) RetrievePermissionPresets() []userEntities.PlatformUserRolesPreset {
+	return userEntities.DefaultUserPermissionPresets
 }
 
-func (s *UsersServiceImpl) ChangePassword(uuid pgtype.UUID, oldPassword, newPassword string) error {
-	user, err := s.RetrieveUser(uuid)
+func (s *UsersServiceImpl) ResetPassword(id uint64) error {
+	user, err := s.repo.SelectUser(id)
 	if err != nil {
 		return err
-	} else if len(user.Login) == 0 {
+	} else if user.ID == 0 {
 		return errors.New("user not found")
 	}
 
-	return errors.New("not implemented")
+	user, err = s.auth.ResetPassword(user, s.generateRandomSolidPassword())
+
+	err = s.repo.UpdateUserWithPasswordHash(user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *UsersServiceImpl) ChangePassword(id uint64, oldPassword, newPassword string) error {
+	user, err := s.repo.SelectUser(id)
+	if err != nil {
+		return err
+	} else if user.ID == 0 {
+		return errors.New("user not found")
+	}
+
+	user, err = s.auth.ChangePassword(user, oldPassword, newPassword)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.UpdateUserWithPasswordHash(user)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *UsersServiceImpl) isValidByPasswordPolicy(password string) bool {
@@ -82,4 +105,21 @@ func (s *UsersServiceImpl) isValidByPasswordPolicy(password string) bool {
 	}
 
 	return true
+}
+
+func (s *UsersServiceImpl) generateRandomSolidPassword() string {
+	var notSolid = true
+	var password = ""
+
+	for notSolid {
+		runes := make([]string, 12)
+		for i := range runes {
+			runes[i] = string(letters[rand.Intn(len(letters))])
+		}
+
+		password = strings.Join(runes, "")
+		notSolid = !s.isValidByPasswordPolicy(password)
+	}
+
+	return password
 }

@@ -1,45 +1,23 @@
 package services
 
 import (
-	"domain_threat_intelligence_api/configs"
+	"domain_threat_intelligence_api/cmd/integrations/naumen"
+	"domain_threat_intelligence_api/cmd/mail"
 )
 
 type SystemStateServiceImpl struct {
-	dynamicConfig *configs.DynamicConfigProvider
+	dynamicConfig ISystemDynamicConfig
 }
 
-func (s *SystemStateServiceImpl) UpdateSMTPConfig(enabled bool, host, user, password, sender string, useTLS bool) error {
-	s.dynamicConfig.SetSMTPAvailability(enabled)
+type ISystemDynamicConfig interface {
+	naumen.INaumenDynamicConfig
+	mail.ISMTPDynamicConfig
 
-	err := s.dynamicConfig.SetSMTPCredentials(host, user, password, sender, useTLS)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	GetCurrentState() ([]byte, error)
+	SetDefaultValues() error
 }
 
-func (s *SystemStateServiceImpl) UpdateNSDCredentials(enabled bool, url, clientID, clientGroupID, clientKey string) error {
-	s.dynamicConfig.SetNaumenAvailability(enabled)
-
-	err := s.dynamicConfig.SetNaumenCredentials(url, clientKey, clientID, clientGroupID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *SystemStateServiceImpl) UpdateNSDBlacklistServiceConfig(id, slm int, callType string, types []string) error {
-	err := s.dynamicConfig.SetNaumenBlacklistConfig(id, slm, callType, types)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func NewSystemStateServiceImpl(dynamicConfig *configs.DynamicConfigProvider) *SystemStateServiceImpl {
+func NewSystemStateServiceImpl(dynamicConfig ISystemDynamicConfig) *SystemStateServiceImpl {
 	return &SystemStateServiceImpl{dynamicConfig: dynamicConfig}
 }
 
@@ -49,4 +27,16 @@ func (s *SystemStateServiceImpl) RetrieveDynamicConfig() ([]byte, error) {
 
 func (s *SystemStateServiceImpl) ReturnToDefault() error {
 	return s.dynamicConfig.SetDefaultValues()
+}
+
+func (s *SystemStateServiceImpl) UpdateSMTPConfig(enabled, SSL, useAuth bool, host, user, password string, port int) error {
+	return s.dynamicConfig.SetSMTPConfig(host, user, "", password, port, SSL, useAuth, enabled)
+}
+
+func (s *SystemStateServiceImpl) UpdateNSDCredentials(enabled bool, host, clientKey string, clientID, clientGroupID uint64) error {
+	return s.dynamicConfig.SetNaumenConfig(enabled, host, clientKey, clientID, clientGroupID)
+}
+
+func (s *SystemStateServiceImpl) UpdateNSDBlacklistServiceConfig(agreementID, slm uint64, callType string, types []string) error {
+	return s.dynamicConfig.SetNaumenBlacklistServiceConfig(agreementID, slm, callType, types)
 }

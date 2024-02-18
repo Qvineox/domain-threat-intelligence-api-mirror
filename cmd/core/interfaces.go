@@ -1,6 +1,7 @@
 package core
 
 import (
+	"domain_threat_intelligence_api/cmd/core/entities/authEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/serviceDeskEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
@@ -78,48 +79,61 @@ type IBlacklistsRepo interface {
 }
 
 type IUsersService interface {
-	// CreateUser creates only new entities.PlatformUser, returns error if user exists, ignores defined UUID
-	CreateUser(login, password, fullName, email string, roleIDs []uint64) (pgtype.UUID, error)
-
-	// SaveUser updates only existing entities.PlatformUser, returns error if user doesn't exist, UUID should be defined.
+	// SaveUser updates only existing entities.PlatformUser, returns error if user doesn't exist, ID must be defined.
 	// This method doesn't update user password, use ResetPassword or ChangePassword
-	SaveUser(user userEntities.PlatformUser, roleIDs []uint64) (pgtype.UUID, error)
+	SaveUser(user userEntities.PlatformUser, permissionIDs []uint64) error
 
-	DeleteUser(uuid pgtype.UUID) error
+	CreateUser(user userEntities.PlatformUser, password string, permissionIDs []uint64) (uint64, error)
+
+	DeleteUser(id uint64) (int64, error)
 	RetrieveUsers() ([]userEntities.PlatformUser, error)
-	RetrieveUser(uuid pgtype.UUID) (userEntities.PlatformUser, error)
+	RetrieveUser(id uint64) (userEntities.PlatformUser, error)
 
-	RetrieveRoles() ([]userEntities.PlatformUserRole, error)
+	RetrievePermissions() ([]userEntities.PlatformUserPermission, error)
+	RetrievePermissionPresets() []userEntities.PlatformUserRolesPreset
 
 	// ResetPassword is used to send recovery messages to users
-	ResetPassword(uuid pgtype.UUID) error
+	ResetPassword(id uint64) error
 
 	// ChangePassword allows to set new password for user. Can be used by admin and user itself
-	ChangePassword(uuid pgtype.UUID, oldPassword, newPassword string) error
+	ChangePassword(id uint64, oldPassword, newPassword string) error
 }
 
 type IUsersRepo interface {
-	InsertUser(user userEntities.PlatformUser) (pgtype.UUID, error)
-	UpdateUser(user userEntities.PlatformUser) (pgtype.UUID, error)
-	DeleteUser(uuid pgtype.UUID) error
+	InsertUser(user userEntities.PlatformUser) (uint64, error)
+	UpdateUser(user userEntities.PlatformUser) error
+	DeleteUser(id uint64) (int64, error)
+
 	SelectUsers() ([]userEntities.PlatformUser, error)
-	SelectUser(uuid pgtype.UUID) (userEntities.PlatformUser, error)
+	SelectUser(id uint64) (userEntities.PlatformUser, error)
+	SelectUserByLogin(login string) (userEntities.PlatformUser, error)
+	SelectUserByRefreshToken(token string) (userEntities.PlatformUser, error)
 
-	SelectRoles() ([]userEntities.PlatformUserRole, error)
+	SelectPermissions() ([]userEntities.PlatformUserPermission, error)
 
-	// UpdatePasswordHash is used only to update user password hash. Must be used when resetting or changing password
-	UpdatePasswordHash(uuid pgtype.UUID, hash string) error
+	// UpdateUserWithPasswordHash is used only to update user password hash. Must be used when resetting or changing password
+	UpdateUserWithPasswordHash(user userEntities.PlatformUser) error
+
+	// UpdateUserWithRefreshToken is used only to update user refresh token. Must be used when resetting token, on login and logout.
+	UpdateUserWithRefreshToken(user userEntities.PlatformUser) error
 }
 
 type IAuthService interface {
-	RegisterNewUser(login, password, fullName, email string) (pgtype.UUID, error)
 	ConfirmEmail(confirmationUUID pgtype.UUID) error
 
+	// Register creates new entities.PlatformUser, returns error if user exists, ignores defined ID
+	Register(login, password, fullName, email string, roleIDs []uint64) (uint64, error)
 	Login(login, password string) (accessToken, refreshToken string, err error)
-	Logout(uuid pgtype.UUID) error
+	Logout(refreshToken string) error
 
-	Validate(token string) (isValid bool, err error)
-	Refresh(token string) (accessToken, refreshToken string, err error)
+	ChangePassword(user userEntities.PlatformUser, oldPassword, newPassword string) (userEntities.PlatformUser, error)
+	ResetPassword(user userEntities.PlatformUser, newPassword string) (userEntities.PlatformUser, error)
+
+	Validate(accessToken string) (claims authEntities.AccessTokenClaims, err error)
+	Refresh(refreshToken string) (accessToken, newRefreshToken string, err error)
+
+	GetPasswordStrength(password string) (level int, time, entropy float64)
+	GetDomain() string
 }
 
 // ISystemStateService holds collection of services that provide info about system configuration, state and status
@@ -130,6 +144,10 @@ type ISystemStateService interface {
 
 	RetrieveDynamicConfig() ([]byte, error)
 	ReturnToDefault() error
+
+	UpdateSMTPConfig(enabled, SSL, UseAuth bool, host, user, password string, port int) error
+	UpdateNSDCredentials(enabled bool, host, clientKey string, clientID, clientGroupID uint64) error
+	UpdateNSDBlacklistServiceConfig(id, slm uint64, callType string, types []string) error
 }
 
 type IServiceDeskService interface {
@@ -142,9 +160,13 @@ type IServiceDeskService interface {
 	SendBlacklistedHosts([]blacklistEntities.BlacklistedHost) (ticket serviceDeskEntities.ServiceDeskTicket, err error)
 }
 
+type ISMTPService interface {
+	SendMessage(to, cc, bcc []string, subject, body string) error
+}
+
 type IServiceDeskRepo interface {
 	SaveTicket(ticket serviceDeskEntities.ServiceDeskTicket) (serviceDeskEntities.ServiceDeskTicket, error)
 	SelectTicketsByFilter(filter serviceDeskEntities.ServiceDeskSearchFilter) ([]serviceDeskEntities.ServiceDeskTicket, error)
 	DeleteTicket(id uint64) error
-	//SelectTicket(id uint64)
+	// SelectTicket(id uint64)
 }

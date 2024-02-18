@@ -1,0 +1,46 @@
+version: '3.9'
+
+name: dti_production
+
+networks:
+  internal:
+    external: false
+  web:
+    external: true
+
+services:
+  api:
+    image: $IMAGE_TAG
+    container_name: domain_threat_intel_api_production
+    hostname: dti_api_production
+    restart: unless-stopped
+    environment:
+      db_host: $DB_HOST
+      db_port: $DB_PORT
+      db_user: $DB_USER
+      db_pass: $DB_PASS
+      db_name: $DB_NAME
+      db_timezone: $DB_TZ
+
+      http_host: 0.0.0.0
+      http_port: 80
+
+      http_api_path: $HTTP_API_PATH
+
+      http_swagger_enabled: $HTTP_SWAGGER_ENABLED
+      http_swagger_host: $HTTP_SWAGGER_HOST
+      http_swagger_version: $HTTP_SWAGGER_VERSION
+
+      http_security_tls: $HTTP_SECURITY_TLS
+      http_security_origins: $HTTP_SECURITY_ORIGINS
+      http_security_domain: $HTTP_SECURITY_DOMAIN
+    networks:
+      - web
+      - internal
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dti_api_prod.service=dti_api_prod
+      - traefik.http.routers.dti_api_prod.rule=Host(`$TRAEFIK_HOST`) && (PathPrefix(`/$TRAEFIK_PATH`) || PathPrefix(`/swagger`))
+      - traefik.http.routers.dti_api_prod.tls=true
+      - traefik.http.routers.dti_api_prod.entrypoints=websec
+      - traefik.http.services.dti_api_prod.loadbalancer.server.port=80
