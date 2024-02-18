@@ -9,7 +9,7 @@ include:
 
 .registry_setup:
   variables:
-    IMAGE_TAG: $CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_BRANCH-$CI_COMMIT_REF_SLUG
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_REF_SLUG
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   tags:
@@ -82,7 +82,7 @@ trivy image scan:
     TRIVY_CACHE_DIR: ".trivycache/"
 #    TRIVY_INSECURE: "true"
 
-    FULL_IMAGE_NAME: "$CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_BRANCH-$CI_COMMIT_REF_SLUG"
+    FULL_IMAGE_NAME: "$CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_REF_SLUG"
   script:
     # подготовка trivy: очистка кэша, обновление базы данных уязвимостей
     - trivy --version
