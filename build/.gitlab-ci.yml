@@ -90,13 +90,13 @@ trivy image scan:
     - time trivy image --download-db-only --no-progress --cache-dir .trivycache/
 
     # формирование отчета в формате GitLab (не работает в community версии)
-    - time trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl" --output "$CI_PROJECT_DIR/gl-code-scanning-report.json" $IMAGE_TAG
+    - time trivy image --exit-code 0 --format template --template "@/contrib/gitlab.tpl" --output "$CI_PROJECT_DIR/gl-code-scanning-report.json" $FULL_IMAGE_NAME
 
     # формирование отчета в текстовый файл
-    - time trivy image --exit-code 0 --cache-dir .trivycache/ --no-progress --output "$CI_PROJECT_DIR/gl-code-scanning-report.txt" $IMAGE_TAG
+    - time trivy image --exit-code 0 --cache-dir .trivycache/ --no-progress --output "$CI_PROJECT_DIR/gl-code-scanning-report.txt" $FULL_IMAGE_NAME
 
     # формирование SBOM файла
-    - time trivy image --exit-code 0 --cache-dir .trivycache/ --format cyclonedx --no-progress --output "$CI_PROJECT_DIR/gl-code-sbom.cdx.json" $IMAGE_TAG
+    - time trivy image --exit-code 0 --cache-dir .trivycache/ --format cyclonedx --no-progress --output "$CI_PROJECT_DIR/gl-code-sbom.cdx.json" $FULL_IMAGE_NAME
 
     # вывести ошибку, если найдена критическая уязвимость
     # - time trivy image --exit-code 1 --cache-dir .trivycache/ --severity CRITICAL --no-progress $CI_PROJECT_DIR
