@@ -80,7 +80,7 @@ trivy image scan:
 
     TRIVY_NO_PROGRESS: "true"
     TRIVY_CACHE_DIR: ".trivycache/"
-#    TRIVY_INSECURE: "true"
+    #    TRIVY_INSECURE: "true"
 
     FULL_IMAGE_NAME: "$CI_REGISTRY_IMAGE/domain_threat_intel:$CI_COMMIT_REF_SLUG"
   script:
@@ -143,7 +143,7 @@ deploy to production:
     url: https://domain-threat-intel.qvineox.ru
   script:
     - docker pull $IMAGE_TAG
-    - docker compose -f build/docker/docker-compose.stage.yml up -d
+    - docker compose -f build/docker/docker-compose.production.yml up -d
   tags:
     - shell
   only:
