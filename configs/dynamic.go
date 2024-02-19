@@ -291,14 +291,14 @@ func (d *DynamicConfigProvider) GetSMTPCredentials() (user, password string, err
 	return "", "", nil
 }
 
-func (d *DynamicConfigProvider) SetSMTPConfig(host, user, from, password string, port int, ssl, useAuth, enabled bool) error {
+func (d *DynamicConfigProvider) SetSMTPConfig(enabled, SSL, useAuth bool, host, user, from, password string, port int) error {
 	if len(host) == 0 || port == 0 || len(from) == 0 {
 		return errors.New("smtp configuration incomplete")
 	}
 
 	d.config.SMTP.Enabled = enabled
 	d.config.SMTP.UseAuth = useAuth
-	d.config.SMTP.SSL = ssl
+	d.config.SMTP.SSL = SSL
 
 	// auth credentials can be empty
 	d.config.SMTP.Host = host

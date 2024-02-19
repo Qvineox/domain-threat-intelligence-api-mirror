@@ -19,7 +19,7 @@ type ISMTPDynamicConfig interface {
 	GetSMTPCredentials() (user, password string, err error)
 	GetSMTPSettings() (host, from string, port int, ssl bool, err error)
 
-	SetSMTPConfig(host, user, from, password string, port int, ssl, useAuth, enabled bool) error
+	SetSMTPConfig(enabled, SSL, UseAuth bool, host, user, from, password string, port int) error
 }
 
 func NewSMTPClient(config ISMTPDynamicConfig, updateChan chan bool) *Client {
