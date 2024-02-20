@@ -99,7 +99,7 @@ trivy image scan:
     - time trivy image --exit-code 0 --cache-dir .trivycache/ --format cyclonedx --no-progress --output "$CI_PROJECT_DIR/gl-code-sbom.cdx.json" $FULL_IMAGE_NAME
 
     # вывести ошибку, если найдена критическая уязвимость
-    - time trivy image --exit-code 1 --cache-dir .trivycache/ --severity CRITICAL --no-progress $CI_PROJECT_DIR
+    - time trivy image --exit-code 1 --cache-dir .trivycache/ --severity CRITICAL --no-progress $FULL_IMAGE_NAME
   cache:
     paths:
       - .trivycache/
