@@ -8,17 +8,20 @@ import (
 	"time"
 )
 
-type GINLogger struct {
+type Gin struct {
 	logger *slog.Logger
 }
 
-func NewGINLogger() *GINLogger {
-	l := GINLogger{logger: slog.New(slog.NewJSONHandler(os.Stdout, nil))}
+func NewGINLogger() *Gin {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	logger = logger.With(slog.String("log_type", "rest_api"))
+
+	l := Gin{logger: logger}
 
 	return &l
 }
 
-func (l *GINLogger) ProvideMiddleware() gin.HandlerFunc {
+func (l *Gin) ProvideMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 
@@ -56,7 +59,7 @@ func (l *GINLogger) ProvideMiddleware() gin.HandlerFunc {
 		l.logger.LogAttrs(
 			context.Background(),
 			level,
-			"request received",
+			"http",
 			slog.String("path", param.Path),
 			slog.String("method", param.Method),
 			slog.String("client_ip", param.ClientIP),

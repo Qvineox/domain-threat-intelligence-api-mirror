@@ -2,10 +2,15 @@ package main
 
 import (
 	"domain_threat_intelligence_api/cmd/app"
+	"domain_threat_intelligence_api/cmd/loggers"
 	"domain_threat_intelligence_api/configs"
+	"fmt"
+	"log/slog"
 )
 
 func main() {
+	loggers.SetDefaultLogger(slog.LevelInfo)
+
 	// reading configuration
 	staticCfg, err := configs.NewStaticConfig()
 	if err != nil {
@@ -18,6 +23,22 @@ func main() {
 		panic(err)
 		return
 	}
+
+	var level slog.Level
+
+	switch staticCfg.Logging.Level {
+	case "debug":
+		level = slog.LevelDebug
+	case "info":
+		level = slog.LevelWarn
+	case "warning":
+		level = slog.LevelInfo
+	default:
+		slog.Warn(fmt.Sprintf("log level '%s' not supported", staticCfg.Logging.Level))
+		level = slog.LevelInfo
+	}
+
+	loggers.SetDefaultLogger(level)
 
 	go dynamicCfg.StartWatcher()
 

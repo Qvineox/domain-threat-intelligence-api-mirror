@@ -123,14 +123,14 @@ type IAuthService interface {
 
 	// Register creates new entities.PlatformUser, returns error if user exists, ignores defined ID
 	Register(login, password, fullName, email string, roleIDs []uint64) (uint64, error)
-	Login(login, password string) (accessToken, refreshToken string, err error)
-	Logout(refreshToken string) error
+	Login(login, password string) (userID uint64, accessToken, refreshToken string, err error)
+	Logout(refreshToken string) (uint64, error)
 
 	ChangePassword(user userEntities.PlatformUser, oldPassword, newPassword string) (userEntities.PlatformUser, error)
 	ResetPassword(user userEntities.PlatformUser, newPassword string) (userEntities.PlatformUser, error)
 
 	Validate(accessToken string) (claims authEntities.AccessTokenClaims, err error)
-	Refresh(refreshToken string) (accessToken, newRefreshToken string, err error)
+	Refresh(refreshToken string) (id uint64, accessToken, newRefreshToken string, err error)
 
 	GetPasswordStrength(password string) (level int, time, entropy float64)
 	GetDomain() string

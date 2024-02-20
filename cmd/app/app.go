@@ -8,34 +8,31 @@ import (
 	"domain_threat_intelligence_api/cmd/mail"
 	"domain_threat_intelligence_api/configs"
 	"fmt"
+	slogGorm "github.com/orandin/slog-gorm"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-	"log"
 	"log/slog"
 	"os"
-	"time"
 )
 
 func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigProvider, dynamicUpdateChan chan bool) error {
 	slog.Info("application starting...")
 	slog.Info("establishing database connection...")
 
-	// prepare database and run migrations
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			SlowThreshold:             time.Second,   // Slow SQL threshold
-			LogLevel:                  logger.Silent, // Log level
-			IgnoreRecordNotFoundError: true,          // Ignore ErrRecordNotFound error for logger
-			ParameterizedQueries:      true,          // Don't include params in the SQL log
-			Colorful:                  false,         // Disable color
-		},
+	// prepare database, logger and run migrations
+	l := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	l = l.With(slog.String("log_type", "database"))
+
+	dbLogger := slogGorm.New(
+		slogGorm.WithLogger(l),
+		slogGorm.SetLogLevel(slogGorm.ErrorLogType, slog.LevelError),
+		slogGorm.SetLogLevel(slogGorm.SlowQueryLogType, slog.LevelWarn),
+		slogGorm.SetLogLevel(slogGorm.DefaultLogType, slog.LevelInfo),
 	)
 
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s database=%s sslmode=disable TimeZone=%s", staticCfg.Database.Host, staticCfg.Database.Port, staticCfg.Database.User, staticCfg.Database.Password, staticCfg.Database.Name, staticCfg.Database.Timezone)
 	dbConn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: newLogger,
+		Logger: dbLogger,
 	})
 	if err != nil {
 		slog.Error("failed to connect database: " + err.Error())

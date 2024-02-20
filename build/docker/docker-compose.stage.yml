@@ -34,9 +34,13 @@ services:
       http_security_tls: $HTTP_SECURITY_TLS
       http_security_origins: $HTTP_SECURITY_ORIGINS
       http_security_domain: $HTTP_SECURITY_DOMAIN
+
+      log_level: debug
     networks:
       - web
       - internal
+    volumes:
+      - ./configs:/configs
     labels:
       - traefik.enable=true
       - traefik.http.routers.dti_api_stage.service=dti_api_stage

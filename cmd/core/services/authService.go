@@ -91,42 +91,42 @@ func (s *AuthServiceImpl) Register(login, password, fullName, email string, role
 	return rows, err
 }
 
-func (s *AuthServiceImpl) Login(login, password string) (accessToken, refreshToken string, err error) {
+func (s *AuthServiceImpl) Login(login, password string) (userID uint64, accessToken, refreshToken string, err error) {
 	user, err := s.repo.SelectUserByLogin(login)
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 
 	if user.ID == 0 {
-		return "", "", errors.New("user not found")
+		return 0, "", "", errors.New("user not found")
 	}
 
 	isValid, err := user.ComparePassword(s.withSalt(password))
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 
 	if !isValid {
-		return "", "", errors.New("password invalid")
+		return 0, "", "", errors.New("password invalid")
 	}
 
 	accessToken, err = s.accessTokenFactory.ProduceAccessToken(user.GetRoleIDs(), user.ID).Sing(s.signingMethod, s.accessTokenKey)
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 
 	refreshToken, err = s.accessTokenFactory.ProduceRefreshToken(user.ID).Sing(s.signingMethod, s.refreshTokenKey)
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 
 	user.RefreshToken = refreshToken
 	err = s.repo.UpdateUserWithRefreshToken(user)
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 
-	return accessToken, refreshToken, nil
+	return user.ID, accessToken, refreshToken, nil
 }
 
 func (s *AuthServiceImpl) ChangePassword(user userEntities.PlatformUser, oldPassword, newPassword string) (userEntities.PlatformUser, error) {
@@ -177,17 +177,17 @@ func (s *AuthServiceImpl) ResetPassword(user userEntities.PlatformUser, newPassw
 	return user, nil
 }
 
-func (s *AuthServiceImpl) Logout(refreshToken string) error {
+func (s *AuthServiceImpl) Logout(refreshToken string) (uint64, error) {
 	user, err := s.repo.SelectUserByRefreshToken(refreshToken)
 	if err != nil {
-		return err
+		return 0, err
 	} else if user.ID == 0 {
-		return errors.New("user not found")
+		return 0, errors.New("user not found")
 	}
 
 	user.RefreshToken = ""
 
-	return s.repo.UpdateUserWithRefreshToken(user)
+	return user.ID, s.repo.UpdateUserWithRefreshToken(user)
 }
 
 func (s *AuthServiceImpl) Validate(accessToken string) (claims authEntities.AccessTokenClaims, err error) {
@@ -199,40 +199,40 @@ func (s *AuthServiceImpl) Validate(accessToken string) (claims authEntities.Acce
 	return claims, err
 }
 
-func (s *AuthServiceImpl) Refresh(token string) (accessToken, refreshToken string, err error) {
-	claims, err := s.verifyRefreshToken(s.signingMethod, token, s.refreshTokenKey)
+func (s *AuthServiceImpl) Refresh(refreshToken string) (id uint64, accessToken, newRefreshToken string, err error) {
+	claims, err := s.verifyRefreshToken(s.signingMethod, refreshToken, s.refreshTokenKey)
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 
 	if claims.UserID == 0 {
-		return "", "", errors.New("missing user id")
+		return 0, "", "", errors.New("missing user id")
 	}
 
 	user, err := s.repo.SelectUser(claims.UserID)
 	if err != nil {
-		return "", "", err
+		return id, "", "", err
 	} else if user.ID == 0 {
-		return "", "", errors.New("user not found")
+		return 0, "", "", errors.New("user not found")
 	}
 
 	accessToken, err = s.accessTokenFactory.ProduceAccessToken(user.GetRoleIDs(), user.ID).Sing(s.signingMethod, s.accessTokenKey)
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 
 	refreshToken, err = s.refreshTokenFactory.ProduceRefreshToken(user.ID).Sing(s.signingMethod, s.refreshTokenKey)
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 
 	user.RefreshToken = refreshToken
 	err = s.repo.UpdateUserWithRefreshToken(user)
 	if err != nil {
-		return "", "", err
+		return 0, "", "", err
 	}
 
-	return accessToken, refreshToken, nil
+	return user.ID, accessToken, refreshToken, nil
 }
 
 func (s *AuthServiceImpl) GetPasswordStrength(password string) (level int, time float64, entropy float64) {

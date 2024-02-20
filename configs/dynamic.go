@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/fsnotify/fsnotify"
 	"github.com/ilyakaznacheev/cleanenv"
-	"log"
 	"log/slog"
 	"net/url"
 	"os"
@@ -107,11 +106,13 @@ func (d *DynamicConfigProvider) StartWatcher() {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		slog.Error("failed to start dynamic config watcher: " + err.Error())
+		return
 	}
 
 	err = watcher.Add(d.path)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("failed to start dynamic config watcher: " + err.Error())
+		return
 	}
 
 	defer watcher.Close()
@@ -148,7 +149,7 @@ func (d *DynamicConfigProvider) StartWatcher() {
 
 				d.updateNotifier <- true
 			default:
-				slog.Debug("unhandled dynamic configuration event: " + e.String())
+				slog.Warn("unhandled dynamic configuration event: " + e.String())
 			}
 		}
 	}
@@ -180,6 +181,8 @@ func (d *DynamicConfigProvider) GetCurrentState() ([]byte, error) {
 }
 
 func (d *DynamicConfigProvider) SetDefaultValues() error {
+	slog.Info("dynamic config default values has been restored")
+
 	d.config.SMTP = smtpConfig{}
 	d.config.Integrations = integrationsConfig{}
 
@@ -232,6 +235,7 @@ func (d *DynamicConfigProvider) SetNaumenConfig(enabled bool, host, key string, 
 		return err
 	}
 
+	slog.Info("naumen credentials config has been updated")
 	return nil
 }
 
@@ -250,6 +254,7 @@ func (d *DynamicConfigProvider) SetNaumenBlacklistServiceConfig(aID, slm uint64,
 		return err
 	}
 
+	slog.Info("naumen blacklist service config has been updated")
 	return nil
 }
 
@@ -315,5 +320,6 @@ func (d *DynamicConfigProvider) SetSMTPConfig(enabled, SSL, useAuth bool, host, 
 		return err
 	}
 
+	slog.Info("smtp dynamic config has been updated")
 	return nil
 }
