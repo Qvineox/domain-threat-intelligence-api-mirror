@@ -43,6 +43,8 @@ services:
     networks:
       - web
       - internal
+    volumes:
+      - ./configs:/configs
     labels:
       - traefik.enable=true
       - traefik.http.routers.dti_api.service=dti_api
