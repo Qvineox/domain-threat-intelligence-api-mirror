@@ -40,7 +40,7 @@ services:
       - web
       - internal
     volumes:
-      - ./configs:/configs
+      - api_production_dynamic_config:/configs
     labels:
       - traefik.enable=true
       - traefik.http.routers.dti_api_prod.service=dti_api_prod
@@ -48,3 +48,6 @@ services:
       - traefik.http.routers.dti_api_prod.tls=true
       - traefik.http.routers.dti_api_prod.entrypoints=websec
       - traefik.http.services.dti_api_prod.loadbalancer.server.port=80
+
+volumes:
+  api_production_dynamic_config:
