@@ -12,6 +12,7 @@ COPY ./go.mod /src/go.mod
 RUN go mod download
 
 COPY . /src
+RUN go mod tidy
 
 RUN mkdir /app_build
 RUN go build -ldflags="-s -w" -o /app_build/go_build_stage.exe ./cmd
