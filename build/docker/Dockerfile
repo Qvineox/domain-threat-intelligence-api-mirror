@@ -9,7 +9,7 @@ RUN go env -w GOOS=linux
 WORKDIR /src
 
 COPY ./go.mod /src/go.mod
-RUN go mod tidy
+RUN go mod download
 
 COPY . /src
 
