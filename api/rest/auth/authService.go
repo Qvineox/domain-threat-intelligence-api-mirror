@@ -31,7 +31,8 @@ func (s *MiddlewareService) ValidateAccessToken(accessToken string) bool {
 }
 
 func (s *MiddlewareService) RefreshAccessToken(refreshToken string) (accessToken, newRefreshToken string, err error) {
-	return s.service.Refresh(refreshToken)
+	_, a, r, err := s.service.Refresh(refreshToken)
+	return a, r, err
 }
 
 func (s *MiddlewareService) RequireAuth() gin.HandlerFunc {

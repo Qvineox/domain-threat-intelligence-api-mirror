@@ -4,6 +4,7 @@ import (
 	"domain_threat_intelligence_api/api/rest/auth"
 	apiErrors "domain_threat_intelligence_api/api/rest/error"
 	"domain_threat_intelligence_api/cmd/core"
+	"domain_threat_intelligence_api/cmd/loggers"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -13,6 +14,9 @@ type AuthRouter struct {
 	service        core.IAuthService
 	path           *gin.RouterGroup
 	authMiddleware *auth.MiddlewareService
+
+	// logger is used to log auth events
+	logger *loggers.AuthLogger
 }
 
 func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup, auth *auth.MiddlewareService) *AuthRouter {
@@ -36,6 +40,8 @@ func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup, auth *auth.
 	{
 		authSecureGroup.POST("/logout", router.Logout)
 	}
+
+	router.logger = loggers.NewAuthLogger()
 
 	return &router
 }
@@ -61,7 +67,9 @@ func (r *AuthRouter) Login(c *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, err := r.service.Login(params.Username, params.Password)
+	id, accessToken, refreshToken, err := r.service.Login(params.Username, params.Password)
+	r.logger.SessionLogin(params.Username, c.ClientIP(), id, err)
+
 	if err != nil {
 		apiErrors.AuthErrorResponse(c, err)
 		return
@@ -102,7 +110,9 @@ func (r *AuthRouter) Logout(c *gin.Context) {
 		return
 	}
 
-	err = r.service.Logout(refreshToken)
+	id, err := r.service.Logout(refreshToken)
+	r.logger.SessionLogout("", c.ClientIP(), id, err)
+
 	if err != nil {
 		return
 	}
@@ -131,7 +141,9 @@ func (r *AuthRouter) Refresh(c *gin.Context) {
 		return
 	}
 
-	accessToken, newRefreshToken, err := r.service.Refresh(refreshToken)
+	id, accessToken, newRefreshToken, err := r.service.Refresh(refreshToken)
+	r.logger.SessionRefresh("", c.ClientIP(), id, err)
+
 	if err != nil {
 		apiErrors.AuthErrorResponse(c, err)
 		return

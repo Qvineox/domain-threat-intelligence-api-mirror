@@ -1,6 +1,7 @@
 package error
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -33,6 +34,7 @@ const (
 )
 
 func ParamsErrorResponse(c *gin.Context, err error) {
+	_ = c.Error(err)
 	c.JSON(http.StatusBadRequest, APIError{
 		StatusCode:   http.StatusBadRequest,
 		ErrorCode:    IncorrectParamsErrorCode,
@@ -42,6 +44,7 @@ func ParamsErrorResponse(c *gin.Context, err error) {
 }
 
 func DatabaseErrorResponse(c *gin.Context, err error) {
+	_ = c.Error(err)
 	c.JSON(http.StatusBadRequest, APIError{
 		StatusCode:   http.StatusBadRequest,
 		ErrorCode:    DatabaseErrorCode,
@@ -51,6 +54,7 @@ func DatabaseErrorResponse(c *gin.Context, err error) {
 }
 
 func DatabaseEntityNotFound(c *gin.Context) {
+	_ = c.Error(errors.New("entity not found"))
 	c.JSON(http.StatusNotFound, APIError{
 		StatusCode:   http.StatusNotFound,
 		ErrorCode:    DatabaseEntityNotFoundCode,
@@ -74,6 +78,7 @@ func DatabaseMultipleErrorsResponse(c *gin.Context, errs []error) {
 }
 
 func FileDecodingErrorResponse(c *gin.Context, err error) {
+	_ = c.Error(err)
 	c.JSON(http.StatusBadRequest, APIError{
 		StatusCode:   http.StatusBadRequest,
 		ErrorCode:    FileDecodingErrorCode,
@@ -83,6 +88,7 @@ func FileDecodingErrorResponse(c *gin.Context, err error) {
 }
 
 func FileReadingErrorResponse(c *gin.Context, err error) {
+	_ = c.Error(err)
 	c.JSON(http.StatusBadRequest, APIError{
 		StatusCode:   http.StatusBadRequest,
 		ErrorCode:    FileReadingErrorCode,
@@ -92,6 +98,7 @@ func FileReadingErrorResponse(c *gin.Context, err error) {
 }
 
 func FileExtensionNotSupportedErrorResponse(c *gin.Context, err error) {
+	_ = c.Error(err)
 	c.JSON(http.StatusNotAcceptable, APIError{
 		StatusCode:   http.StatusNotAcceptable,
 		ErrorCode:    FileExtensionNotSupportedErrorCode,
@@ -100,7 +107,8 @@ func FileExtensionNotSupportedErrorResponse(c *gin.Context, err error) {
 	})
 }
 
-func NotImplementedErrorResponse(c *gin.Context) {
+func NotImplementedErrorResponse(c *gin.Context, err error) {
+	_ = c.Error(err)
 	c.JSON(http.StatusNotImplemented, APIError{
 		StatusCode:   http.StatusNotImplemented,
 		ErrorCode:    NotImplementedErrorCode,
@@ -110,6 +118,7 @@ func NotImplementedErrorResponse(c *gin.Context) {
 }
 
 func FileProcessingErrorResponse(c *gin.Context, err error) {
+	_ = c.Error(err)
 	c.JSON(http.StatusInternalServerError, APIError{
 		StatusCode:   http.StatusInternalServerError,
 		ErrorCode:    FileProcessingErrorCode,
@@ -119,6 +128,7 @@ func FileProcessingErrorResponse(c *gin.Context, err error) {
 }
 
 func InternalErrorResponse(c *gin.Context, err error) {
+	_ = c.Error(err)
 	c.JSON(http.StatusInternalServerError, APIError{
 		StatusCode:   http.StatusInternalServerError,
 		ErrorCode:    InternalUnidentifiedErrorCode,
@@ -128,6 +138,7 @@ func InternalErrorResponse(c *gin.Context, err error) {
 }
 
 func AuthErrorResponse(c *gin.Context, err error) {
+	_ = c.Error(err)
 	c.JSON(http.StatusUnauthorized, APIError{
 		StatusCode:   http.StatusUnauthorized,
 		ErrorCode:    AuthFailedErrorCode,
