@@ -20,6 +20,5 @@ RUN go build -ldflags="-s -w" -o /app_build/go_build_stage.exe ./cmd
 FROM alpine:3.19.1 as web_server
 
 COPY --from=builder /app_build .
-RUN mkdir configs
 
 CMD ["./go_build_stage.exe"]
