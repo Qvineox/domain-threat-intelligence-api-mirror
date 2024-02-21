@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="generate proto" type="ShConfigurationType">
-    <option name="SCRIPT_TEXT" value="protoc --proto_path=./api/proto/contracts --go_out=./api/proto/services --go_opt=paths=source_relative agent.proto" />
+    <option name="SCRIPT_TEXT" value="protoc --proto_path=./api/proto/contracts --go_out=./api/proto/services --go_opt=paths=source_relative --go-grpc_out=./api/proto/services --go-grpc_opt=paths=source_relative  agent.proto" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="" />
     <option name="SCRIPT_OPTIONS" value="" />

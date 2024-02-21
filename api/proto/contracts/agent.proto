@@ -1,6 +1,35 @@
 syntax = "proto3";
 package contracts;
-option go_package = "domain_threat_intelligence_api/api/proto/contracts";
+
+option go_package = "domain_threat_intelligence_api/api/proto/services";
+
+// ref: https://habr.com/ru/articles/774796/
+// ref: https://www.geeksforgeeks.org/how-to-install-protocol-buffers-on-windows/
+// ref:
+
+service Connection {
+  rpc Hello(SecurityToken) returns (SecurityToken);
+}
+
+message SecurityToken {
+  string securityToken = 1; // encoded token for access validation
+}
+
+service Jobs {
+  // StartJob accepts Job with all required params, streams back all queried and found results
+  rpc StartJob (Job) returns (stream HostAuditReport);
+
+  rpc TerminateJob(JobTermination) returns (None);
+
+  rpc RetrieveQueue(None) returns (Queue);
+  rpc RetrieveQueueStatus(None) returns (QueueStatus);
+}
+
+service Configuration {
+  // Reconfigure used to configure agent, returns new config
+  rpc Reconfigure(AgentConfig) returns (AgentConfig);
+  rpc RetrieveConfig(None) returns (AgentConfig);
+}
 
 message Job {
   Meta meta = 1; // job metadata and identity
@@ -18,12 +47,28 @@ message Job {
   optional Payload payload = 8;
 }
 
+message JobTermination {
+  string uuid = 1;
+  bool force = 2;
+}
+
+message Queue {
+  repeated Job jobs = 1;
+}
+
+message QueueStatus {
+  bool isBusy = 1;
+  bool acceptsNewJobs = 2;
+
+  uint64 jobsInQueue = 3;
+}
+
 message Meta {
   string uuid = 1;
-  JobType type = 2;
-  string email = 3;
-  JobPriority priority = 4;
-  int64 weight = 5; // helps to determine job resource consumption
+  JobType type = 3;
+  string email = 4;
+  JobPriority priority = 5;
+  int64 weight = 6; // helps to determine job resource consumption
 }
 
 // every JobType has its own assigned directives
@@ -132,4 +177,22 @@ enum HostType {
   HOST_TYPE_DOMAIN = 1;
   HOST_TYPE_URL = 2;
   HOST_TYPE_EMAIL = 3;
+}
+
+message HostAuditReport {
+  string jobUUID = 1;
+}
+
+message AgentConfig {
+  repeated ProviderAPIKey keys = 1;
+  JobPriority minPriority = 2;
+}
+
+message ProviderAPIKey {
+  OSSProvider provider = 1;
+  string APIKey = 2;
+}
+
+message None {
+
 }
