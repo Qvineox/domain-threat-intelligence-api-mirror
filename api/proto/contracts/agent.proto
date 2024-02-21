@@ -1,0 +1,135 @@
+syntax = "proto3";
+package contracts;
+option go_package = "domain_threat_intelligence_api/api/proto/contracts";
+
+message Job {
+  Meta meta = 1; // job metadata and identity
+
+  // describes job parameters and settings, corresponds to meta.type
+  oneof directives {
+    OSSScanDirectives oss = 2;
+    NMAPDirectives nmap = 3;
+    WhoIsDirectives whois = 4;
+    DNSDirectives dns = 5;
+    DiscoveryDirectives discovery = 6;
+    SpiderDirectives spider = 7;
+  };
+
+  optional Payload payload = 8;
+}
+
+message Meta {
+  string uuid = 1;
+  JobType type = 2;
+  string email = 3;
+  JobPriority priority = 4;
+  int64 weight = 5; // helps to determine job resource consumption
+}
+
+// every JobType has its own assigned directives
+enum JobType {
+  JOB_TYPE_OSS = 0;
+  JOB_TYPE_NMAP = 1;
+  JOB_TYPE_WHOIS = 2;
+  JOB_TYPE_DNS = 3;
+  JOB_TYPE_DISCOVERY = 4;
+  JOB_TYPE_SPIDER = 5;
+}
+
+enum JobPriority {
+  JOB_PRIORITY_LOW = 0; // job should be executed lastly in order (queue mode)
+  JOB_PRIORITY_MEDIUM = 1; // job should be executed with higher priority
+  JOB_PRIORITY_HIGH = 2; // job must be executed after current (stack mode)
+  JOB_PRIORITY_CRITICAL = 3;  // job must be executed instantly
+}
+
+// scanning using public service APIs, i.e VirusTotal, CrowdSec, IPQS and others
+message OSSScanDirectives {
+  repeated OSSProvider providers = 1;
+
+  Timings timings = 9;
+}
+
+enum OSSProvider {
+  OSS_PROVIDER_VIRUS_TOTAL = 0;
+  OSS_PROVIDER_IP_QUALITY_SCORE = 1;
+  OSS_PROVIDER_CROWD_SEC = 2;
+  OSS_PROVIDER_SHODAN = 3;
+  OSS_PROVIDER_IP_WHO_IS = 4;
+}
+
+// scanning using NMAP binding
+message NMAPDirectives {
+  Timings timings = 9;
+}
+
+// query WhoIS servers
+message WhoIsDirectives {
+  Timings timings = 9;
+}
+
+// query DNS servers
+message DNSDirectives {
+  Timings timings = 9;
+}
+
+// discover hosts with designated targets (must provide subnet/CIDR)
+message DiscoveryDirectives {
+  repeated int64 ports = 1; // which ports should be checked for response, see IANA ports
+
+  bool silent = 2;
+
+  Timings timings = 9;
+}
+
+// start spider host discovery
+message SpiderDirectives {
+  int64 depth = 1; // describes max amount of hops in depth
+
+  Timings timings = 9;
+}
+
+message Timings {
+  uint64 timeout = 1;
+  uint64 delay = 2;
+  uint64 retries = 3;
+}
+
+message Payload {
+  PayloadType type = 1;
+
+  // the body of the Payload may differ depending on the type of payload
+  oneof body {
+    TargetPayload target = 2;
+    TargetsPayload targets = 3;
+    SubnetPayload subnet = 4;
+  }
+}
+
+enum PayloadType {
+  PAYLOAD_TYPE_TARGET = 0;
+  PAYLOAD_TYPE_TARGETS = 1;
+  PAYLOAD_TYPE_SUBNET = 2;
+}
+
+// TargetPayload describes single target
+message TargetPayload {
+  string host = 1;
+  optional HostType type = 2;
+}
+
+message TargetsPayload {
+  repeated TargetPayload targets = 1;
+}
+
+message SubnetPayload {
+  string cidr = 1;
+  repeated string exceptions = 2;
+}
+
+enum HostType {
+  HOST_TYPE_CIDR = 0; // or IP address
+  HOST_TYPE_DOMAIN = 1;
+  HOST_TYPE_URL = 2;
+  HOST_TYPE_EMAIL = 3;
+}
