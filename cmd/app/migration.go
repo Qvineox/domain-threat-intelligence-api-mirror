@@ -1,9 +1,9 @@
 package app
 
 import (
+	"domain_threat_intelligence_api/cmd/core/entities/agentEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/networkEntities"
-	"domain_threat_intelligence_api/cmd/core/entities/scanEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/serviceDeskEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"gorm.io/gorm"
@@ -27,7 +27,7 @@ func runMigrations(database *gorm.DB) error {
 		networkEntities.NetworkNodeLink{},
 		userEntities.PlatformUserPermission{},
 		userEntities.PlatformUser{},
-		scanEntities.ScanAgent{},
+		agentEntities.ScanAgent{},
 	)
 
 	if err != nil {

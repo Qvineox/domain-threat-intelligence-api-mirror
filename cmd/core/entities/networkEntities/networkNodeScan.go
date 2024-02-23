@@ -1,7 +1,7 @@
 package networkEntities
 
 import (
-	"domain_threat_intelligence_api/cmd/core/entities/scanEntities"
+	"domain_threat_intelligence_api/cmd/core/entities/agentEntities"
 	"github.com/jackc/pgtype"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -19,8 +19,8 @@ type NetworkNodeScan struct {
 	NodeUUID pgtype.UUID  `json:"NodeUUID;type:uuid"`
 
 	// Defines which agent provided current scan result
-	Agent     *scanEntities.ScanAgent `json:"Agent,omitempty" gorm:"foreignKey:AgentUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	AgentUUID pgtype.UUID             `json:"AgentUUID;type:uuid"`
+	Agent     *agentEntities.ScanAgent `json:"Agent,omitempty" gorm:"foreignKey:AgentUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	AgentUUID pgtype.UUID              `json:"AgentUUID;type:uuid"`
 
 	Data datatypes.JSONType[NetworkNodeScanData] `json:"Data" gorm:"column:data"`
 

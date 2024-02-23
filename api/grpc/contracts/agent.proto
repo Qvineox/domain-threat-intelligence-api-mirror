@@ -1,14 +1,15 @@
 syntax = "proto3";
 package contracts;
 
-option go_package = "domain_threat_intelligence_api/api/proto/services";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "domain_threat_intelligence_api/api/proto/protoServices";
 
 // ref: https://habr.com/ru/articles/774796/
 // ref: https://www.geeksforgeeks.org/how-to-install-protocol-buffers-on-windows/
-// ref:
 
 service Connection {
-  rpc Hello(SecurityToken) returns (SecurityToken);
+  rpc Hello(SecurityToken) returns (SecurityToken); // describes initial connection sequence, key validation and exchange
 }
 
 message SecurityToken {
@@ -45,6 +46,10 @@ message Job {
   };
 
   optional Payload payload = 8;
+
+  // tasks are internal entity for agent, should be visible to determine progress
+  optional uint64 tasksElapsed = 9;
+  optional uint64 tasksLeft = 10;
 }
 
 message JobTermination {
@@ -61,14 +66,23 @@ message QueueStatus {
   bool acceptsNewJobs = 2;
 
   uint64 jobsInQueue = 3;
+  uint64 tasksInQueue = 4;
 }
 
 message Meta {
   string uuid = 1;
+
   JobType type = 3;
-  string email = 4;
+  JobStatus status = 4;
+
   JobPriority priority = 5;
   int64 weight = 6; // helps to determine job resource consumption
+
+  google.protobuf.Timestamp createdAt = 7;
+  google.protobuf.Timestamp updatedAt = 8;
+
+  optional google.protobuf.Timestamp startedAt = 9;
+  optional google.protobuf.Timestamp finishedAt = 10;
 }
 
 // every JobType has its own assigned directives
@@ -79,6 +93,16 @@ enum JobType {
   JOB_TYPE_DNS = 3;
   JOB_TYPE_DISCOVERY = 4;
   JOB_TYPE_SPIDER = 5;
+}
+
+// describes the state of the job
+enum JobStatus {
+  JOB_STATUS_PENDING = 0; // not yet started
+  JOB_STATUS_STARTING = 1; // calculating tasks, creating required structures
+  JOB_STATUS_WORKING = 2; // executing tasks
+  JOB_STATUS_FINISHING = 3; // clearing and sending data
+  JOB_STATUS_ERROR = 4; // job stopped with error from API or scanners (can be multiple errors, with threshold)
+  JOB_STATUS_PANIC = 5; // internal exception
 }
 
 enum JobPriority {
@@ -141,35 +165,16 @@ message Timings {
 }
 
 message Payload {
-  PayloadType type = 1;
-
   // the body of the Payload may differ depending on the type of payload
-  oneof body {
-    TargetPayload target = 2;
-    TargetsPayload targets = 3;
-    SubnetPayload subnet = 4;
-  }
-}
-
-enum PayloadType {
-  PAYLOAD_TYPE_TARGET = 0;
-  PAYLOAD_TYPE_TARGETS = 1;
-  PAYLOAD_TYPE_SUBNET = 2;
+  // can me CIDR subnets, ips, urls, domains, emails
+  repeated Target targets = 1;
+  repeated Target exceptions = 2;
 }
 
 // TargetPayload describes single target
-message TargetPayload {
+message Target {
   string host = 1;
-  optional HostType type = 2;
-}
-
-message TargetsPayload {
-  repeated TargetPayload targets = 1;
-}
-
-message SubnetPayload {
-  string cidr = 1;
-  repeated string exceptions = 2;
+  HostType type = 2;
 }
 
 enum HostType {
@@ -184,8 +189,19 @@ message HostAuditReport {
 }
 
 message AgentConfig {
-  repeated ProviderAPIKey keys = 1;
-  JobPriority minPriority = 2;
+  string uuid = 1;
+  string name = 2;
+  string address = 3;
+
+  reserved 4, 5; // TODO: reserved for tags and groups
+
+  bool isHomeBound = 6; // defines if agent is placed inside organisation and/or behind NAT
+
+  google.protobuf.Timestamp createdAt = 7;
+  google.protobuf.Timestamp updatedAt = 8;
+
+  repeated ProviderAPIKey keys = 9;
+  JobPriority minPriority = 10;
 }
 
 message ProviderAPIKey {
