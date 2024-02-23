@@ -6,8 +6,8 @@ import (
 )
 
 type Payload struct {
-	Targets    []Target `json:"targets"`
-	Exceptions []Target `json:"exceptions"`
+	Targets    []Target `json:"Targets"`
+	Exceptions []Target `json:"Exceptions"`
 }
 
 // NewPayload accepts targets as follows: URL, domain, email, CIDR, IP

@@ -3,14 +3,21 @@ package jobEntities
 import (
 	"domain_threat_intelligence_api/api/grpc/protoServices"
 	"errors"
+	"gorm.io/datatypes"
 	"reflect"
 	"time"
 )
 
 type Job struct {
-	Meta       *Metadata
-	Payload    *Payload
-	Directives Directives
+	Meta       *Metadata  `json:"Meta" gorm:"embedded"`
+	Payload    *Payload   `json:"Payload" gorm:"-"`
+	Directives Directives `json:"Directives" gorm:"-"`
+
+	// DirectivesJSON is marshalled from Directives via PrepareToSave
+	DirectivesJSON datatypes.JSONType[Directives] `json:"-"  gorm:"column:directives"`
+
+	// PayloadJSON is marshalled from Payload via PrepareToSave
+	PayloadJSON datatypes.JSONType[Payload] `json:"-"  gorm:"column:payload"`
 }
 
 func (j *Job) WithMetadata(t JobType, p JobPriority, w int64) *Job {
@@ -102,6 +109,26 @@ func (j *Job) ToProto() *protoServices.Job {
 	}
 }
 
+func (j *Job) PrepareToSave() error {
+	err := j.DirectivesJSON.Scan(j.Directives)
+	if err != nil {
+		return err
+	}
+
+	err = j.PayloadJSON.Scan(j.Payload)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 const defaultTimout = 5000
 const defaultDelay = 200
 const defaultRetries = 3
+
+type JobsSearchFilter struct {
+}
+
+type JobCreateParams struct {
+}

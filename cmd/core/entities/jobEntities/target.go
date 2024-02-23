@@ -10,8 +10,8 @@ import (
 )
 
 type Target struct {
-	Host string
-	Type TargetType
+	Host string     `json:"Host"`
+	Type TargetType `json:"Type"`
 }
 
 type TargetType uint64

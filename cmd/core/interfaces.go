@@ -3,6 +3,7 @@ package core
 import (
 	"domain_threat_intelligence_api/cmd/core/entities/authEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
+	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/serviceDeskEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"github.com/jackc/pgtype"
@@ -76,6 +77,33 @@ type IBlacklistsRepo interface {
 	SelectByDiscoveryDateStatistics(startDate, endDate time.Time) ([]blacklistEntities.BlacklistedByDate, error)
 
 	SelectAllSources() ([]blacklistEntities.BlacklistSource, error)
+}
+
+type IQueueService interface {
+	QueueNewJob(params jobEntities.JobCreateParams) (pgtype.UUID, error)
+
+	// AlterQueuedJob modifies jobs in queue, cannot change running jobs on agents
+	AlterQueuedJob(uuid pgtype.UUID, params jobEntities.JobCreateParams) (pgtype.UUID, error)
+
+	// CancelQueuedJob removes job from queue, can also stop it on agent
+	CancelQueuedJob(uuid pgtype.UUID, force bool) error
+
+	// RetrieveJobsQueue returns currently active and pending jobs in memory
+	RetrieveJobsQueue() (jobEntities.Queue, error)
+}
+
+type IJobsService interface {
+	RetrieveJobsByFilter(filter jobEntities.JobsSearchFilter) ([]jobEntities.Job, error)
+	RetrieveJobByUUID(uuid pgtype.UUID) (jobEntities.Job, error)
+	SaveJob(job jobEntities.Job) error
+	DeleteJob(uuid pgtype.UUID) error
+}
+
+type IJobsRepo interface {
+	SelectJobsByFilter(filter jobEntities.JobsSearchFilter) ([]jobEntities.Job, error)
+	SelectJobByUUID(uuid pgtype.UUID) (jobEntities.Job, error)
+	CreateJob(job jobEntities.Job) error
+	DeleteJob(uuid pgtype.UUID) error
 }
 
 type IUsersService interface {

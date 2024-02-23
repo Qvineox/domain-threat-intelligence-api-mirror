@@ -2,26 +2,31 @@ package jobEntities
 
 import (
 	"domain_threat_intelligence_api/api/grpc/protoServices"
+	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"fmt"
 	"github.com/jackc/pgtype"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"gorm.io/gorm"
 	"time"
 )
 
 type Metadata struct {
 	UUID pgtype.UUID `json:"UUID" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 
-	Type     JobType
-	Status   JobStatus
-	Priority JobPriority
-	Weight   int64
+	Type     JobType     `json:"Type" gorm:"column:type"`
+	Status   JobStatus   `json:"Status" gorm:"column:status"`
+	Priority JobPriority `json:"Priority" gorm:"column:priority"`
+	Weight   int64       `json:"Weight" gorm:"column:weight"`
 
-	// CreatedBy uint64
+	CreatedBy   *userEntities.PlatformUser `json:"CreatedBy"`
+	CreatedByID *uint64                    `json:"CreatedByID" gorm:"column:created_by_id"`
 
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	StartedAt  *time.Time
-	FinishedAt *time.Time
+	StartedAt  *time.Time `json:"StartedAt" gorm:"column:finished_at"`
+	FinishedAt *time.Time `json:"FinishedAt" gorm:"column:finished_at"`
+
+	CreatedAt time.Time      `json:"CreatedAt"`
+	UpdatedAt time.Time      `json:"UpdatedAt"`
+	DeletedAt gorm.DeletedAt `json:"DeletedAt,omitempty" gorm:"index"`
 }
 
 type JobType uint64
@@ -44,6 +49,7 @@ const (
 	JOB_STATUS_FINISHING                  // clearing and sending data
 	JOB_STATUS_ERROR                      // job stopped with error from API or scanners (can be multiple errors, with threshold)
 	JOB_STATUS_PANIC                      // internal exception
+	JOB_STATUS_CANCELLED                  // job was cancelled by user
 )
 
 const (

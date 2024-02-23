@@ -104,6 +104,7 @@ enum JobStatus {
   JOB_STATUS_FINISHING = 3; // clearing and sending data
   JOB_STATUS_ERROR = 4; // job stopped with error from API or scanners (can be multiple errors, with threshold)
   JOB_STATUS_PANIC = 5; // internal exception
+  JOB_STATUS_CANCELLED = 6; // job was cancelled by user
 }
 
 enum JobPriority {

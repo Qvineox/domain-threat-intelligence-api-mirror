@@ -3,6 +3,7 @@ package app
 import (
 	"domain_threat_intelligence_api/cmd/core/entities/agentEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
+	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/networkEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/serviceDeskEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
@@ -28,6 +29,7 @@ func runMigrations(database *gorm.DB) error {
 		userEntities.PlatformUserPermission{},
 		userEntities.PlatformUser{},
 		agentEntities.ScanAgent{},
+		jobEntities.Job{},
 	)
 
 	if err != nil {
