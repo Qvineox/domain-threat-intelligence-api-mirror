@@ -45,17 +45,10 @@ func NewTargetFromString(target string) (Target, error) {
 			return Target{}, err
 		}
 
-		if len(parsedURL.Path) > 0 {
-			return Target{
-				Host: parsedURL.String(),
-				Type: HOST_TYPE_URL,
-			}, err
-		}
-
 		return Target{
-			Host: parsedURL.Hostname(),
-			Type: HOST_TYPE_DOMAIN,
-		}, err
+			Host: parsedURL.String(),
+			Type: HOST_TYPE_URL,
+		}, nil
 	}
 
 	if strings.Contains(target, "@") {
@@ -72,19 +65,27 @@ func NewTargetFromString(target string) (Target, error) {
 
 	if strings.Contains(target, "/") {
 		_, ipv4Net, err := net.ParseCIDR(target)
-		if err != nil {
-			return Target{}, err
+		if err == nil && ipv4Net != nil {
+			return Target{
+				Host: ipv4Net.String(),
+				Type: HOST_TYPE_CIDR,
+			}, nil
 		}
 
-		return Target{
-			Host: ipv4Net.String(),
-			Type: HOST_TYPE_CIDR,
-		}, err
+		return Target{}, errors.New("failed to parse CIDR: " + err.Error())
 	}
 
 	ipv4Addr := net.ParseIP(target)
-	if ipv4Addr != nil {
-		return Target{}, errors.New("failed to parse IP address")
+	if ipv4Addr == nil {
+		_, err := url.Parse("//" + target)
+		if err != nil {
+			return Target{}, errors.New("unrecognized host type")
+		}
+
+		return Target{
+			Host: target,
+			Type: HOST_TYPE_DOMAIN,
+		}, nil
 	}
 
 	return Target{
@@ -93,7 +94,7 @@ func NewTargetFromString(target string) (Target, error) {
 	}, nil
 }
 
-func (t *Target) ToProto() (*protoServices.Target, error) {
+func (t *Target) ToProto() *protoServices.Target {
 	var target = protoServices.Target{
 		Host: t.Host,
 	}
@@ -107,9 +108,7 @@ func (t *Target) ToProto() (*protoServices.Target, error) {
 		target.Type = protoServices.HostType_HOST_TYPE_URL
 	case HOST_TYPE_EMAIL:
 		target.Type = protoServices.HostType_HOST_TYPE_EMAIL
-	default:
-		return nil, errors.New("host type not supported")
 	}
 
-	return &target, nil
+	return &target
 }

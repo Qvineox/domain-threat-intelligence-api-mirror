@@ -36,20 +36,21 @@ message Job {
   Meta meta = 1; // job metadata and identity
 
   // describes job parameters and settings, corresponds to meta.type
-  oneof directives {
-    OSSScanDirectives oss = 2;
-    NMAPDirectives nmap = 3;
-    WhoIsDirectives whois = 4;
-    DNSDirectives dns = 5;
-    DiscoveryDirectives discovery = 6;
-    SpiderDirectives spider = 7;
-  };
-
-  optional Payload payload = 8;
+  Payload payload = 2;
+  Directives directives = 3;
 
   // tasks are internal entity for agent, should be visible to determine progress
-  optional uint64 tasksElapsed = 9;
-  optional uint64 tasksLeft = 10;
+  optional uint64 tasksElapsed = 4;
+  optional uint64 tasksLeft = 5;
+}
+
+message Directives {
+  optional OSSDirectives oss = 1;
+  optional NMAPDirectives nmap = 2;
+  optional WhoIsDirectives whois = 3;
+  optional DNSDirectives dns = 4;
+  optional DiscoveryDirectives discovery = 5;
+  optional SpiderDirectives spider = 6;
 }
 
 message JobTermination {
@@ -113,7 +114,7 @@ enum JobPriority {
 }
 
 // scanning using public service APIs, i.e VirusTotal, CrowdSec, IPQS and others
-message OSSScanDirectives {
+message OSSDirectives {
   repeated OSSProvider providers = 1;
 
   Timings timings = 9;

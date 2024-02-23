@@ -1,14 +1,22 @@
 package jobEntities
 
-import "time"
+import (
+	"domain_threat_intelligence_api/api/grpc/protoServices"
+	"fmt"
+	"github.com/jackc/pgtype"
+	"google.golang.org/protobuf/types/known/timestamppb"
+	"time"
+)
 
 type Metadata struct {
-	UUID string
+	UUID pgtype.UUID `json:"UUID" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 
 	Type     JobType
 	Status   JobStatus
 	Priority JobPriority
 	Weight   int64
+
+	// CreatedBy uint64
 
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
@@ -45,6 +53,14 @@ const (
 	JOB_PRIORITY_CRITICAL                    // job must be executed instantly
 )
 
-func NewMetadata(uuid string) {
-
+func (m *Metadata) ToProto() *protoServices.Meta {
+	return &protoServices.Meta{
+		Uuid:      fmt.Sprintf("%x", m.UUID.Bytes),
+		Type:      protoServices.JobType(m.Type),
+		Status:    protoServices.JobStatus(m.Status),
+		Priority:  protoServices.JobPriority(m.Priority),
+		Weight:    m.Weight,
+		CreatedAt: timestamppb.New(m.CreatedAt),
+		UpdatedAt: timestamppb.New(m.CreatedAt),
+	}
 }
