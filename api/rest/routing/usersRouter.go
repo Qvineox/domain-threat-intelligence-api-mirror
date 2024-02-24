@@ -36,7 +36,6 @@ func NewUsersRouter(service core.IUsersService, path *gin.RouterGroup, authMiddl
 	userWriteGroup.Use(authMiddleware.RequireRole(2003))
 
 	{
-
 		userGroup.GET("/user/:user_id", r.GetUser)
 		userGroup.GET("/users", r.GetUsers)
 
@@ -66,8 +65,8 @@ func NewUsersRouter(service core.IUsersService, path *gin.RouterGroup, authMiddl
 // @Security           ApiKeyAuth
 // @Router             /users/user [put]
 // @ProduceAccessToken json
-// @Param              user    body              userCreateParams true "user data"
-// @Success            200              {object} success.DatabaseResponse
+// @Param              user    body     userCreateParams true "user data"
+// @Success            200     {object} success.DatabaseResponse
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *UsersRouter) PutUser(c *gin.Context) {
 	var params userCreateParams
@@ -110,8 +109,8 @@ type userCreateParams struct {
 // @Security           ApiKeyAuth
 // @Router             /users/user [patch]
 // @ProduceAccessToken json
-// @Param              user                 body          userUpdateParams true "user update"
-// @Success            200                       {object} success.DatabaseResponse
+// @Param              user        body     userUpdateParams true "user update"
+// @Success            200         {object} success.DatabaseResponse
 // @Failure            404,401,400 {object} apiErrors.APIError
 func (r *UsersRouter) PatchUser(c *gin.Context) {
 	var params userUpdateParams
@@ -160,8 +159,8 @@ type userUpdateParams struct {
 // @Security           ApiKeyAuth
 // @Router             /users/user [delete]
 // @ProduceAccessToken json
-// @Param              id               body      byIDParams true "record ID to delete"
-// @Success            200              {object} success.DatabaseResponse
+// @Param              id      body     byIDParams true "record ID to delete"
+// @Success            200     {object} success.DatabaseResponse
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *UsersRouter) DeleteUser(c *gin.Context) {
 	var params byIDParams
@@ -188,7 +187,7 @@ func (r *UsersRouter) DeleteUser(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /users/users [get]
 // @ProduceAccessToken json
-// @Success            200              {object} []userEntities.PlatformUser
+// @Success            200     {object} []userEntities.PlatformUser
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *UsersRouter) GetUsers(c *gin.Context) {
 	users, err := r.service.RetrieveUsers()
@@ -208,8 +207,8 @@ func (r *UsersRouter) GetUsers(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /users/user/{user_id} [get]
 // @ProduceAccessToken json
-// @Param              user_id path              int true "User ID"
-// @Success            200              {object} userEntities.PlatformUser
+// @Param              user_id path     int true "User ID"
+// @Success            200     {object} userEntities.PlatformUser
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *UsersRouter) GetUser(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("user_id"), 10, 64)
@@ -238,7 +237,7 @@ func (r *UsersRouter) GetUser(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /users/me [get]
 // @ProduceAccessToken json
-// @Success            200              {object} userEntities.PlatformUser
+// @Success            200     {object} userEntities.PlatformUser
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *UsersRouter) GetMe(c *gin.Context) {
 	contextUserID, ok := c.Get("user_id")
@@ -273,7 +272,7 @@ func (r *UsersRouter) GetMe(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /users/permissions [get]
 // @ProduceAccessToken json
-// @Success            200              {object} []userEntities.PlatformUserPermission
+// @Success            200     {object} []userEntities.PlatformUserPermission
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *UsersRouter) GetPermissions(c *gin.Context) {
 	permissions, err := r.service.RetrievePermissions()
@@ -293,7 +292,7 @@ func (r *UsersRouter) GetPermissions(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /users/permissions/presets [get]
 // @ProduceAccessToken json
-// @Success            200              {object} []userEntities.PlatformUserRolesPreset
+// @Success            200     {object} []userEntities.PlatformUserRolesPreset
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *UsersRouter) GetPermissionPresets(c *gin.Context) {
 	c.JSON(http.StatusOK, r.service.RetrievePermissionPresets())

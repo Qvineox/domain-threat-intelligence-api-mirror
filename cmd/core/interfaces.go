@@ -88,22 +88,24 @@ type IQueueService interface {
 	// CancelQueuedJob removes job from queue, can also stop it on agent
 	CancelQueuedJob(uuid pgtype.UUID, force bool) error
 
-	// RetrieveJobsQueue returns currently active and pending jobs in memory
-	RetrieveJobsQueue() (jobEntities.Queue, error)
+	// RetrieveQueuedJobs returns currently pending jobs in memory
+	RetrieveQueuedJobs() ([]*jobEntities.Job, error)
 }
 
 type IJobsService interface {
 	RetrieveJobsByFilter(filter jobEntities.JobsSearchFilter) ([]jobEntities.Job, error)
 	RetrieveJobByUUID(uuid pgtype.UUID) (jobEntities.Job, error)
-	SaveJob(job jobEntities.Job) error
-	DeleteJob(uuid pgtype.UUID) error
+	SaveJob(job jobEntities.Job) (jobEntities.Job, error)
+	DeleteJob(uuid pgtype.UUID) (rows int64, err error)
+
+	// TODO: RequeueJobByUUID(uuid pgtype.UUID)
 }
 
 type IJobsRepo interface {
 	SelectJobsByFilter(filter jobEntities.JobsSearchFilter) ([]jobEntities.Job, error)
 	SelectJobByUUID(uuid pgtype.UUID) (jobEntities.Job, error)
-	CreateJob(job jobEntities.Job) error
-	DeleteJob(uuid pgtype.UUID) error
+	SaveJob(job jobEntities.Job) (jobEntities.Job, error)
+	DeleteJob(uuid pgtype.UUID) (rows int64, err error)
 }
 
 type IUsersService interface {

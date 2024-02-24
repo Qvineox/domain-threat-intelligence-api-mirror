@@ -10,7 +10,7 @@ import (
 
 type Job struct {
 	Meta       *Metadata  `json:"Meta" gorm:"embedded"`
-	Payload    *Payload   `json:"Payload" gorm:"-"`
+	Payload    Payload    `json:"Payload" gorm:"-"`
 	Directives Directives `json:"Directives" gorm:"-"`
 
 	// DirectivesJSON is marshalled from Directives via PrepareToSave
@@ -81,7 +81,7 @@ func (j *Job) WithDiscoveryDirective(timings *DirectiveTimings) *Job {
 }
 
 func (j *Job) Validate() error {
-	if j.Meta == nil || j.Payload == nil {
+	if j.Meta == nil {
 		return errors.New("required job content was not provided")
 	}
 
@@ -110,15 +110,8 @@ func (j *Job) ToProto() *protoServices.Job {
 }
 
 func (j *Job) PrepareToSave() error {
-	err := j.DirectivesJSON.Scan(j.Directives)
-	if err != nil {
-		return err
-	}
-
-	err = j.PayloadJSON.Scan(j.Payload)
-	if err != nil {
-		return err
-	}
+	j.DirectivesJSON = datatypes.NewJSONType(j.Directives)
+	j.PayloadJSON = datatypes.NewJSONType(j.Payload)
 
 	return nil
 }
@@ -128,7 +121,35 @@ const defaultDelay = 200
 const defaultRetries = 3
 
 type JobsSearchFilter struct {
+	Types  []JobType  `json:"Type" form:"types[]" binding:"dive,oneof=0 1 2 3 4 5"`
+	Status *JobStatus `json:"Status" form:"status" binding:"oneof=0 1 2 3 4 5 6"`
+
+	Priority *JobPriority `json:"Priority" form:"priority" binding:"oneof=0 1 2 3"`
+
+	CreatedBy *uint64 `json:"CreatedBy"  form:"created_by"`
+
+	IsFinished bool `json:"IsFinished" form:"is_finished"`
+
+	CreatedAfter  *time.Time `json:"CreatedAfter" form:"created_after" time_format:"2006-01-02"`
+	CreatedBefore *time.Time `json:"CreatedBefore" form:"created_before" time_format:"2006-01-02"`
+
+	Offset int `json:"Offset" form:"offset"`
+	Limit  int `json:"Limit" form:"limit" binding:"required"`
 }
 
 type JobCreateParams struct {
+	Type     JobType     `json:"Type" binding:"oneof=0 1 2 3 4 5"`
+	Priority JobPriority `json:"Priority" binding:"oneof=0 1 2 3"`
+	Weight   int64       `json:"Weight"`
+
+	Targets    []string `json:"Targets" binding:"required"`
+	Exceptions []string `json:"Exceptions,omitempty"`
+
+	CreatedBy *uint64 `json:"CreatedBy"`
+
+	OpenSourceProviders []SupportedOSSProvider `json:"Providers,omitempty" binding:"dive,oneof=0 1 2 3 4"`
+
+	Delay   uint64 `json:"Delay,omitempty"`
+	Timout  uint64 `json:"Timout,omitempty"`
+	Retries uint64 `json:"Retries,omitempty"`
 }

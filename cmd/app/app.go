@@ -61,6 +61,10 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 	domainServices.AuthService = services.NewAuthServiceImpl(usersRepo, domainServices.SMTPService, "salt", staticCfg.WebServer.Security.Domain, staticCfg.WebServer.Security.AllowedOrigins[0])
 	domainServices.UsersService = services.NewUsersServiceImpl(usersRepo, domainServices.AuthService)
 
+	jobsRepo := repos.NewJobsRepoImpl(dbConn)
+	domainServices.JobsService = services.NewJobsServiceImpl(jobsRepo)
+	domainServices.QueueService = services.NewQueueServiceImpl(domainServices.JobsService)
+
 	// web server configuration
 	webServer, err := rest.NewHTTPServer(
 		staticCfg.WebServer.Host,

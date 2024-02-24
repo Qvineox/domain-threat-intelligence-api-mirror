@@ -80,4 +80,6 @@ type Services struct {
 	UsersService       core.IUsersService
 	AuthService        core.IAuthService
 	SMTPService        core.ISMTPService
+	JobsService        core.IJobsService
+	QueueService       core.IQueueService
 }

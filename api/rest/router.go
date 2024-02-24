@@ -12,7 +12,6 @@ import (
 // ref: https://github.com/swaggo/gin-swagger/issues/90
 
 // CreateRouter initializes application routing and all route groups
-//
 // @title                      Domain Threat Intelligence API
 // @version                    0.0.4
 // @description                API provided by DTI project
@@ -61,6 +60,8 @@ func CreateRouter(services Services, basePath string, allowedOrigins []string, a
 	routing.NewSystemStateRouter(services.SystemStateService, baseRouteV1, authMiddleware)
 	routing.NewServiceDeskRouter(services.ServiceDeskService, baseRouteV1)
 	routing.NewUsersRouter(services.UsersService, baseRouteV1, authMiddleware)
+	routing.NewJobsRouter(services.JobsService, baseRouteV1, authMiddleware)
+	routing.NewQueueRouter(services.QueueService, baseRouteV1, authMiddleware)
 
 	routing.NewAuthRouter(services.AuthService, baseRouteV1, authMiddleware)
 

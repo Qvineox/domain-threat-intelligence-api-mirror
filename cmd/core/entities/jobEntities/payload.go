@@ -11,7 +11,7 @@ type Payload struct {
 }
 
 // NewPayload accepts targets as follows: URL, domain, email, CIDR, IP
-func NewPayload(targets, exceptions []string) *Payload {
+func NewPayload(targets, exceptions []string) Payload {
 	p := Payload{
 		Targets:    make([]Target, 0),
 		Exceptions: make([]Target, 0),
@@ -37,7 +37,7 @@ func NewPayload(targets, exceptions []string) *Payload {
 		p.Exceptions = append(p.Exceptions, t)
 	}
 
-	return &p
+	return p
 }
 
 func (p *Payload) ToProto() *protoServices.Payload {
