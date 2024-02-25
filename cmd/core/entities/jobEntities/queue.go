@@ -1,6 +1,7 @@
 package jobEntities
 
 import (
+	"cmp"
 	"errors"
 	"github.com/jackc/pgtype"
 	"slices"
@@ -10,16 +11,18 @@ import (
 type Queue struct {
 	limit int
 
-	// jobs mirrors state of the queue, provides API to see queue state
-	jobs []*Job
+	// jobStore mirrors state of the queue, provides API to see queue state
+	jobStore map[pgtype.UUID]*Job
 
-	queue chan *Job
+	queue []*Job
 
-	sync.Mutex
+	// queue chan *Job
+
+	mutex sync.Mutex
 }
 
-func NewQueue(limit int) *Queue {
-	return &Queue{limit: limit, queue: make(chan *Job, limit), jobs: make([]*Job, 0, limit)}
+func NewQueue(limit int, jobChannel chan *Job) *Queue {
+	return &Queue{limit: limit, queue: make([]*Job, 0, limit), jobStore: make(map[pgtype.UUID]*Job, limit)}
 }
 
 func (q *Queue) GetLimit() int {
@@ -27,46 +30,59 @@ func (q *Queue) GetLimit() int {
 }
 
 func (q *Queue) GetQueue() []*Job {
-	return q.jobs
+	return q.queue
 }
 
+// Enqueue inserts Job into Queue and reorders all Jobs by priority and weight
 func (q *Queue) Enqueue(job *Job) error {
-	q.Mutex.Lock()
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
 
-	if len(q.queue)+1 >= q.limit {
+	if len(q.queue)+1 > q.limit {
 		return errors.New("queue limit reached")
 	}
 
-	q.jobs = append(q.jobs, job)
+	q.jobStore[job.Meta.UUID] = job
+	q.queue = append(q.queue, job)
 
-	q.Mutex.Unlock()
+	slices.SortFunc(q.queue, func(a, b *Job) int {
+		if a.Meta.Priority == b.Meta.Priority {
+			return cmp.Compare(a.Meta.Weight, b.Meta.Weight)
+		}
+
+		return cmp.Compare(a.Meta.Priority, b.Meta.Priority)
+	})
+
+	// q.queue <- job
 
 	return nil
 }
 
-func (q *Queue) Dequeue() {
-	if len(q.jobs) > 0 {
-		q.Mutex.Lock()
+// Dequeue resolves first Job from Queue and deletes it
+func (q *Queue) Dequeue() *Job {
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
 
-		q.queue <- q.jobs[0]
-		q.jobs = slices.Delete(q.jobs, 0, 1)
-
-		q.Mutex.Unlock()
+	if len(q.queue) == 0 {
+		return nil
 	}
+
+	job := q.queue[0]
+	q.queue = slices.Delete(q.queue, 0, 1)
+
+	return job
 }
 
 func (q *Queue) RemoveFromQueueByUUID(uuid pgtype.UUID) {
-	if len(q.jobs) > 0 {
-		q.Mutex.Lock()
+	if len(q.jobStore) > 0 {
+		q.mutex.Lock()
 
-		index := slices.IndexFunc(q.jobs, func(j *Job) bool {
-			return j.Meta.UUID == uuid
-		})
+		q.jobStore[uuid] = nil
 
-		if index != -1 {
-			q.jobs = slices.Delete(q.jobs, index, index+1)
-		}
-
-		q.Mutex.Unlock()
+		q.mutex.Unlock()
 	}
+}
+
+func test() {
+
 }

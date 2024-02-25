@@ -1813,8 +1813,8 @@ const docTemplate = `{
                 ],
                 "summary": "Enqueued scanning jobs",
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -2832,9 +2832,7 @@ const docTemplate = `{
         "jobEntities.JobCreateParams": {
             "type": "object",
             "required": [
-                "Priority",
-                "Targets",
-                "Type"
+                "Targets"
             ],
             "properties": {
                 "CreatedBy": {
@@ -2861,14 +2859,7 @@ const docTemplate = `{
                 "Providers": {
                     "type": "array",
                     "items": {
-                        "type": "integer",
-                        "enum": [
-                            0,
-                            1,
-                            2,
-                            3,
-                            4
-                        ]
+                        "type": "integer"
                     }
                 },
                 "Retries": {
@@ -2954,14 +2945,7 @@ const docTemplate = `{
                 "Providers": {
                     "type": "array",
                     "items": {
-                        "type": "integer",
-                        "enum": [
-                            0,
-                            1,
-                            2,
-                            3,
-                            4
-                        ]
+                        "type": "integer"
                     }
                 },
                 "Timings": {

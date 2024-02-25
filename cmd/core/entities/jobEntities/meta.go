@@ -53,10 +53,11 @@ const (
 )
 
 const (
-	JOB_PRIORITY_LOW      JobPriority = iota // job should be executed lastly in order (queue mode)
-	JOB_PRIORITY_MEDIUM                      // job should be executed with higher priority
+	JOB_PRIORITY_CRITICAL JobPriority = iota // job must be executed instantly
 	JOB_PRIORITY_HIGH                        // job must be executed after current (stack mode)
-	JOB_PRIORITY_CRITICAL                    // job must be executed instantly
+	JOB_PRIORITY_MEDIUM                      // job should be executed with higher priority
+	JOB_PRIORITY_LOW                         // job should be executed lastly in order (queue mode)
+
 )
 
 func (m *Metadata) ToProto() *protoServices.Meta {

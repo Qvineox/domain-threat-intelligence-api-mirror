@@ -95,7 +95,7 @@ type IQueueService interface {
 type IJobsService interface {
 	RetrieveJobsByFilter(filter jobEntities.JobsSearchFilter) ([]jobEntities.Job, error)
 	RetrieveJobByUUID(uuid pgtype.UUID) (jobEntities.Job, error)
-	SaveJob(job jobEntities.Job) (jobEntities.Job, error)
+	SaveJob(job *jobEntities.Job) error
 	DeleteJob(uuid pgtype.UUID) (rows int64, err error)
 
 	// TODO: RequeueJobByUUID(uuid pgtype.UUID)
@@ -104,7 +104,7 @@ type IJobsService interface {
 type IJobsRepo interface {
 	SelectJobsByFilter(filter jobEntities.JobsSearchFilter) ([]jobEntities.Job, error)
 	SelectJobByUUID(uuid pgtype.UUID) (jobEntities.Job, error)
-	SaveJob(job jobEntities.Job) (jobEntities.Job, error)
+	SaveJob(job *jobEntities.Job) error
 	DeleteJob(uuid pgtype.UUID) (rows int64, err error)
 }
 

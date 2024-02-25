@@ -11,7 +11,7 @@ import (
 	"log/slog"
 )
 
-func runMigrations(database *gorm.DB) error {
+func Migrate(database *gorm.DB) error {
 	slog.Info("running migrations...")
 
 	err := database.AutoMigrate(

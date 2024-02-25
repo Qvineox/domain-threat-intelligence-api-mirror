@@ -108,10 +108,10 @@ enum JobStatus {
 }
 
 enum JobPriority {
-  JOB_PRIORITY_LOW = 0; // job should be executed lastly in order (queue mode)
-  JOB_PRIORITY_MEDIUM = 1; // job should be executed with higher priority
-  JOB_PRIORITY_HIGH = 2; // job must be executed after current (stack mode)
-  JOB_PRIORITY_CRITICAL = 3;  // job must be executed instantly
+  JOB_PRIORITY_CRITICAL = 0;  // job must be executed instantly
+  JOB_PRIORITY_HIGH = 1; // job must be executed after current (stack mode)
+  JOB_PRIORITY_MEDIUM = 2; // job should be executed with higher priority
+  JOB_PRIORITY_LOW = 3; // job should be executed lastly in order (queue mode)
 }
 
 // scanning using public service APIs, i.e VirusTotal, CrowdSec, IPQS and others

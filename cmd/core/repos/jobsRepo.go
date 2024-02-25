@@ -27,18 +27,21 @@ func (r *JobsRepoImpl) SelectJobByUUID(uuid pgtype.UUID) (jobEntities.Job, error
 
 	err := r.Find(&job, uuid).Error
 
+	job.Payload = job.PayloadJSON.Data()
+	job.Directives = job.DirectivesJSON.Data()
+
 	return job, err
 }
 
-func (r *JobsRepoImpl) SaveJob(job jobEntities.Job) (jobEntities.Job, error) {
+func (r *JobsRepoImpl) SaveJob(job *jobEntities.Job) error {
 	err := job.PrepareToSave()
 	if err != nil {
-		return jobEntities.Job{}, err
+		return err
 	}
 
 	err = r.Create(&job).Error
 
-	return job, err
+	return err
 }
 
 func (r *JobsRepoImpl) DeleteJob(uuid pgtype.UUID) (int64, error) {

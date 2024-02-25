@@ -8,3 +8,4 @@ build/bin
 docs/examples
 /configs/dynamic.old.json
 .env
+/configs/config.test.static.json

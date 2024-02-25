@@ -41,7 +41,7 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 		slog.Info("database connected")
 	}
 
-	err = runMigrations(dbConn)
+	err = Migrate(dbConn)
 	if err != nil {
 		return err
 	}

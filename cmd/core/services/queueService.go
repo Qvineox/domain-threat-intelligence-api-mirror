@@ -14,13 +14,17 @@ type QueueServiceImpl struct {
 }
 
 func NewQueueServiceImpl(service core.IJobsService) *QueueServiceImpl {
-	q := jobEntities.NewQueue(1000)
+	const limit = 1000
+
+	jobChannel := make(chan *jobEntities.Job, limit)
+
+	q := jobEntities.NewQueue(limit, jobChannel)
 
 	return &QueueServiceImpl{service: service, queue: q}
 }
 
 func (q *QueueServiceImpl) QueueNewJob(params jobEntities.JobCreateParams) (pgtype.UUID, error) {
-	var job = jobEntities.Job{}
+	var job = &jobEntities.Job{}
 
 	job.
 		WithMetadata(params.Type, params.Priority, params.Weight).
@@ -67,12 +71,12 @@ func (q *QueueServiceImpl) QueueNewJob(params jobEntities.JobCreateParams) (pgty
 		return pgtype.UUID{}, err
 	}
 
-	_, err = q.service.SaveJob(job)
+	err = q.service.SaveJob(job)
 	if err != nil {
 		return pgtype.UUID{}, err
 	}
 
-	err = q.queue.Enqueue(&job)
+	err = q.queue.Enqueue(job)
 	if err != nil {
 		return pgtype.UUID{}, err
 	}

@@ -22,7 +22,7 @@ func (s *JobsServiceImpl) RetrieveJobByUUID(uuid pgtype.UUID) (jobEntities.Job, 
 	return s.repo.SelectJobByUUID(uuid)
 }
 
-func (s *JobsServiceImpl) SaveJob(job jobEntities.Job) (jobEntities.Job, error) {
+func (s *JobsServiceImpl) SaveJob(job *jobEntities.Job) error {
 	return s.repo.SaveJob(job)
 }
 
