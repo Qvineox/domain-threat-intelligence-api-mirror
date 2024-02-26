@@ -21,7 +21,7 @@ type Queue struct {
 	mutex sync.Mutex
 }
 
-func NewQueue(limit int, jobChannel chan *Job) *Queue {
+func NewQueue(limit int) *Queue {
 	return &Queue{limit: limit, queue: make([]*Job, 0, limit), jobStore: make(map[pgtype.UUID]*Job, limit)}
 }
 
@@ -68,21 +68,29 @@ func (q *Queue) Dequeue() *Job {
 	}
 
 	job := q.queue[0]
+	job.Advance() // sets status to STARTING
+
 	q.queue = slices.Delete(q.queue, 0, 1)
 
 	return job
 }
 
 func (q *Queue) RemoveFromQueueByUUID(uuid pgtype.UUID) {
+	defer q.mutex.Unlock()
+
 	if len(q.jobStore) > 0 {
 		q.mutex.Lock()
 
-		q.jobStore[uuid] = nil
+		j, ok := q.jobStore[uuid]
+		if !ok {
+			return
+		}
 
-		q.mutex.Unlock()
+		j.Meta.Status = JOB_STATUS_CANCELLED
+		i := slices.IndexFunc(q.queue, func(job *Job) bool {
+			return job.Meta.UUID == uuid
+		})
+
+		q.queue = slices.Delete(q.queue, i, i+1)
 	}
-}
-
-func test() {
-
 }

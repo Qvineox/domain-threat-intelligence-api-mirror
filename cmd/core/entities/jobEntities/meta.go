@@ -24,6 +24,8 @@ type Metadata struct {
 	StartedAt  *time.Time `json:"StartedAt" gorm:"column:finished_at"`
 	FinishedAt *time.Time `json:"FinishedAt" gorm:"column:finished_at"`
 
+	Error string `json:"Error" gorm:"column:error"`
+
 	CreatedAt time.Time      `json:"CreatedAt"`
 	UpdatedAt time.Time      `json:"UpdatedAt"`
 	DeletedAt gorm.DeletedAt `json:"DeletedAt,omitempty" gorm:"index"`
@@ -47,6 +49,7 @@ const (
 	JOB_STATUS_STARTING                   // calculating tasks, creating required structures
 	JOB_STATUS_WORKING                    // executing tasks
 	JOB_STATUS_FINISHING                  // clearing and sending data
+	JOB_STATUS_DONE                       // job finished execution and saved
 	JOB_STATUS_ERROR                      // job stopped with error from API or scanners (can be multiple errors, with threshold)
 	JOB_STATUS_PANIC                      // internal exception
 	JOB_STATUS_CANCELLED                  // job was cancelled by user

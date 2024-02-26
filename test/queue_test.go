@@ -25,8 +25,7 @@ func TestQueue(t *testing.T) {
 	repo := repos.NewJobsRepoImpl(dbConn)
 
 	const limit = 4
-	jobReceiver := make(chan *jobEntities.Job, limit)
-	queue := jobEntities.NewQueue(limit, jobReceiver)
+	queue := jobEntities.NewQueue(limit)
 
 	var job1 = &jobEntities.Job{}
 	job1.WithPayload([]string{"10.10.10.10/32", "ya.ru"}, []string{})
@@ -172,27 +171,17 @@ func TestQueue(t *testing.T) {
 		require.Equal(t, q[3], job1)
 	})
 
-	t.Run("check job status change", func(t *testing.T) {
-		q := queue.GetQueue()
+	t.Run("check removing from queue by uuid", func(t *testing.T) {
+		queue.RemoveFromQueueByUUID(job2.Meta.UUID)
 
-		for _, j := range q {
-			j.Meta.Status = jobEntities.JOB_STATUS_CANCELLED
-		}
-
-		for _, j := range queue.GetQueue() {
-			require.Equal(t, j.Meta.Status, jobEntities.JOB_STATUS_CANCELLED)
-		}
+		require.Equal(t, job2.Meta.Status, jobEntities.JOB_STATUS_CANCELLED)
+		require.Len(t, queue.GetQueue(), 3)
 	})
 
 	t.Run("check dequeue", func(t *testing.T) {
 		job := queue.Dequeue()
 
 		require.Equal(t, job, job3)
-		require.Len(t, queue.GetQueue(), 3)
-
-		job = queue.Dequeue()
-
-		require.Equal(t, job, job2)
 		require.Len(t, queue.GetQueue(), 2)
 
 		job = queue.Dequeue()
@@ -206,5 +195,33 @@ func TestQueue(t *testing.T) {
 		require.Len(t, queue.GetQueue(), 0)
 
 		require.Nil(t, queue.Dequeue())
+	})
+
+	t.Run("status advance checks", func(t *testing.T) {
+		require.Equal(t, job1.Meta.Status, jobEntities.JOB_STATUS_STARTING)
+
+		job1.Advance()
+		require.Equal(t, job1.Meta.Status, jobEntities.JOB_STATUS_WORKING)
+
+		job1.Advance()
+		require.Equal(t, job1.Meta.Status, jobEntities.JOB_STATUS_FINISHING)
+
+		job1.Advance()
+		require.Equal(t, job1.Meta.Status, jobEntities.JOB_STATUS_DONE)
+
+		job1.Advance()
+		require.Equal(t, job1.Meta.Status, jobEntities.JOB_STATUS_DONE)
+	})
+
+	t.Run("check job status change", func(t *testing.T) {
+		q := queue.GetQueue()
+
+		for _, j := range q {
+			j.Meta.Status = jobEntities.JOB_STATUS_CANCELLED
+		}
+
+		for _, j := range queue.GetQueue() {
+			require.Equal(t, j.Meta.Status, jobEntities.JOB_STATUS_CANCELLED)
+		}
 	})
 }

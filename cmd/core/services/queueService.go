@@ -16,9 +16,7 @@ type QueueServiceImpl struct {
 func NewQueueServiceImpl(service core.IJobsService) *QueueServiceImpl {
 	const limit = 1000
 
-	jobChannel := make(chan *jobEntities.Job, limit)
-
-	q := jobEntities.NewQueue(limit, jobChannel)
+	q := jobEntities.NewQueue(limit)
 
 	return &QueueServiceImpl{service: service, queue: q}
 }

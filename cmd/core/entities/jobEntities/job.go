@@ -101,6 +101,32 @@ func (j *Job) Validate() error {
 	return errors.New("at least one directive must be provided")
 }
 
+func (j *Job) Advance() {
+	if j.Meta.Status < JOB_STATUS_DONE {
+		j.Meta.UpdatedAt = time.Now()
+		j.Meta.Status += 1
+	}
+}
+
+func (j *Job) Done() {
+	now := time.Now()
+
+	j.Meta.Status = JOB_STATUS_DONE
+
+	j.Meta.FinishedAt = &now
+	j.Meta.UpdatedAt = now
+}
+
+func (j *Job) DoneWithError(err error) {
+	now := time.Now()
+
+	j.Meta.Status = JOB_STATUS_ERROR
+	j.Meta.Error = err.Error()
+
+	j.Meta.FinishedAt = &now
+	j.Meta.UpdatedAt = now
+}
+
 func (j *Job) ToProto() *protoServices.Job {
 	return &protoServices.Job{
 		Meta:       j.Meta.ToProto(),
