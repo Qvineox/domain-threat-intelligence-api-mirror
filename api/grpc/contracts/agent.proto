@@ -3,7 +3,7 @@ package contracts;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "domain_threat_intelligence_api/api/proto/protoServices";
+option go_package = "domain_threat_intelligence_agent/api/proto/protoServices";
 
 // ref: https://habr.com/ru/articles/774796/
 // ref: https://www.geeksforgeeks.org/how-to-install-protocol-buffers-on-windows/
@@ -78,9 +78,6 @@ message Meta {
 
   JobPriority priority = 5;
   int64 weight = 6; // helps to determine job resource consumption
-
-  google.protobuf.Timestamp createdAt = 7;
-  google.protobuf.Timestamp updatedAt = 8;
 
   optional google.protobuf.Timestamp startedAt = 9;
   optional google.protobuf.Timestamp finishedAt = 10;
@@ -188,7 +185,9 @@ enum HostType {
 }
 
 message HostAuditReport {
-  string jobUUID = 1;
+  uint64 tasksLeft = 1;
+  bytes content = 2;
+  bool isSuccessful = 3;
 }
 
 message AgentConfig {
