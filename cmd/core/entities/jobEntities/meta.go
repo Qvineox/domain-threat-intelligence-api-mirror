@@ -5,7 +5,6 @@ import (
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"fmt"
 	"github.com/jackc/pgtype"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 	"time"
 )
@@ -17,6 +16,8 @@ type Metadata struct {
 	Status   JobStatus   `json:"Status" gorm:"column:status"`
 	Priority JobPriority `json:"Priority" gorm:"column:priority"`
 	Weight   int64       `json:"Weight" gorm:"column:weight"`
+
+	// TODO: add AgentUUID field
 
 	CreatedBy   *userEntities.PlatformUser `json:"CreatedBy"`
 	CreatedByID *uint64                    `json:"CreatedByID" gorm:"column:created_by_id"`
@@ -65,12 +66,10 @@ const (
 
 func (m *Metadata) ToProto() *protoServices.Meta {
 	return &protoServices.Meta{
-		Uuid:      fmt.Sprintf("%x", m.UUID.Bytes),
-		Type:      protoServices.JobType(m.Type),
-		Status:    protoServices.JobStatus(m.Status),
-		Priority:  protoServices.JobPriority(m.Priority),
-		Weight:    m.Weight,
-		CreatedAt: timestamppb.New(m.CreatedAt),
-		UpdatedAt: timestamppb.New(m.CreatedAt),
+		Uuid:     fmt.Sprintf("%x", m.UUID.Bytes),
+		Type:     protoServices.JobType(m.Type),
+		Status:   protoServices.JobStatus(m.Status),
+		Priority: protoServices.JobPriority(m.Priority),
+		Weight:   m.Weight,
 	}
 }

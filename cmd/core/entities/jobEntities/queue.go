@@ -53,8 +53,6 @@ func (q *Queue) Enqueue(job *Job) error {
 		return cmp.Compare(a.Meta.Priority, b.Meta.Priority)
 	})
 
-	// q.queue <- job
-
 	return nil
 }
 

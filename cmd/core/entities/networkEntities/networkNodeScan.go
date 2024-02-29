@@ -1,7 +1,6 @@
 package networkEntities
 
 import (
-	"domain_threat_intelligence_api/cmd/core/entities/agentEntities"
 	"github.com/jackc/pgtype"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -18,11 +17,14 @@ type NetworkNodeScan struct {
 	Node     *NetworkNode `json:"Node,omitempty" gorm:"foreignKey:NodeUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	NodeUUID pgtype.UUID  `json:"NodeUUID;type:uuid"`
 
-	// Defines which agent provided current scan result
-	Agent     *agentEntities.ScanAgent `json:"Agent,omitempty" gorm:"foreignKey:AgentUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	AgentUUID pgtype.UUID              `json:"AgentUUID;type:uuid"`
+	ScanType   *NetworkNodeScanType `json:"Type,omitempty" gorm:"foreignKey:ScanTypeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	ScanTypeID uint64               `json:"TypeID"`
 
-	Data datatypes.JSONType[NetworkNodeScanData] `json:"Data" gorm:"column:data"`
+	// Defines in which job scan result was created TODO
+	// Job     *jobEntities.Job `json:"Job,omitempty" gorm:"foreignKey:JobUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	// JobUUID pgtype.UUID      `json:"JobUUID;type:uuid"`
+
+	Data datatypes.JSON `json:"Data" gorm:"column:data"`
 
 	CreatedAt time.Time      `json:"CreatedAt"`
 	UpdatedAt time.Time      `json:"UpdatedAt"`

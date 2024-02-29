@@ -4,6 +4,7 @@ import (
 	"domain_threat_intelligence_api/cmd/core/entities/authEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
+	"domain_threat_intelligence_api/cmd/core/entities/networkEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/serviceDeskEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"github.com/jackc/pgtype"
@@ -90,6 +91,18 @@ type IQueueService interface {
 
 	// RetrieveQueuedJobs returns currently pending jobs in memory
 	RetrieveQueuedJobs() ([]*jobEntities.Job, error)
+}
+
+type INetworkNodesRepo interface {
+	// SelectOrCreateByTarget returns node data by ID, domain, URL or email. Creates new node if it doesn't exist.
+	SelectOrCreateByTarget(target jobEntities.Target) (networkEntities.NetworkNode, error)
+
+	// SaveNetworkNodeScan creates or updates new network node scan.
+	SaveNetworkNodeScan(scan networkEntities.NetworkNodeScan) error
+
+	// CreateNetworkNodeWithIdentity creates new network node scan via SaveNetworkNodeScan.
+	// Also creates new node from host value, if it doesn't exist via SelectOrCreateByTarget.
+	CreateNetworkNodeWithIdentity(scan networkEntities.NetworkNodeScan, target jobEntities.Target) error
 }
 
 type IJobsService interface {

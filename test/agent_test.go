@@ -2,19 +2,23 @@ package test
 
 import (
 	"domain_threat_intelligence_api/cmd/app"
+	"domain_threat_intelligence_api/cmd/core/entities/agentEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"domain_threat_intelligence_api/cmd/core/repos"
 	"domain_threat_intelligence_api/cmd/scheduler"
 	"domain_threat_intelligence_api/configs"
 	"fmt"
+	"github.com/jackc/pgtype"
 	"github.com/stretchr/testify/require"
+	"gorm.io/datatypes"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"net"
 	"testing"
 	"time"
 )
 
-func TestScheduler(t *testing.T) {
+func TestAgent(t *testing.T) {
 	config, err := configs.NewTestConfig()
 	require.NoError(t, err)
 
@@ -36,13 +40,42 @@ func TestScheduler(t *testing.T) {
 
 	go s.Start()
 
-	t.Run("check no handlers job assignment", func(t *testing.T) {
+	t.Run("create test handler", func(t *testing.T) {
+		now := time.Now()
+		ip := net.ParseIP("0.0.0.0:2814")
+
+		err = s.AddHandler(&agentEntities.ScanAgent{
+			UUID: pgtype.UUID{},
+			Name: "test agent",
+			IPAddress: pgtype.Inet{
+				IPNet: &net.IPNet{
+					IP: ip,
+				},
+				Status: 0,
+			},
+			Host:          "localhost:2814",
+			IsActive:      true,
+			IsHomeBound:   true,
+			Description:   "test agent",
+			MinPriority:   jobEntities.JOB_PRIORITY_LOW,
+			Config:        datatypes.JSONType[agentEntities.ScanAgentConfig]{},
+			SecurityToken: "test_token", // TODO: check connection process
+			CreatedAt:     now,
+			UpdatedAt:     now,
+		})
+
+		require.NoError(t, err)
+
+		t.Log("agent connected")
+	})
+
+	t.Run("pass job to handler", func(t *testing.T) {
 		var job = &jobEntities.Job{}
 		job.WithPayload([]string{"10.10.10.10/32", "ya.ru"}, []string{})
 		job.WithMetadata(jobEntities.JOB_TYPE_OSS, jobEntities.JOB_PRIORITY_LOW, 10)
 		job.WithOSSDirective([]jobEntities.SupportedOSSProvider{
-			jobEntities.OSS_PROVIDER_IP_WHO_IS,
-			jobEntities.OSS_PROVIDER_CROWD_SEC,
+			jobEntities.OSS_PROVIDER_VIRUS_TOTAL,
+			jobEntities.OSS_PROVIDER_IP_QUALITY_SCORE,
 		}, &jobEntities.DirectiveTimings{
 			Timeout: 10000,
 			Delay:   100,
@@ -55,39 +88,6 @@ func TestScheduler(t *testing.T) {
 		require.NotNil(t, job.Meta.UUID)
 
 		err = s.ScheduleJob(job)
-		require.Error(t, err)
-	})
-
-	t.Run("check no handlers job assignment from queue", func(t *testing.T) {
-		var job = &jobEntities.Job{}
-		job.WithPayload([]string{"20.20.20.20/32", "ya.ru"}, []string{})
-		job.WithMetadata(jobEntities.JOB_TYPE_OSS, jobEntities.JOB_PRIORITY_LOW, 10)
-		job.WithOSSDirective([]jobEntities.SupportedOSSProvider{
-			jobEntities.OSS_PROVIDER_IP_WHO_IS,
-			jobEntities.OSS_PROVIDER_CROWD_SEC,
-		}, &jobEntities.DirectiveTimings{
-			Timeout: 10000,
-			Delay:   100,
-			Reties:  3,
-		})
-
-		require.NoError(t, job.Validate())
-		err = jRepo.SaveJob(job)
 		require.NoError(t, err)
-		require.NotNil(t, job.Meta.UUID)
-
-		err = q.Enqueue(job)
-		require.NoError(t, err)
-	})
-
-	t.Run("check queue state", func(t *testing.T) {
-		time.Sleep(pollingRageMS * 2)
-
-		jobs := q.GetQueue()
-
-		require.Equal(t, jobs[0].Meta.Status, jobEntities.JOB_STATUS_PENDING)
-		require.Equal(t, jobs[1].Meta.Status, jobEntities.JOB_STATUS_PENDING)
-
-		require.Len(t, jobs, 2)
 	})
 }

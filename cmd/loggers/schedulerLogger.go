@@ -52,6 +52,16 @@ func (l *SchedulerLogger) JobAssignmentFailed(jobUUID, agentUUID pgtype.UUID, ag
 	)
 }
 
+func (l *SchedulerLogger) MessageError(jobUUID, agentUUID pgtype.UUID, agentName string, err error) {
+	l.logger.Info(
+		"error handling message from agent",
+		slog.String("job uuid", fmt.Sprintf("%x", jobUUID.Bytes)),
+		slog.String("agent name", agentName),
+		slog.String("agent uuid", fmt.Sprintf("%x", agentUUID.Bytes)),
+		slog.String("error_message", err.Error()),
+	)
+}
+
 func (l *SchedulerLogger) NoHandlersAvailable(jobUUID pgtype.UUID) {
 	l.logger.Info(
 		"no handlers available",
