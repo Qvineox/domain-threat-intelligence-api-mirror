@@ -3,6 +3,7 @@ package repos
 import (
 	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/networkEntities"
+	"github.com/jackc/pgtype"
 	"gorm.io/gorm"
 )
 
@@ -38,4 +39,15 @@ func (n NetworkNodesRepoImpl) CreateNetworkNodeWithIdentity(scan networkEntities
 	scan.NodeUUID = node.UUID
 
 	return n.SaveNetworkNodeScan(scan)
+}
+
+func (n NetworkNodesRepoImpl) SelectNetworkNodeByUUID(uuid pgtype.UUID) (networkEntities.NetworkNode, error) {
+	node := networkEntities.NetworkNode{}
+
+	err := n.Find(&node, uuid).Error
+	if err != nil {
+		return networkEntities.NetworkNode{}, err
+	}
+
+	return node, nil
 }

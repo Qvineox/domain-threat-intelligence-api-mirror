@@ -1,6 +1,7 @@
 package core
 
 import (
+	"domain_threat_intelligence_api/cmd/core/entities/agentEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/authEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
@@ -94,6 +95,8 @@ type IQueueService interface {
 }
 
 type INetworkNodesRepo interface {
+	SelectNetworkNodeByUUID(uuid pgtype.UUID) (networkEntities.NetworkNode, error)
+
 	// SelectOrCreateByTarget returns node data by ID, domain, URL or email. Creates new node if it doesn't exist.
 	SelectOrCreateByTarget(target jobEntities.Target) (networkEntities.NetworkNode, error)
 
@@ -119,6 +122,22 @@ type IJobsRepo interface {
 	SelectJobByUUID(uuid pgtype.UUID) (jobEntities.Job, error)
 	SaveJob(job *jobEntities.Job) error
 	DeleteJob(uuid pgtype.UUID) (rows int64, err error)
+}
+
+type IAgentsService interface {
+	RetrieveAllAgents() ([]agentEntities.ScanAgent, error)
+	RetrieveAgentByUUID(uuid pgtype.UUID) (agentEntities.ScanAgent, error)
+
+	SaveAgent(agent agentEntities.ScanAgent) (agentEntities.ScanAgent, error)
+	DeleteAgent(uuid pgtype.UUID) error
+}
+
+type IAgentsRepo interface {
+	SelectAllAgents() ([]agentEntities.ScanAgent, error)
+	SelectAgentByUUID(uuid pgtype.UUID) (agentEntities.ScanAgent, error)
+
+	SaveAgent(agent agentEntities.ScanAgent) (agentEntities.ScanAgent, error)
+	DeleteAgent(uuid pgtype.UUID) error
 }
 
 type IUsersService interface {

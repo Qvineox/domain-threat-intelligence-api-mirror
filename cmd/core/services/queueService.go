@@ -3,22 +3,50 @@ package services
 import (
 	"domain_threat_intelligence_api/cmd/core"
 	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
+	"domain_threat_intelligence_api/cmd/scheduler"
 	"errors"
 	"github.com/jackc/pgtype"
+	"log/slog"
 )
 
 type QueueServiceImpl struct {
 	service core.IJobsService
 
-	queue *jobEntities.Queue
+	nodesRepo  core.INetworkNodesRepo
+	agentsRepo core.IAgentsRepo
+
+	queue     *jobEntities.Queue
+	scheduler *scheduler.Scheduler
 }
 
-func NewQueueServiceImpl(service core.IJobsService) *QueueServiceImpl {
+func NewQueueServiceImpl(s core.IJobsService, n core.INetworkNodesRepo, a core.IAgentsRepo) *QueueServiceImpl {
 	const limit = 1000
+	const pollingRageMS = 1000
 
 	q := jobEntities.NewQueue(limit)
 
-	return &QueueServiceImpl{service: service, queue: q}
+	sh, err := scheduler.NewScheduler(pollingRageMS, q, n)
+	if err != nil {
+		panic(err)
+	}
+
+	// get all agents from database
+	agents, err := a.SelectAllAgents()
+	if err != nil {
+		panic(err)
+	}
+
+	for _, agent := range agents {
+		err = sh.AddHandler(&agent)
+		if err != nil {
+			slog.Warn("failed to add agent handler: " + err.Error())
+			return nil
+		}
+	}
+
+	go sh.Start()
+
+	return &QueueServiceImpl{service: s, queue: q}
 }
 
 func (q *QueueServiceImpl) QueueNewJob(params jobEntities.JobCreateParams) (pgtype.UUID, error) {
@@ -39,11 +67,11 @@ func (q *QueueServiceImpl) QueueNewJob(params jobEntities.JobCreateParams) (pgty
 			break
 		}
 
-		if params.Retries == 0 {
+		if params.Retries < 1 {
 			params.Retries = 1
 		}
 
-		if params.Timout == 0 {
+		if params.Timout < 5000 {
 			params.Timout = 5000
 		}
 

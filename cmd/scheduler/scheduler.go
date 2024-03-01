@@ -6,7 +6,6 @@ import (
 	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"domain_threat_intelligence_api/cmd/loggers"
 	"errors"
-	"log/slog"
 	"time"
 )
 
@@ -41,8 +40,6 @@ func (s *Scheduler) Start() {
 		for {
 			select {
 			case <-ticker.C:
-				slog.Debug("tick")
-
 				job := s.queue.Dequeue()
 				if job != nil {
 					_ = s.ScheduleJob(job)

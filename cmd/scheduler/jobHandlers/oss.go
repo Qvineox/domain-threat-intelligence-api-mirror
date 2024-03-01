@@ -70,7 +70,7 @@ func (h *OSSJobHandler) createStartRoutines(ctx context.Context, wg *sync.WaitGr
 		wg:        wg,                                       // required to wait for all transactions to end
 		ctx:       ctx,                                      // passing context to finish underlying routines
 		agentUUID: h.agent.UUID,                             // agent uuid
-		jobID:     h.job.Meta.UUID,                          // job uuid
+		jobUUID:   h.job.Meta.UUID,                          // job uuid
 		scanType:  uint64(networkEntities.SCAN_TYPE_OSS_VT), // predefined open source scan type
 	}
 
@@ -80,7 +80,7 @@ func (h *OSSJobHandler) createStartRoutines(ctx context.Context, wg *sync.WaitGr
 		wg:        wg,
 		ctx:       ctx,
 		agentUUID: h.agent.UUID,
-		jobID:     h.job.Meta.UUID,
+		jobUUID:   h.job.Meta.UUID,
 		scanType:  uint64(networkEntities.SCAN_TYPE_OSS_IPQS),
 	}
 
@@ -90,7 +90,7 @@ func (h *OSSJobHandler) createStartRoutines(ctx context.Context, wg *sync.WaitGr
 		wg:        wg,
 		ctx:       ctx,
 		agentUUID: h.agent.UUID,
-		jobID:     h.job.Meta.UUID,
+		jobUUID:   h.job.Meta.UUID,
 		scanType:  uint64(networkEntities.SCAN_TYPE_OSS_SHD),
 	}
 
@@ -100,7 +100,7 @@ func (h *OSSJobHandler) createStartRoutines(ctx context.Context, wg *sync.WaitGr
 		wg:        wg,
 		ctx:       ctx,
 		agentUUID: h.agent.UUID,
-		jobID:     h.job.Meta.UUID,
+		jobUUID:   h.job.Meta.UUID,
 		scanType:  uint64(networkEntities.SCAN_TYPE_OSS_CS),
 	}
 
@@ -110,7 +110,7 @@ func (h *OSSJobHandler) createStartRoutines(ctx context.Context, wg *sync.WaitGr
 		wg:        wg,
 		ctx:       ctx,
 		agentUUID: h.agent.UUID,
-		jobID:     h.job.Meta.UUID,
+		jobUUID:   h.job.Meta.UUID,
 		scanType:  uint64(networkEntities.SCAN_TYPE_OSS_IPWH),
 	}
 
@@ -131,7 +131,7 @@ type ossProviderRoutine struct {
 	ctx   context.Context
 
 	agentUUID pgtype.UUID
-	jobID     pgtype.UUID
+	jobUUID   pgtype.UUID
 
 	scanType uint64
 }
@@ -150,6 +150,7 @@ func (r *ossProviderRoutine) start() {
 		if msg.IsSuccessful {
 			err = r.repo.CreateNetworkNodeWithIdentity(networkEntities.NetworkNodeScan{
 				IsComplete: true,
+				JobUUID:    r.jobUUID,
 				ScanTypeID: r.scanType,
 				Data:       msg.Content,
 			}, jobEntities.Target{
@@ -163,6 +164,7 @@ func (r *ossProviderRoutine) start() {
 
 			err = r.repo.CreateNetworkNodeWithIdentity(networkEntities.NetworkNodeScan{
 				IsComplete: true,
+				JobUUID:    r.jobUUID,
 				ScanTypeID: r.scanType,
 				Data:       c,
 			}, jobEntities.Target{
