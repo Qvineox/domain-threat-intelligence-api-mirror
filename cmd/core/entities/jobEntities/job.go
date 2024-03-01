@@ -17,7 +17,9 @@ type Job struct {
 	DirectivesJSON datatypes.JSONType[Directives] `json:"-"  gorm:"column:directives"`
 
 	// PayloadJSON is marshalled from Payload via PrepareToSave
-	PayloadJSON datatypes.JSONType[Payload] `json:"-"  gorm:"column:payload"`
+	PayloadJSON datatypes.JSONType[Payload] `json:"-" gorm:"column:payload"`
+
+	DequeuedTimes uint64 `json:"DequeuedTimes" gorm:"-"`
 }
 
 func (j *Job) WithMetadata(t JobType, p JobPriority, w int64) *Job {

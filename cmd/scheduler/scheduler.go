@@ -26,7 +26,7 @@ type Scheduler struct {
 }
 
 func NewScheduler(q *jobEntities.Queue, ar core.IAgentsRepo, nr core.INetworkNodesRepo) (*Scheduler, error) {
-	const pollingRageMS = 1000
+	const pollingRageMS = 5000
 
 	slog.Info("creating scheduler...")
 	sh := &Scheduler{
@@ -73,6 +73,8 @@ func (s *Scheduler) Start() {
 			case <-ticker.C:
 				job := s.queue.Dequeue()
 				if job != nil {
+					job.DequeuedTimes++
+
 					_ = s.ScheduleJob(job)
 				}
 
@@ -130,12 +132,14 @@ func (s *Scheduler) ScheduleJob(job *jobEntities.Job) error {
 
 	for _, h := range s.dialers {
 		if !h.IsBusy && job.Meta.Priority <= h.MinPriority {
-			err := h.HandleOSSJob(job)
-			if err != nil {
-				// _ = s.queue.Enqueue(job) // TODO: manage job restarts
-				return err
-			}
+			go h.HandleOSSJob(job)
+			return nil
 		}
+	}
+
+	// if there are no available agents at the moment // TODO: add to config
+	if job.DequeuedTimes <= 100 {
+		_ = s.queue.Enqueue(job)
 	}
 
 	return nil

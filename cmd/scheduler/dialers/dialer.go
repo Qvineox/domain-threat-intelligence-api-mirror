@@ -61,12 +61,12 @@ func NewAgentDialer(agent *agentEntities.ScanAgent, repo core.INetworkNodesRepo)
 	}, nil
 }
 
-func (d *ScanAgentDialer) HandleOSSJob(job *jobEntities.Job) error {
+func (d *ScanAgentDialer) HandleOSSJob(job *jobEntities.Job) {
 	if d.IsBusy || d.MinPriority < job.Meta.Priority {
 		err := errors.New("job cant be assigned to this dialer")
 		d.logger.JobAssignmentFailed(job.Meta.UUID, err)
 
-		return err
+		return
 	}
 
 	// cleanup on assignment finish
@@ -86,7 +86,7 @@ func (d *ScanAgentDialer) HandleOSSJob(job *jobEntities.Job) error {
 	stream, err := d.jobsClient.StartOSS(ctx, job.ToProto())
 	if err != nil {
 		d.CurrentJob.DoneWithError(err)
-		return err
+		return
 	}
 
 	d.logger.JobAssigned(job.Meta.UUID)
@@ -118,6 +118,4 @@ func (d *ScanAgentDialer) HandleOSSJob(job *jobEntities.Job) error {
 	wg.Wait()
 	d.logger.JobFinished(job.Meta.UUID)
 	d.CurrentJob.Advance()
-
-	return nil
 }
