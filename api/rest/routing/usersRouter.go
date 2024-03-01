@@ -173,6 +173,7 @@ func (r *UsersRouter) DeleteUser(c *gin.Context) {
 
 	rows, err := r.service.DeleteUser(params.ID)
 	if err != nil {
+		apiErrors.DatabaseErrorResponse(c, err)
 		return
 	}
 

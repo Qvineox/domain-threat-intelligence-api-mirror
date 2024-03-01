@@ -2,10 +2,12 @@ package app
 
 import (
 	"domain_threat_intelligence_api/api/rest"
+	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"domain_threat_intelligence_api/cmd/core/repos"
 	"domain_threat_intelligence_api/cmd/core/services"
 	"domain_threat_intelligence_api/cmd/integrations/naumen"
 	"domain_threat_intelligence_api/cmd/mail"
+	"domain_threat_intelligence_api/cmd/scheduler"
 	"domain_threat_intelligence_api/configs"
 	"fmt"
 	slogGorm "github.com/orandin/slog-gorm"
@@ -63,9 +65,17 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 
 	jobsRepo := repos.NewJobsRepoImpl(dbConn)
 	nodesRepo := repos.NewNetworkNodesRepoImpl(dbConn)
+	agentsRepo := repos.NewAgentsRepoImpl(dbConn)
 
 	domainServices.JobsService = services.NewJobsServiceImpl(jobsRepo)
-	domainServices.QueueService = services.NewQueueServiceImpl(domainServices.JobsService, nodesRepo)
+
+	const queueLimit = 1000 // TODO: add to config
+
+	queue := jobEntities.NewQueue(queueLimit)
+	sch, err := scheduler.NewScheduler(queue, agentsRepo, nodesRepo)
+
+	domainServices.AgentsService = services.NewAgentsServiceImpl(agentsRepo, sch)
+	domainServices.QueueService = services.NewQueueServiceImpl(domainServices.JobsService, nodesRepo, agentsRepo, queue, sch)
 
 	// web server configuration
 	webServer, err := rest.NewHTTPServer(

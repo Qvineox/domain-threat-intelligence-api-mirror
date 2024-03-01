@@ -23,7 +23,7 @@ type NetworkNodeScan struct {
 
 	// Defines in which job scan result was created
 	Job     *jobEntities.Job `json:"Job,omitempty" gorm:"foreignKey:JobUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	JobUUID pgtype.UUID      `json:"JobUUID;type:uuid"`
+	JobUUID *pgtype.UUID     `json:"JobUUID;type:uuid"`
 
 	Data datatypes.JSON `json:"Data" gorm:"column:data"`
 

@@ -4,36 +4,67 @@ import (
 	"domain_threat_intelligence_api/cmd/core"
 	"domain_threat_intelligence_api/cmd/core/entities/agentEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
-	"domain_threat_intelligence_api/cmd/loggers"
+	"domain_threat_intelligence_api/cmd/scheduler/dialers"
 	"errors"
+	"fmt"
+	"github.com/jackc/pgtype"
+	"log/slog"
+	"slices"
 	"time"
 )
 
 type Scheduler struct {
 	queue *jobEntities.Queue
 
-	handlers []*agentDialer
+	dialers []*dialers.ScanAgentDialer
 
 	pollingRateMS time.Duration
-
-	logger *loggers.SchedulerLogger
 
 	nodesRepo core.INetworkNodesRepo
 
 	quit chan bool
 }
 
-func NewScheduler(pr time.Duration, q *jobEntities.Queue, nr core.INetworkNodesRepo) (*Scheduler, error) {
-	return &Scheduler{
+func NewScheduler(q *jobEntities.Queue, ar core.IAgentsRepo, nr core.INetworkNodesRepo) (*Scheduler, error) {
+	const pollingRageMS = 1000
+
+	slog.Info("creating scheduler...")
+	sh := &Scheduler{
 		queue:         q,
-		pollingRateMS: pr,
-		logger:        loggers.NewSchedulerLogger(),
+		pollingRateMS: pollingRageMS,
 		quit:          make(chan bool),
 		nodesRepo:     nr,
-	}, nil
+	}
+
+	// get all agents from database
+	slog.Info("adding scanning agents...")
+	agents, err := ar.SelectAllAgents()
+	if err != nil {
+		slog.Error("failed to load scanning agents: " + err.Error())
+		panic(err)
+	}
+
+	for _, agent := range agents {
+		err = sh.AddOrUpdateDialer(&agent)
+		if err != nil {
+			slog.Warn("failed to add agent handler: " + err.Error())
+			return nil, err
+		}
+	}
+
+	ac := len(sh.GetAllConnectedDialersUUIDs())
+	if ac == 0 {
+		slog.Warn("no scanning agent were added")
+	} else {
+		slog.Info(fmt.Sprintf("added %d scanning agents", ac))
+	}
+
+	return sh, nil
 }
 
 func (s *Scheduler) Start() {
+	slog.Info(fmt.Sprintf("starting scheduler with polling rate %dms...", s.pollingRateMS))
+
 	ticker := time.NewTicker(s.pollingRateMS * time.Millisecond)
 
 	go func() {
@@ -46,6 +77,7 @@ func (s *Scheduler) Start() {
 				}
 
 			case <-s.quit:
+				slog.Warn("scheduler stopped")
 				ticker.Stop()
 				return
 			}
@@ -57,40 +89,81 @@ func (s *Scheduler) Stop() {
 	s.quit <- true
 }
 
-func (s *Scheduler) AddHandler(agent *agentEntities.ScanAgent) error {
-	h, err := newAgentDialer(agent, s.nodesRepo)
+func (s *Scheduler) AddOrUpdateDialer(agent *agentEntities.ScanAgent) error {
+	h, err := dialers.NewAgentDialer(agent, s.nodesRepo)
 	if err != nil {
 		return err
 	}
 
-	s.handlers = append(s.handlers, h) // TODO: can require mutex to be saved
+	s.dialers = append(s.dialers, h) // TODO: can require mutex to be saved
+
+	return nil
+}
+
+func (s *Scheduler) RemoveDialerByUUID(uuid pgtype.UUID) error {
+	i := slices.IndexFunc(s.dialers, func(dialer *dialers.ScanAgentDialer) bool {
+		return *dialer.Agent.UUID == uuid
+	})
+
+	if i == -1 {
+		return errors.New("dialer with defined agent uuid not found in scheduler")
+	}
+
+	if s.dialers[i].IsBusy || s.dialers[i].Agent != nil {
+		return errors.New("agent is busy")
+	}
+
+	slog.Warn(fmt.Sprintf("removing dialer for agent '%s' from scheduler", s.dialers[i].Agent.Name))
+	s.dialers = slices.Delete(s.dialers, i, i+1)
 
 	return nil
 }
 
 // ScheduleJob assigns Job to suitable JobHandler. If assignment fails, job is inserted in queue one more time
 func (s *Scheduler) ScheduleJob(job *jobEntities.Job) error {
-	if len(s.handlers) == 0 {
-		s.logger.NoHandlersAvailable(job.Meta.UUID)
+	if len(s.dialers) == 0 {
+		slog.Warn("no agent dialers available for the job")
 		_ = s.queue.Enqueue(job)
 
-		return errors.New("no handlers")
+		return errors.New("no agent dialers available for the job")
 	}
 
-	for _, h := range s.handlers {
+	for _, h := range s.dialers {
 		if !h.IsBusy && job.Meta.Priority <= h.MinPriority {
-			err := h.handleOSSJob(job)
+			err := h.HandleOSSJob(job)
 			if err != nil {
-				s.logger.JobAssignmentFailed(job.Meta.UUID, h.agent.UUID, h.agent.Name, err)
-
-				//_ = s.queue.Enqueue(job)
-
+				// _ = s.queue.Enqueue(job) // TODO: manage job restarts
 				return err
 			}
-
-			s.logger.JobAssigned(job.Meta.UUID, h.agent.UUID, h.agent.Name)
 		}
 	}
 
 	return nil
+}
+
+// GetAllJobs returns all jobs from queue and in active dialers
+func (s *Scheduler) GetAllJobs() [2][]*jobEntities.Job {
+	var jobs [2][]*jobEntities.Job
+
+	jobs[0] = make([]*jobEntities.Job, 0, len(s.dialers))
+	for _, d := range s.dialers {
+		if d.CurrentJob != nil {
+			jobs[0] = append(jobs[0], d.CurrentJob)
+		}
+	}
+
+	jobs[1] = s.queue.GetQueue()
+
+	return jobs
+}
+
+// GetAllConnectedDialersUUIDs returns all jobs from queue and in active dialers
+func (s *Scheduler) GetAllConnectedDialersUUIDs() []pgtype.UUID {
+	var uuids = make([]pgtype.UUID, 0, len(s.dialers))
+
+	for _, d := range s.dialers {
+		uuids = append(uuids, *d.Agent.UUID)
+	}
+
+	return uuids
 }

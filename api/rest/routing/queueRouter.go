@@ -78,11 +78,11 @@ func (r *QueueRouter) PostQueueJob(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, queuedJob{jobUUID})
+	c.JSON(http.StatusCreated, queuedJob{UUID: jobUUID})
 }
 
 type queuedJob struct {
-	UUID pgtype.UUID `json:"UUID"`
+	UUID *pgtype.UUID `json:"UUID"`
 }
 
 func (r *QueueRouter) PatchQueuedJob(c *gin.Context) {
@@ -104,11 +104,14 @@ func (r *QueueRouter) DeleteQueuedJobByUUID(c *gin.Context) {
 // @Success            200     {object} []jobEntities.Job
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *QueueRouter) GetQueuedJobs(c *gin.Context) {
-	jobs, err := r.service.RetrieveQueuedJobs()
-	if err != nil {
-		apiErrors.ParamsErrorResponse(c, err)
-		return
-	}
+	jobs := r.service.RetrieveAllJobs()
+	c.JSON(http.StatusOK, queuedJobs{
+		Sent:   jobs[0],
+		Queued: jobs[1],
+	})
+}
 
-	c.JSON(http.StatusOK, jobs)
+type queuedJobs struct {
+	Queued []*jobEntities.Job `json:"queued"`
+	Sent   []*jobEntities.Job `json:"sent"`
 }

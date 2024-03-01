@@ -6,7 +6,6 @@ import (
 	"domain_threat_intelligence_api/cmd/scheduler"
 	"errors"
 	"github.com/jackc/pgtype"
-	"log/slog"
 )
 
 type QueueServiceImpl struct {
@@ -19,37 +18,19 @@ type QueueServiceImpl struct {
 	scheduler *scheduler.Scheduler
 }
 
-func NewQueueServiceImpl(s core.IJobsService, n core.INetworkNodesRepo, a core.IAgentsRepo) *QueueServiceImpl {
-	const limit = 1000
-	const pollingRageMS = 1000
-
-	q := jobEntities.NewQueue(limit)
-
-	sh, err := scheduler.NewScheduler(pollingRageMS, q, n)
-	if err != nil {
-		panic(err)
-	}
-
-	// get all agents from database
-	agents, err := a.SelectAllAgents()
-	if err != nil {
-		panic(err)
-	}
-
-	for _, agent := range agents {
-		err = sh.AddHandler(&agent)
-		if err != nil {
-			slog.Warn("failed to add agent handler: " + err.Error())
-			return nil
-		}
-	}
-
+func NewQueueServiceImpl(s core.IJobsService, n core.INetworkNodesRepo, a core.IAgentsRepo, q *jobEntities.Queue, sh *scheduler.Scheduler) *QueueServiceImpl {
 	go sh.Start()
 
-	return &QueueServiceImpl{service: s, queue: q}
+	return &QueueServiceImpl{
+		service:    s,
+		nodesRepo:  n,
+		agentsRepo: a,
+		queue:      q,
+		scheduler:  sh,
+	}
 }
 
-func (q *QueueServiceImpl) QueueNewJob(params jobEntities.JobCreateParams) (pgtype.UUID, error) {
+func (q *QueueServiceImpl) QueueNewJob(params jobEntities.JobCreateParams) (*pgtype.UUID, error) {
 	var job = &jobEntities.Job{}
 
 	job.
@@ -59,7 +40,7 @@ func (q *QueueServiceImpl) QueueNewJob(params jobEntities.JobCreateParams) (pgty
 	switch job.Meta.Type {
 	case jobEntities.JOB_TYPE_OSS:
 		if len(params.OpenSourceProviders) == 0 {
-			return pgtype.UUID{}, errors.New("providers not defined")
+			return nil, errors.New("providers not defined")
 		}
 
 		if params.Timout == 0 && params.Retries == 0 && params.Delay == 0 {
@@ -81,45 +62,49 @@ func (q *QueueServiceImpl) QueueNewJob(params jobEntities.JobCreateParams) (pgty
 			Reties:  params.Retries,
 		})
 	case jobEntities.JOB_TYPE_NMAP:
-		return pgtype.UUID{}, errors.New("not implemented")
+		return nil, errors.New("not implemented")
 	case jobEntities.JOB_TYPE_WHOIS:
-		return pgtype.UUID{}, errors.New("not implemented")
+		return nil, errors.New("not implemented")
 	case jobEntities.JOB_TYPE_DNS:
-		return pgtype.UUID{}, errors.New("not implemented")
+		return nil, errors.New("not implemented")
 	case jobEntities.JOB_TYPE_DISCOVERY:
-		return pgtype.UUID{}, errors.New("not implemented")
+		return nil, errors.New("not implemented")
 	case jobEntities.JOB_TYPE_SPIDER:
-		return pgtype.UUID{}, errors.New("not implemented")
+		return nil, errors.New("not implemented")
 	}
 
 	err := job.Validate()
 	if err != nil {
-		return pgtype.UUID{}, err
+		return nil, err
 	}
 
 	err = q.service.SaveJob(job)
 	if err != nil {
-		return pgtype.UUID{}, err
+		return nil, err
 	}
 
 	err = q.queue.Enqueue(job)
 	if err != nil {
-		return pgtype.UUID{}, err
+		return nil, err
 	}
 
 	return job.Meta.UUID, nil
 }
 
-func (q *QueueServiceImpl) AlterQueuedJob(uuid pgtype.UUID, params jobEntities.JobCreateParams) (pgtype.UUID, error) {
+func (q *QueueServiceImpl) AlterQueuedJob(uuid *pgtype.UUID, params jobEntities.JobCreateParams) (*pgtype.UUID, error) {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (q *QueueServiceImpl) CancelQueuedJob(uuid pgtype.UUID, force bool) error {
+func (q *QueueServiceImpl) CancelQueuedJob(uuid *pgtype.UUID, force bool) error {
 	// TODO implement me
 	panic("implement me")
 }
 
-func (q *QueueServiceImpl) RetrieveQueuedJobs() ([]*jobEntities.Job, error) {
-	return q.queue.GetQueue(), nil
+func (q *QueueServiceImpl) RetrieveAllJobs() [2][]*jobEntities.Job {
+	return q.scheduler.GetAllJobs()
+}
+
+func (q *QueueServiceImpl) RetrieveConnectedAgentsUUIDs() []pgtype.UUID {
+	return q.scheduler.GetAllConnectedDialersUUIDs()
 }

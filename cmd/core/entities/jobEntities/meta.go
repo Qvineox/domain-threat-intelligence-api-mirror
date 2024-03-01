@@ -10,7 +10,7 @@ import (
 )
 
 type Metadata struct {
-	UUID pgtype.UUID `json:"UUID" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
+	UUID *pgtype.UUID `json:"UUID" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 
 	Type     JobType     `json:"Type" gorm:"column:type"`
 	Status   JobStatus   `json:"Status" gorm:"column:status"`

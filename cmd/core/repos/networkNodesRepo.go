@@ -1,10 +1,12 @@
 package repos
 
 import (
+	"database/sql"
 	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/networkEntities"
 	"github.com/jackc/pgtype"
 	"gorm.io/gorm"
+	"time"
 )
 
 type NetworkNodesRepoImpl struct {
@@ -16,12 +18,16 @@ func NewNetworkNodesRepoImpl(DB *gorm.DB) *NetworkNodesRepoImpl {
 }
 
 func (n NetworkNodesRepoImpl) SelectOrCreateByTarget(target jobEntities.Target) (networkEntities.NetworkNode, error) {
-	node := networkEntities.NetworkNode{
-		Identity: target.Host,
-		TypeID:   uint64(target.Type) + 1, // cant be changed (in proto file must start with 0)
-	}
+	node := networkEntities.NetworkNode{}
 
-	err := n.FirstOrCreate(&node).Error
+	err := n.
+		Where("identity = ? AND type_id = ?", target.Host, target.Type+1).
+		Attrs(networkEntities.NetworkNode{
+			Identity:     target.Host,
+			DiscoveredAt: sql.NullTime{Time: time.Now()},
+			TypeID:       uint64(target.Type + 1),
+		}).
+		FirstOrCreate(&node).Error
 
 	return node, err
 }

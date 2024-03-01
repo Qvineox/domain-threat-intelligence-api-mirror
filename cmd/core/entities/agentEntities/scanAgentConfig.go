@@ -2,11 +2,11 @@ package agentEntities
 
 import "domain_threat_intelligence_api/api/grpc/protoServices"
 
-// ScanAgentConfig defines configuration parameters used in agent.
+// ScanAgentConfig defines configuration parameters used in Agent.
 type ScanAgentConfig struct {
 	HasNMAP bool `json:"HasNMAP"`
 
-	// APIKeys in agents are stored in memory. TODO: Refer to agent local data or database key store.
+	// APIKeys in agents are stored in memory. TODO: Refer to Agent local data or database key store.
 	APIKeys map[OSSProvider]string `json:"-" gorm:"-"`
 }
 

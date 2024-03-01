@@ -10,6 +10,10 @@ type AgentsRepoImpl struct {
 	*gorm.DB
 }
 
+func NewAgentsRepoImpl(DB *gorm.DB) *AgentsRepoImpl {
+	return &AgentsRepoImpl{DB: DB}
+}
+
 func (r AgentsRepoImpl) SelectAllAgents() ([]agentEntities.ScanAgent, error) {
 	var agents = make([]agentEntities.ScanAgent, 0)
 

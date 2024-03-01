@@ -1,4 +1,4 @@
-package jobHandlers
+package dialers
 
 import (
 	"context"
@@ -130,8 +130,8 @@ type ossProviderRoutine struct {
 	wg    *sync.WaitGroup
 	ctx   context.Context
 
-	agentUUID pgtype.UUID
-	jobUUID   pgtype.UUID
+	agentUUID *pgtype.UUID
+	jobUUID   *pgtype.UUID
 
 	scanType uint64
 }

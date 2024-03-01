@@ -45,7 +45,7 @@ func TestQueue(t *testing.T) {
 	require.NotNil(t, job1.Meta.UUID)
 
 	t.Run("job repository checks", func(t *testing.T) {
-		job, _ := repo.SelectJobByUUID(job1.Meta.UUID)
+		job, _ := repo.SelectJobByUUID(*job1.Meta.UUID)
 
 		require.Equal(t, job1.Meta.UUID, job.Meta.UUID)
 		require.Equal(t, job1.Meta.Type, job.Meta.Type)
@@ -172,7 +172,7 @@ func TestQueue(t *testing.T) {
 	})
 
 	t.Run("check removing from queue by uuid", func(t *testing.T) {
-		queue.RemoveFromQueueByUUID(job2.Meta.UUID)
+		queue.RemoveFromQueueByUUID(*job2.Meta.UUID)
 
 		require.Equal(t, job2.Meta.Status, jobEntities.JOB_STATUS_CANCELLED)
 		require.Len(t, queue.GetQueue(), 3)

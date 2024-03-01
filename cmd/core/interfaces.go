@@ -82,16 +82,18 @@ type IBlacklistsRepo interface {
 }
 
 type IQueueService interface {
-	QueueNewJob(params jobEntities.JobCreateParams) (pgtype.UUID, error)
+	QueueNewJob(params jobEntities.JobCreateParams) (*pgtype.UUID, error)
 
 	// AlterQueuedJob modifies jobs in queue, cannot change running jobs on agents
-	AlterQueuedJob(uuid pgtype.UUID, params jobEntities.JobCreateParams) (pgtype.UUID, error)
+	AlterQueuedJob(uuid *pgtype.UUID, params jobEntities.JobCreateParams) (*pgtype.UUID, error)
 
 	// CancelQueuedJob removes job from queue, can also stop it on agent
-	CancelQueuedJob(uuid pgtype.UUID, force bool) error
+	CancelQueuedJob(uuid *pgtype.UUID, force bool) error
 
-	// RetrieveQueuedJobs returns currently pending jobs in memory
-	RetrieveQueuedJobs() ([]*jobEntities.Job, error)
+	// RetrieveAllJobs returns all jobs from queue and agents
+	RetrieveAllJobs() [2][]*jobEntities.Job
+
+	RetrieveConnectedAgentsUUIDs() []pgtype.UUID
 }
 
 type INetworkNodesRepo interface {

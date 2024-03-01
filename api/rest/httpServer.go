@@ -82,4 +82,5 @@ type Services struct {
 	SMTPService        core.ISMTPService
 	JobsService        core.IJobsService
 	QueueService       core.IQueueService
+	AgentsService      core.IAgentsService
 }

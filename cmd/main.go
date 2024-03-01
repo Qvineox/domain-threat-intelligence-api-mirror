@@ -30,9 +30,9 @@ func main() {
 	case "debug":
 		level = slog.LevelDebug
 	case "info":
-		level = slog.LevelWarn
-	case "warning":
 		level = slog.LevelInfo
+	case "warning":
+		level = slog.LevelWarn
 	default:
 		slog.Warn(fmt.Sprintf("log level '%s' not supported", staticCfg.Logging.Level))
 		level = slog.LevelInfo

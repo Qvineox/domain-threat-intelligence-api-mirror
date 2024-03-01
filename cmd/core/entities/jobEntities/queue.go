@@ -42,7 +42,7 @@ func (q *Queue) Enqueue(job *Job) error {
 		return errors.New("queue limit reached")
 	}
 
-	q.jobStore[job.Meta.UUID] = job
+	q.jobStore[*job.Meta.UUID] = job
 	q.queue = append(q.queue, job)
 
 	slices.SortFunc(q.queue, func(a, b *Job) int {
@@ -86,7 +86,7 @@ func (q *Queue) RemoveFromQueueByUUID(uuid pgtype.UUID) {
 
 		j.Meta.Status = JOB_STATUS_CANCELLED
 		i := slices.IndexFunc(q.queue, func(job *Job) bool {
-			return job.Meta.UUID == uuid
+			return *job.Meta.UUID == uuid
 		})
 
 		q.queue = slices.Delete(q.queue, i, i+1)

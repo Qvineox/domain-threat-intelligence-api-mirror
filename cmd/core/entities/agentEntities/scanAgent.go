@@ -12,23 +12,23 @@ import (
 	"time"
 )
 
-// ScanAgent represents remote network scanner agent.
+// ScanAgent represents remote network scanner Agent.
 type ScanAgent struct {
-	UUID pgtype.UUID `json:"UUID" gorm:"primaryKey;type:uuid"`
+	UUID *pgtype.UUID `json:"UUID" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 
 	Name        string      `json:"Name" gorm:"column:name;size:64;not null"`
 	IPAddress   pgtype.Inet `json:"IPAddress" gorm:"column:ip_address;type:inet"`
-	Host        string      `json:"Host" gorm:"column:host;size:128;type:inet"`
+	Host        string      `json:"Host" gorm:"column:host;size:128"`
 	IsActive    bool        `json:"IsActive" gorm:"column:is_active;default:true"`
 	IsHomeBound bool        `json:"IsHomeBound" gorm:"column:is_home_bound;default:true"`
 	Description string      `json:"Description" gorm:"column:description;size:512;default:No description."`
 
-	// MinPriority is minimal job priority that agent can accept
+	// MinPriority is minimal job priority that Agent can accept
 	MinPriority jobEntities.JobPriority `json:"MinPriority" gorm:"column:min_priority;default:3"`
 
-	// Defines who is the owner of agent.
+	// Defines who is the owner of Agent.
 	Owner     *userEntities.PlatformUser `json:"Owner,omitempty" gorm:"foreignKey:OwnerUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	OwnerUUID pgtype.UUID                `json:"OwnerUUID"`
+	OwnerUUID *pgtype.UUID               `json:"OwnerUUID"`
 
 	// Private agents can only be used by their owners.
 	IsPrivate bool `json:"IsPrivate" gorm:"column:is_private;default:true"`

@@ -1837,6 +1837,208 @@ const docTemplate = `{
                 }
             }
         },
+        "/scanning/agents/agent": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and creates scanning agent",
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Create scanning agent",
+                "parameters": [
+                    {
+                        "description": "agent data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.scanAgentParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and deletes single scanning agent",
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Delete scanning agent",
+                "parameters": [
+                    {
+                        "description": "agent UUID to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.byUUIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and updates scanning agent",
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Update scanning agent",
+                "parameters": [
+                    {
+                        "description": "agent data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.scanAgentParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/scanning/agents/agent/{agent_uuid}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Return registered agent by UUID",
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Get scanning agent by UUID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Agent UUID",
+                        "name": "agent_uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/agentEntities.ScanAgent"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/scanning/agents/agents": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns all registered agents",
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Get all scanning agent",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/agentEntities.ScanAgent"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/system/dynamic": {
             "get": {
                 "security": [
@@ -2451,6 +2653,59 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "agentEntities.ScanAgent": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "Description": {
+                    "type": "string"
+                },
+                "Host": {
+                    "type": "string"
+                },
+                "IPAddress": {
+                    "$ref": "#/definitions/pgtype.Inet"
+                },
+                "IsActive": {
+                    "type": "boolean"
+                },
+                "IsHomeBound": {
+                    "type": "boolean"
+                },
+                "IsPrivate": {
+                    "description": "Private agents can only be used by their owners.",
+                    "type": "boolean"
+                },
+                "MinPriority": {
+                    "description": "MinPriority is minimal job priority that Agent can accept",
+                    "type": "integer"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "Owner": {
+                    "description": "Defines who is the owner of Agent.",
+                    "$ref": "#/definitions/userEntities.PlatformUser"
+                },
+                "OwnerUUID": {
+                    "type": "string"
+                },
+                "UUID": {
+                    "type": "string"
+                },
+                "UpdatedAt": {
+                    "type": "string"
+                },
+                "config": {
+                    "type": "object"
+                }
+            }
+        },
         "blacklistEntities.BlacklistImportEvent": {
             "type": "object",
             "properties": {
@@ -2848,6 +3103,7 @@ const docTemplate = `{
                     }
                 },
                 "Priority": {
+                    "description": "MinPriority is minimal job priority that Agent can accept",
                     "type": "integer",
                     "enum": [
                         0,
@@ -2905,10 +3161,14 @@ const docTemplate = `{
                 "DeletedAt": {
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
+                "Error": {
+                    "type": "string"
+                },
                 "FinishedAt": {
                     "type": "string"
                 },
                 "Priority": {
+                    "description": "MinPriority is minimal job priority that Agent can accept",
                     "type": "integer"
                 },
                 "StartedAt": {
@@ -3258,6 +3518,44 @@ const docTemplate = `{
         "routing.queuedJob": {
             "type": "object",
             "properties": {
+                "UUID": {
+                    "type": "string"
+                }
+            }
+        },
+        "routing.scanAgentParams": {
+            "type": "object",
+            "required": [
+                "Host",
+                "MinPriority",
+                "Name"
+            ],
+            "properties": {
+                "Description": {
+                    "type": "string"
+                },
+                "Host": {
+                    "type": "string"
+                },
+                "IsActive": {
+                    "type": "boolean"
+                },
+                "IsHomeBound": {
+                    "type": "boolean"
+                },
+                "IsPrivate": {
+                    "type": "boolean"
+                },
+                "MinPriority": {
+                    "description": "MinPriority is minimal job priority that Agent can accept",
+                    "type": "integer"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "OwnerUUID": {
+                    "type": "string"
+                },
                 "UUID": {
                     "type": "string"
                 }
