@@ -58,6 +58,14 @@ func (l *DialerLogger) JobFinished(jobUUID *pgtype.UUID) {
 	)
 }
 
+func (l *DialerLogger) JobCancel(jobUUID *pgtype.UUID) {
+	l.logger.Info(
+		"job cancelled",
+		slog.String("job uuid", fmt.Sprintf("%x", jobUUID.Bytes)),
+		slog.String("error_message", ""),
+	)
+}
+
 func (l *DialerLogger) MessageError(jobUUID *pgtype.UUID, err error) {
 	l.logger.Info(
 		"error handling message from agent",

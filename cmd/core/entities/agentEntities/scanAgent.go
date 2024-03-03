@@ -27,8 +27,8 @@ type ScanAgent struct {
 	MinPriority jobEntities.JobPriority `json:"MinPriority" gorm:"column:min_priority;default:3"`
 
 	// Defines who is the owner of Agent.
-	Owner     *userEntities.PlatformUser `json:"Owner,omitempty" gorm:"foreignKey:OwnerUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	OwnerUUID *pgtype.UUID               `json:"OwnerUUID"`
+	Owner   *userEntities.PlatformUser `json:"Owner,omitempty" gorm:"foreignKey:OwnerID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	OwnerID *uint64                    `json:"OwnerID"`
 
 	// Private agents can only be used by their owners.
 	IsPrivate bool `json:"IsPrivate" gorm:"column:is_private;default:true"`

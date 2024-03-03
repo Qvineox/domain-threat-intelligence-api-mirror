@@ -104,9 +104,17 @@ func (j *Job) Validate() error {
 }
 
 func (j *Job) Advance() {
+	now := time.Now()
+	j.Meta.UpdatedAt = now
+
 	if j.Meta.Status < JOB_STATUS_DONE {
-		j.Meta.UpdatedAt = time.Now()
 		j.Meta.Status += 1
+	}
+
+	if j.Meta.Status == JOB_STATUS_STARTING {
+		j.Meta.StartedAt = &now
+	} else if j.Meta.Status >= JOB_STATUS_DONE {
+		j.Meta.FinishedAt = &now
 	}
 }
 
@@ -168,10 +176,13 @@ type JobsSearchFilter struct {
 type JobCreateParams struct {
 	Type     JobType     `json:"Type" binding:"oneof=0 1 2 3 4 5"`
 	Priority JobPriority `json:"Priority" binding:"oneof=0 1 2 3"`
-	Weight   int64       `json:"Weight"`
+	Weight   int64       `json:"Weight,omitempty"`
 
 	Targets    []string `json:"Targets" binding:"required"`
 	Exceptions []string `json:"Exceptions,omitempty"`
+
+	UseHomeBound bool `json:"UseHomeBound"`
+	Private      bool `json:"Private"`
 
 	CreatedBy *uint64 `json:"CreatedBy"`
 

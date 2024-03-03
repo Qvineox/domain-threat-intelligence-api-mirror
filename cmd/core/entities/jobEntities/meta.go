@@ -19,6 +19,8 @@ type Metadata struct {
 
 	// TODO: add AgentUUID field
 
+	TasksLeft uint64 `json:"TasksLeft" gorm:"-"`
+
 	CreatedBy   *userEntities.PlatformUser `json:"CreatedBy"`
 	CreatedByID *uint64                    `json:"CreatedByID" gorm:"column:created_by_id"`
 

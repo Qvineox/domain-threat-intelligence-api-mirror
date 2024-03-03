@@ -7,7 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"log/slog"
 	"net/http"
+	"sync"
 	"time"
 
 	swaggerDocs "domain_threat_intelligence_api/docs/swagger" // needs to be imported to use Enabled docs
@@ -69,8 +71,18 @@ func (s *HTTPServer) EnableSwagger(host, version, path string) {
 	s.router.GET("/swagger/*any", h)
 }
 
-func (s *HTTPServer) Start() error {
-	return s.server.ListenAndServe()
+func (s *HTTPServer) Start(wg *sync.WaitGroup) {
+	slog.Info("starting web server...")
+
+	go func() {
+		err := s.server.ListenAndServe()
+		if err != nil {
+			slog.Error("failed to start web socket server: " + err.Error())
+			panic(err)
+		}
+	}()
+
+	wg.Done()
 }
 
 type Services struct {

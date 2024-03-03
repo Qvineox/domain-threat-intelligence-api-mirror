@@ -2,6 +2,7 @@ package app
 
 import (
 	"domain_threat_intelligence_api/api/rest"
+	"domain_threat_intelligence_api/api/socket"
 	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"domain_threat_intelligence_api/cmd/core/repos"
 	"domain_threat_intelligence_api/cmd/core/services"
@@ -15,6 +16,7 @@ import (
 	"gorm.io/gorm"
 	"log/slog"
 	"os"
+	"sync"
 )
 
 func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigProvider, dynamicUpdateChan chan bool) error {
@@ -69,13 +71,14 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 
 	domainServices.JobsService = services.NewJobsServiceImpl(jobsRepo)
 
-	const queueLimit = 1000 // TODO: add to config
+	const queueLimit = 1000  // TODO: add to config
+	const pollingRate = 5000 // TODO: add to config
 
 	queue := jobEntities.NewQueue(queueLimit)
-	sch, err := scheduler.NewScheduler(queue, agentsRepo, nodesRepo)
+	jobScheduler, err := scheduler.NewScheduler(queue, agentsRepo, nodesRepo, jobsRepo, pollingRate)
 
-	domainServices.AgentsService = services.NewAgentsServiceImpl(agentsRepo, sch)
-	domainServices.QueueService = services.NewQueueServiceImpl(domainServices.JobsService, nodesRepo, agentsRepo, queue, sch)
+	domainServices.AgentsService = services.NewAgentsServiceImpl(agentsRepo, jobScheduler)
+	domainServices.QueueService = services.NewQueueServiceImpl(domainServices.JobsService, nodesRepo, agentsRepo, queue, jobScheduler)
 
 	// web server configuration
 	webServer, err := rest.NewHTTPServer(
@@ -84,6 +87,15 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 		staticCfg.WebServer.Security.AllowedOrigins,
 		staticCfg.WebServer.Port,
 		domainServices)
+	if err != nil {
+		return err
+	}
+
+	// web socket server configuration
+	webSocket, err := socket.NewWebSocketServer(jobScheduler, "0.0.0.0", 7091, pollingRate/2)
+	if err != nil {
+		return err
+	}
 
 	if staticCfg.WebServer.Swagger.Enabled {
 		webServer.EnableSwagger(
@@ -93,14 +105,19 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 		)
 	}
 
-	slog.Info("web server starting...")
-	err = webServer.Start()
-	if err != nil {
-		slog.Info("web server stopped with error: " + err.Error())
-		return err
-	}
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
 
-	slog.Info("application stopping...")
+	go webSocket.Start(wg)
+	go webServer.Start(wg)
+
+	wg.Wait()
+	slog.Info("application started")
+	wg.Add(1)
+
+	// TODO: add stop condition
+
+	wg.Wait()
 
 	return nil
 }

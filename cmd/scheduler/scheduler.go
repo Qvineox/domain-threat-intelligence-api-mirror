@@ -21,19 +21,22 @@ type Scheduler struct {
 	pollingRateMS time.Duration
 
 	nodesRepo core.INetworkNodesRepo
+	jobsRepo  core.IJobsRepo
+
+	latestJobs []*jobEntities.Job
 
 	quit chan bool
 }
 
-func NewScheduler(q *jobEntities.Queue, ar core.IAgentsRepo, nr core.INetworkNodesRepo) (*Scheduler, error) {
-	const pollingRageMS = 5000
-
+func NewScheduler(q *jobEntities.Queue, ar core.IAgentsRepo, nr core.INetworkNodesRepo, jr core.IJobsRepo, pr time.Duration) (*Scheduler, error) {
 	slog.Info("creating scheduler...")
 	sh := &Scheduler{
 		queue:         q,
-		pollingRateMS: pollingRageMS,
+		pollingRateMS: pr,
 		quit:          make(chan bool),
 		nodesRepo:     nr,
+		jobsRepo:      jr,
+		latestJobs:    make([]*jobEntities.Job, 0, 5),
 	}
 
 	// get all agents from database
@@ -72,7 +75,7 @@ func (s *Scheduler) Start() {
 			select {
 			case <-ticker.C:
 				job := s.queue.Dequeue()
-				if job != nil {
+				if job != nil && job.Meta.Status != jobEntities.JOB_STATUS_CANCELLED {
 					job.DequeuedTimes++
 
 					_ = s.ScheduleJob(job)
@@ -132,7 +135,25 @@ func (s *Scheduler) ScheduleJob(job *jobEntities.Job) error {
 
 	for _, h := range s.dialers {
 		if !h.IsBusy && job.Meta.Priority <= h.MinPriority {
-			go h.HandleOSSJob(job)
+
+			go func() {
+				h.HandleOSSJob(job)
+
+				job.Advance() // should move status to DONE
+
+				err := s.jobsRepo.SaveJob(job)
+				if err != nil {
+					slog.Warn(fmt.Sprintf("failed to save ended job (%x): %s", job.Meta.UUID, err.Error()))
+				}
+
+				s.latestJobs = append(s.latestJobs, job)
+
+				// remove top element
+				s.latestJobs = s.latestJobs[1:5]
+
+				slog.Info(fmt.Sprintf("saved ended job (%x) with status %d", job.Meta.UUID, job.Meta.Status))
+			}()
+
 			return nil
 		}
 	}
@@ -145,9 +166,21 @@ func (s *Scheduler) ScheduleJob(job *jobEntities.Job) error {
 	return nil
 }
 
-// GetAllJobs returns all jobs from queue and in active dialers
-func (s *Scheduler) GetAllJobs() [2][]*jobEntities.Job {
-	var jobs [2][]*jobEntities.Job
+// CancelActiveJob finds active Job on agent and cancels it
+func (s *Scheduler) CancelActiveJob(uuid pgtype.UUID) error {
+	for _, d := range s.dialers {
+		if d.CurrentJob != nil && *d.CurrentJob.Meta.UUID == uuid {
+			d.CurrentJob.Meta.Status = jobEntities.JOB_STATUS_CANCELLED
+			return nil
+		}
+	}
+
+	return errors.New("job not found")
+}
+
+// GetAllJobs returns all jobs from queue and in active dialers. Also returns recently finished jobs.
+func (s *Scheduler) GetAllJobs() [3][]*jobEntities.Job {
+	var jobs [3][]*jobEntities.Job
 
 	jobs[0] = make([]*jobEntities.Job, 0, len(s.dialers))
 	for _, d := range s.dialers {
@@ -157,6 +190,7 @@ func (s *Scheduler) GetAllJobs() [2][]*jobEntities.Job {
 	}
 
 	jobs[1] = s.queue.GetQueue()
+	jobs[2] = s.latestJobs
 
 	return jobs
 }

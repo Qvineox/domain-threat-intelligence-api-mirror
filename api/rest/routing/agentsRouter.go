@@ -123,13 +123,9 @@ func (r AgentsRouter) PutAgent(c *gin.Context) {
 		return
 	}
 
-	var ownerUUID *pgtype.UUID = nil
-	if len(params.OwnerUUID) > 0 {
-		err = ownerUUID.Set(params.OwnerUUID)
-		if err != nil {
-			apiErrors.ParamsErrorResponse(c, err)
-			return
-		}
+	var ownerID *uint64 = nil
+	if params.OwnerID != nil {
+		ownerID = params.OwnerID
 	}
 
 	host, _, err := net.SplitHostPort(params.Host)
@@ -153,7 +149,7 @@ func (r AgentsRouter) PutAgent(c *gin.Context) {
 		IsHomeBound: params.IsHomeBound,
 		Description: params.Description,
 		MinPriority: params.MinPriority,
-		OwnerUUID:   ownerUUID,
+		OwnerID:     ownerID,
 		IsPrivate:   params.IsPrivate,
 	})
 
@@ -197,13 +193,9 @@ func (r AgentsRouter) PatchAgent(c *gin.Context) {
 		return
 	}
 
-	var ownerUUID *pgtype.UUID = nil
-	if len(params.OwnerUUID) > 0 {
-		err = ownerUUID.Set(params.OwnerUUID)
-		if err != nil {
-			apiErrors.ParamsErrorResponse(c, err)
-			return
-		}
+	var ownerID *uint64 = nil
+	if params.OwnerID != nil {
+		ownerID = params.OwnerID
 	}
 
 	host, _, err := net.SplitHostPort(params.Host)
@@ -228,7 +220,7 @@ func (r AgentsRouter) PatchAgent(c *gin.Context) {
 		IsHomeBound: params.IsHomeBound,
 		Description: params.Description,
 		MinPriority: params.MinPriority,
-		OwnerUUID:   ownerUUID,
+		OwnerID:     ownerID,
 		IsPrivate:   params.IsPrivate,
 	})
 
@@ -289,5 +281,5 @@ type scanAgentParams struct {
 
 	MinPriority jobEntities.JobPriority `json:"MinPriority"`
 
-	OwnerUUID string `json:"OwnerUUID"`
+	OwnerID *uint64 `json:"OwnerID"`
 }

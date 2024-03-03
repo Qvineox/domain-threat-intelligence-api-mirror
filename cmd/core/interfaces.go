@@ -91,7 +91,7 @@ type IQueueService interface {
 	CancelQueuedJob(uuid *pgtype.UUID, force bool) error
 
 	// RetrieveAllJobs returns all jobs from queue and agents
-	RetrieveAllJobs() [2][]*jobEntities.Job
+	RetrieveAllJobs() [3][]*jobEntities.Job
 
 	RetrieveConnectedAgentsUUIDs() []pgtype.UUID
 }

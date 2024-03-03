@@ -1755,88 +1755,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/queue/job": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Accepts and adds new scanning job to queue",
-                "tags": [
-                    "Queue"
-                ],
-                "summary": "Enqueue scanning job",
-                "parameters": [
-                    {
-                        "description": "New job to queue",
-                        "name": "job",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/jobEntities.JobCreateParams"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/routing.queuedJob"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/error.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/error.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/queue/jobs": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Returns list of jobs from queue",
-                "tags": [
-                    "Queue"
-                ],
-                "summary": "Enqueued scanning jobs",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/jobEntities.Job"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/error.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/error.APIError"
-                        }
-                    }
-                }
-            }
-        },
         "/scanning/agents/agent": {
             "put": {
                 "security": [
@@ -2021,6 +1939,134 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/agentEntities.ScanAgent"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/scanning/queue/job": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and adds new scanning job to queue",
+                "tags": [
+                    "Queue"
+                ],
+                "summary": "Enqueue scanning job",
+                "parameters": [
+                    {
+                        "description": "New job to queue",
+                        "name": "job",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/jobEntities.JobCreateParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/routing.queuedJob"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes single job from queue",
+                "tags": [
+                    "Queue"
+                ],
+                "summary": "Delete single job from queue by UUID",
+                "parameters": [
+                    {
+                        "description": "job UUID to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.removeFromQueueByUUIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/scanning/queue/jobs": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns list of jobs from queue",
+                "tags": [
+                    "Queue"
+                ],
+                "summary": "Enqueued scanning jobs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/jobEntities.Job"
                             }
                         }
                     },
@@ -2692,8 +2738,8 @@ const docTemplate = `{
                     "description": "Defines who is the owner of Agent.",
                     "$ref": "#/definitions/userEntities.PlatformUser"
                 },
-                "OwnerUUID": {
-                    "type": "string"
+                "OwnerID": {
+                    "type": "integer"
                 },
                 "UUID": {
                     "type": "string"
@@ -3073,6 +3119,9 @@ const docTemplate = `{
         "jobEntities.Job": {
             "type": "object",
             "properties": {
+                "DequeuedTimes": {
+                    "type": "integer"
+                },
                 "Directives": {
                     "$ref": "#/definitions/jobEntities.Directives"
                 },
@@ -3112,6 +3161,9 @@ const docTemplate = `{
                         3
                     ]
                 },
+                "Private": {
+                    "type": "boolean"
+                },
                 "Providers": {
                     "type": "array",
                     "items": {
@@ -3140,6 +3192,9 @@ const docTemplate = `{
                         4,
                         5
                     ]
+                },
+                "UseHomeBound": {
+                    "type": "boolean"
                 },
                 "Weight": {
                     "type": "integer"
@@ -3175,6 +3230,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "Status": {
+                    "type": "integer"
+                },
+                "TasksLeft": {
                     "type": "integer"
                 },
                 "Type": {
@@ -3523,11 +3581,24 @@ const docTemplate = `{
                 }
             }
         },
+        "routing.removeFromQueueByUUIDParams": {
+            "type": "object",
+            "required": [
+                "UUID"
+            ],
+            "properties": {
+                "Force": {
+                    "type": "boolean"
+                },
+                "UUID": {
+                    "type": "string"
+                }
+            }
+        },
         "routing.scanAgentParams": {
             "type": "object",
             "required": [
                 "Host",
-                "MinPriority",
                 "Name"
             ],
             "properties": {
@@ -3553,8 +3624,8 @@ const docTemplate = `{
                 "Name": {
                     "type": "string"
                 },
-                "OwnerUUID": {
-                    "type": "string"
+                "OwnerID": {
+                    "type": "integer"
                 },
                 "UUID": {
                     "type": "string"

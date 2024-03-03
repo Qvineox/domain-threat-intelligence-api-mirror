@@ -69,18 +69,26 @@ func (d *ScanAgentDialer) HandleOSSJob(job *jobEntities.Job) {
 		return
 	}
 
-	// cleanup on assignment finish
-	defer func() {
-		d.CurrentJob = nil
-		d.IsBusy = false
-	}()
-
+	ctx, cancel := context.WithCancel(context.Background())
 	d.CurrentJob = job
 	d.IsBusy = true
 
-	d.CurrentJob.Advance() // should move status to STARTING
+	// cleanup on assignment finish or recover
+	defer func() {
+		r := recover()
 
-	ctx := context.Background()
+		if r != nil {
+			slog.Error("dialer recovered with error: " + r.(string))
+			job.Meta.Status = jobEntities.JOB_STATUS_PANIC
+		}
+
+		d.CurrentJob = nil
+		d.IsBusy = false
+
+		cancel()
+	}()
+
+	d.CurrentJob.Advance() // should move status to STARTING
 
 	// switch job types
 	stream, err := d.jobsClient.StartOSS(ctx, job.ToProto())
@@ -103,6 +111,11 @@ func (d *ScanAgentDialer) HandleOSSJob(job *jobEntities.Job) {
 	for {
 		var r *protoServices.TargetAuditReport
 
+		if d.CurrentJob.Meta.Status == jobEntities.JOB_STATUS_CANCELLED {
+			d.logger.JobCancel(job.Meta.UUID)
+			break
+		}
+
 		r, err = stream.Recv()
 		if err == io.EOF {
 			close(ch)
@@ -111,11 +124,19 @@ func (d *ScanAgentDialer) HandleOSSJob(job *jobEntities.Job) {
 			d.logger.MessageError(job.Meta.UUID, err)
 		}
 
+		if r == nil {
+			d.logger.MessageError(job.Meta.UUID, errors.New("received empty response"))
+			job.Meta.Status = jobEntities.JOB_STATUS_ERROR
+			break
+		}
+
 		wg.Add(1)
+		d.CurrentJob.Meta.TasksLeft = r.TasksLeft
+
 		ch <- r
 	}
 
 	wg.Wait()
 	d.logger.JobFinished(job.Meta.UUID)
-	d.CurrentJob.Advance()
+	d.CurrentJob.Advance() // // should move status to FINISHING
 }

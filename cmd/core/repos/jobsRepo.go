@@ -39,7 +39,7 @@ func (r *JobsRepoImpl) SaveJob(job *jobEntities.Job) error {
 		return err
 	}
 
-	err = r.Create(&job).Error
+	err = r.Save(&job).Error
 
 	return err
 }

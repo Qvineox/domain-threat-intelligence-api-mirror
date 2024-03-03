@@ -61,12 +61,12 @@ func CreateRouter(services Services, basePath string, allowedOrigins []string, a
 	routing.NewServiceDeskRouter(services.ServiceDeskService, baseRouteV1)
 	routing.NewUsersRouter(services.UsersService, baseRouteV1, authMiddleware)
 	routing.NewJobsRouter(services.JobsService, baseRouteV1, authMiddleware)
-	routing.NewQueueRouter(services.QueueService, baseRouteV1, authMiddleware)
 	routing.NewAuthRouter(services.AuthService, baseRouteV1, authMiddleware)
 
 	scanningRoute := baseRouteV1.Group("/scanning")
 	scanningRoute.Use(authMiddleware.RequireAuth())
 
+	routing.NewQueueRouter(services.QueueService, scanningRoute, authMiddleware)
 	routing.NewAgentsRouter(services.AgentsService, scanningRoute, authMiddleware)
 
 	return router

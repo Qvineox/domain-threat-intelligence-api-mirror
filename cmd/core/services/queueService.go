@@ -97,11 +97,22 @@ func (q *QueueServiceImpl) AlterQueuedJob(uuid *pgtype.UUID, params jobEntities.
 }
 
 func (q *QueueServiceImpl) CancelQueuedJob(uuid *pgtype.UUID, force bool) error {
-	// TODO implement me
-	panic("implement me")
+	var qErr, aErr error
+
+	if force {
+		qErr = q.scheduler.CancelActiveJob(*uuid)
+	}
+
+	aErr = q.queue.RemoveFromQueueByUUID(*uuid)
+
+	if qErr != nil && aErr != nil {
+		return aErr
+	}
+
+	return nil
 }
 
-func (q *QueueServiceImpl) RetrieveAllJobs() [2][]*jobEntities.Job {
+func (q *QueueServiceImpl) RetrieveAllJobs() [3][]*jobEntities.Job {
 	return q.scheduler.GetAllJobs()
 }
 

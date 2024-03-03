@@ -12,7 +12,7 @@ type Queue struct {
 	limit int
 
 	// jobStore mirrors state of the queue, provides API to see queue state
-	jobStore map[pgtype.UUID]*Job
+	// jobStore map[pgtype.UUID]*Job
 
 	queue []*Job
 
@@ -22,7 +22,7 @@ type Queue struct {
 }
 
 func NewQueue(limit int) *Queue {
-	return &Queue{limit: limit, queue: make([]*Job, 0, limit), jobStore: make(map[pgtype.UUID]*Job, limit)}
+	return &Queue{limit: limit, queue: make([]*Job, 0, limit)}
 }
 
 func (q *Queue) GetLimit() int {
@@ -42,7 +42,6 @@ func (q *Queue) Enqueue(job *Job) error {
 		return errors.New("queue limit reached")
 	}
 
-	q.jobStore[*job.Meta.UUID] = job
 	q.queue = append(q.queue, job)
 
 	slices.SortFunc(q.queue, func(a, b *Job) int {
@@ -73,22 +72,23 @@ func (q *Queue) Dequeue() *Job {
 	return job
 }
 
-func (q *Queue) RemoveFromQueueByUUID(uuid pgtype.UUID) {
-	defer q.mutex.Unlock()
-
-	if len(q.jobStore) > 0 {
+func (q *Queue) RemoveFromQueueByUUID(uuid pgtype.UUID) error {
+	if len(q.queue) > 0 {
+		defer q.mutex.Unlock()
 		q.mutex.Lock()
 
-		j, ok := q.jobStore[uuid]
-		if !ok {
-			return
-		}
-
-		j.Meta.Status = JOB_STATUS_CANCELLED
 		i := slices.IndexFunc(q.queue, func(job *Job) bool {
 			return *job.Meta.UUID == uuid
 		})
 
-		q.queue = slices.Delete(q.queue, i, i+1)
+		if i == -1 {
+			return errors.New("job not found")
+		}
+
+		q.queue[i].Meta.Status = JOB_STATUS_CANCELLED
+
+		return nil
 	}
+
+	return errors.New("queue is empty")
 }
