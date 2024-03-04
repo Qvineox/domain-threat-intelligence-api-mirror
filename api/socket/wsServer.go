@@ -2,11 +2,10 @@ package socket
 
 import (
 	"domain_threat_intelligence_api/cmd/scheduler"
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"log/slog"
-	"net"
 	"net/http"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -22,63 +21,50 @@ type WebSocketServer struct {
 	pollingRateMS time.Duration
 }
 
-func NewWebSocketServer(jobScheduler *scheduler.Scheduler, host string, port uint64, pr time.Duration) (*WebSocketServer, error) {
-	s := &WebSocketServer{
-		server: websocket.Upgrader{
-			ReadBufferSize:  1024,
-			WriteBufferSize: 1024,
-		},
+const (
+	// Time allowed to write a message to the peer.
+	writeWait = 10 * time.Second
+
+	// Time allowed to read the next pong message from the peer.
+	pongWait = 60 * time.Second
+
+	// Send pings to peer with this period. Must be less than pongWait.
+	pingPeriod = (pongWait * 9) / 10
+
+	// Maximum message size allowed from peer.
+	maxMessageSize = 512
+)
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func NewWebSocketServer(path *gin.RouterGroup, jobScheduler *scheduler.Scheduler, pr time.Duration) {
+	server := &WebSocketServer{
 		jobScheduler:  jobScheduler,
-		host:          host,
-		port:          port,
 		pollingRateMS: pr,
 	}
 
-	http.HandleFunc("/ws/queue", s.handleQueueUpdates)
-	return s, nil
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+
+	path.GET("/ws/queue", func(c *gin.Context) {
+		server.serveWS(c)
+	})
 }
 
-func (s *WebSocketServer) Start(wg *sync.WaitGroup) {
-	slog.Info("starting web socket server...")
-
-	go func() {
-		err := http.ListenAndServe(net.JoinHostPort(s.host, strconv.FormatUint(s.port, 10)), nil)
-		if err != nil {
-			slog.Error("failed to start web socket server: " + err.Error())
-			panic(err)
-		}
-	}()
-
-	wg.Done()
-}
-
-func (s *WebSocketServer) handleQueueUpdates(w http.ResponseWriter, r *http.Request) {
-	conn, err := s.server.Upgrade(w, r, nil)
+func (s *WebSocketServer) serveWS(ctx *gin.Context) {
+	ws, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
-		slog.Warn("failed to establish websocket connection: " + err.Error())
+		slog.Error("failed to establish connection: " + err.Error())
+		return
 	}
 
-	ticker := time.NewTicker(s.pollingRateMS * time.Millisecond)
+	notifier := NewQueueNotifier(ws, s.pollingRateMS, s.jobScheduler)
 
-	defer conn.Close()
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			conn.SetWriteDeadline(time.Now().Add(s.pollingRateMS * time.Millisecond / 2))
-			err = conn.WriteMessage(websocket.PingMessage, nil)
-			if err != nil {
-				return
-			}
-
-			jobs := s.jobScheduler.GetAllJobs()
-
-			err := conn.WriteJSON(jobs)
-			if err != nil {
-				slog.Warn("failed to encode websocket message: " + err.Error())
-				return
-			}
-		}
-	}
+	go notifier.Write()
 }

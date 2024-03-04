@@ -3,6 +3,7 @@ package rest
 import (
 	"domain_threat_intelligence_api/api/rest/auth"
 	"domain_threat_intelligence_api/cmd/core"
+	"domain_threat_intelligence_api/cmd/scheduler"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -23,7 +24,7 @@ type HTTPServer struct {
 	port uint64
 }
 
-func NewHTTPServer(host, path string, allowedOrigins []string, port uint64, services Services) (*HTTPServer, error) {
+func NewHTTPServer(host, path string, allowedOrigins []string, port uint64, sh *scheduler.Scheduler, pr time.Duration, services Services) (*HTTPServer, error) {
 	s := &HTTPServer{}
 
 	if len(host) == 0 {
@@ -42,7 +43,7 @@ func NewHTTPServer(host, path string, allowedOrigins []string, port uint64, serv
 	authMiddleware := auth.NewMiddlewareService(services.AuthService)
 
 	// gin router initialization
-	s.router = CreateRouter(services, path, allowedOrigins, authMiddleware)
+	s.router = CreateRouter(services, path, allowedOrigins, authMiddleware, sh, pr)
 
 	// http server creation
 	address := fmt.Sprintf("%s:%d", s.host, s.port)

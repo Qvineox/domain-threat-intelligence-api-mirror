@@ -2,7 +2,6 @@ package app
 
 import (
 	"domain_threat_intelligence_api/api/rest"
-	"domain_threat_intelligence_api/api/socket"
 	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"domain_threat_intelligence_api/cmd/core/repos"
 	"domain_threat_intelligence_api/cmd/core/services"
@@ -17,6 +16,7 @@ import (
 	"log/slog"
 	"os"
 	"sync"
+	"time"
 )
 
 func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigProvider, dynamicUpdateChan chan bool) error {
@@ -71,11 +71,8 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 
 	domainServices.JobsService = services.NewJobsServiceImpl(jobsRepo)
 
-	const queueLimit = 1000  // TODO: add to config
-	const pollingRate = 5000 // TODO: add to config
-
-	queue := jobEntities.NewQueue(queueLimit)
-	jobScheduler, err := scheduler.NewScheduler(queue, agentsRepo, nodesRepo, jobsRepo, pollingRate)
+	queue := jobEntities.NewQueue(staticCfg.Scheduling.QueueLimit)
+	jobScheduler, err := scheduler.NewScheduler(queue, agentsRepo, nodesRepo, jobsRepo, time.Duration(staticCfg.Scheduling.PollingRateMS))
 
 	domainServices.AgentsService = services.NewAgentsServiceImpl(agentsRepo, jobScheduler)
 	domainServices.QueueService = services.NewQueueServiceImpl(domainServices.JobsService, nodesRepo, agentsRepo, queue, jobScheduler)
@@ -86,13 +83,13 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 		staticCfg.WebServer.API.Path,
 		staticCfg.WebServer.Security.AllowedOrigins,
 		staticCfg.WebServer.Port,
+		jobScheduler,
+		time.Duration(staticCfg.WebSocket.PollingRateMS),
 		domainServices)
 	if err != nil {
 		return err
 	}
 
-	// web socket server configuration
-	webSocket, err := socket.NewWebSocketServer(jobScheduler, "0.0.0.0", 7091, pollingRate/2)
 	if err != nil {
 		return err
 	}
@@ -106,9 +103,8 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 	}
 
 	wg := &sync.WaitGroup{}
-	wg.Add(2)
+	wg.Add(1)
 
-	go webSocket.Start(wg)
 	go webServer.Start(wg)
 
 	wg.Wait()

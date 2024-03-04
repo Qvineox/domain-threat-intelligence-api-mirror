@@ -3,7 +3,9 @@ package rest
 import (
 	"domain_threat_intelligence_api/api/rest/auth"
 	"domain_threat_intelligence_api/api/rest/routing"
+	"domain_threat_intelligence_api/api/socket"
 	"domain_threat_intelligence_api/cmd/loggers"
+	"domain_threat_intelligence_api/cmd/scheduler"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"time"
@@ -21,7 +23,7 @@ import (
 // @securityDefinitions.apikey ApiKeyAuth
 // @in                         header
 // @name                       x-api-Key
-func CreateRouter(services Services, basePath string, allowedOrigins []string, authMiddleware *auth.MiddlewareService) *gin.Engine {
+func CreateRouter(services Services, basePath string, allowedOrigins []string, authMiddleware *auth.MiddlewareService, sh *scheduler.Scheduler, pr time.Duration) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
@@ -68,6 +70,9 @@ func CreateRouter(services Services, basePath string, allowedOrigins []string, a
 
 	routing.NewQueueRouter(services.QueueService, scanningRoute, authMiddleware)
 	routing.NewAgentsRouter(services.AgentsService, scanningRoute, authMiddleware)
+
+	// web socket server configuration
+	socket.NewWebSocketServer(baseRouteV1, sh, pr)
 
 	return router
 }
