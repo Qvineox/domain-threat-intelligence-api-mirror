@@ -53,8 +53,6 @@ type StaticConfig struct {
 	} `json:"http"`
 
 	WebSocket struct {
-		Host          string `env-required:"true" env:"ws_host" json:"host"`
-		Port          uint64 `env-required:"true" env:"ws_port" json:"port"`
 		PollingRateMS uint64 `env-default:"2500" env:"ws_rate" json:"polling_rate_ms"`
 	} `json:"ws"`
 }

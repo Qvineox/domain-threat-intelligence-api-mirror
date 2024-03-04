@@ -143,12 +143,14 @@ type removeFromQueueByUUIDParams struct {
 func (r *QueueRouter) GetQueuedJobs(c *gin.Context) {
 	jobs := r.service.RetrieveAllJobs()
 	c.JSON(http.StatusOK, queuedJobs{
-		Sent:   jobs[0],
-		Queued: jobs[1],
+		Queued: jobs[0],
+		Sent:   jobs[1],
+		Latest: jobs[2],
 	})
 }
 
 type queuedJobs struct {
 	Queued []*jobEntities.Job `json:"queued"`
 	Sent   []*jobEntities.Job `json:"sent"`
+	Latest []*jobEntities.Job `json:"latest"`
 }

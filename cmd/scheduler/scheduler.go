@@ -36,7 +36,7 @@ func NewScheduler(q *jobEntities.Queue, ar core.IAgentsRepo, nr core.INetworkNod
 		quit:          make(chan bool),
 		nodesRepo:     nr,
 		jobsRepo:      jr,
-		latestJobs:    make([]*jobEntities.Job, 0, 5),
+		latestJobs:    make([]*jobEntities.Job, 0),
 	}
 
 	// get all agents from database
@@ -65,25 +65,39 @@ func NewScheduler(q *jobEntities.Queue, ar core.IAgentsRepo, nr core.INetworkNod
 	return sh, nil
 }
 
+const latestJobsLifespanMinutes = 120
+
 func (s *Scheduler) Start() {
 	slog.Info(fmt.Sprintf("starting scheduler with polling rate %dms...", s.pollingRateMS))
 
-	ticker := time.NewTicker(s.pollingRateMS * time.Millisecond)
+	jobQueueTicker := time.NewTicker(s.pollingRateMS * time.Millisecond)
+	queueStateTicker := time.NewTicker(s.pollingRateMS * time.Second)
 
 	go func() {
 		for {
 			select {
-			case <-ticker.C:
+			case <-jobQueueTicker.C:
 				job := s.queue.Dequeue()
 				if job != nil && job.Meta.Status != jobEntities.JOB_STATUS_CANCELLED {
 					job.DequeuedTimes++
 
 					_ = s.ScheduleJob(job)
 				}
+			case <-queueStateTicker.C:
+				var latestJobs []*jobEntities.Job
+				var threshold = time.Now()
+				threshold = threshold.Add(-latestJobsLifespanMinutes * time.Minute)
 
+				for _, j := range s.latestJobs {
+					if j.Meta.Status < 4 || j.Meta.FinishedAt.After(threshold) {
+						latestJobs = append(latestJobs, j)
+					}
+				}
+
+				s.latestJobs = latestJobs
 			case <-s.quit:
 				slog.Warn("scheduler stopped")
-				ticker.Stop()
+				jobQueueTicker.Stop()
 				return
 			}
 		}
@@ -148,9 +162,6 @@ func (s *Scheduler) ScheduleJob(job *jobEntities.Job) error {
 
 				s.latestJobs = append(s.latestJobs, job)
 
-				// remove top element
-				s.latestJobs = s.latestJobs[1:5]
-
 				slog.Info(fmt.Sprintf("saved ended job (%x) with status %d", job.Meta.UUID, job.Meta.Status))
 			}()
 
@@ -182,14 +193,15 @@ func (s *Scheduler) CancelActiveJob(uuid pgtype.UUID) error {
 func (s *Scheduler) GetAllJobs() [3][]*jobEntities.Job {
 	var jobs [3][]*jobEntities.Job
 
-	jobs[0] = make([]*jobEntities.Job, 0, len(s.dialers))
+	jobs[0] = s.queue.GetQueue()
+
+	jobs[1] = make([]*jobEntities.Job, 0, len(s.dialers))
 	for _, d := range s.dialers {
 		if d.CurrentJob != nil {
-			jobs[0] = append(jobs[0], d.CurrentJob)
+			jobs[1] = append(jobs[1], d.CurrentJob)
 		}
 	}
 
-	jobs[1] = s.queue.GetQueue()
 	jobs[2] = s.latestJobs
 
 	return jobs

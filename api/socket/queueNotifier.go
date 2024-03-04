@@ -52,7 +52,11 @@ func (c *QueueNotifier) Write() {
 
 			jobs := c.jobScheduler.GetAllJobs()
 
-			err := c.Conn.WriteJSON(jobs)
+			err := c.Conn.WriteJSON(queuedJobs{
+				Queued: jobs[0],
+				Sent:   jobs[1],
+				Latest: jobs[2],
+			})
 			if err != nil {
 				slog.Warn("failed to encode websocket message: " + err.Error())
 				return
@@ -64,4 +68,10 @@ func (c *QueueNotifier) Write() {
 
 func (c *QueueNotifier) Close() {
 	close(c.send)
+}
+
+type queuedJobs struct {
+	Queued []*jobEntities.Job `json:"queued"`
+	Sent   []*jobEntities.Job `json:"sent"`
+	Latest []*jobEntities.Job `json:"latest"`
 }
