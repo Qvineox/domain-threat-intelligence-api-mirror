@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgtype"
 	"log/slog"
 	"slices"
+	"sort"
 	"time"
 )
 
@@ -203,6 +204,9 @@ func (s *Scheduler) GetAllJobs() [3][]*jobEntities.Job {
 	}
 
 	jobs[2] = s.latestJobs
+	sort.Slice(jobs[2], func(i, j int) bool {
+		return jobs[2][i].Meta.StartedAt.After(*jobs[2][j].Meta.StartedAt)
+	})
 
 	return jobs
 }

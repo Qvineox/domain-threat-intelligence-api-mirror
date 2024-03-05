@@ -23,6 +23,9 @@ type ScanAgent struct {
 	IsHomeBound bool        `json:"IsHomeBound" gorm:"column:is_home_bound;default:true"`
 	Description string      `json:"Description" gorm:"column:description;size:512;default:No description."`
 
+	// IsConnected is used to monitor dialer connection
+	IsConnected bool `json:"IsConnected" gorm:"-"`
+
 	// MinPriority is minimal job priority that Agent can accept
 	MinPriority jobEntities.JobPriority `json:"MinPriority" gorm:"column:min_priority;default:3"`
 

@@ -88,8 +88,6 @@ func (d *ScanAgentDialer) HandleOSSJob(job *jobEntities.Job) {
 		cancel()
 	}()
 
-	d.CurrentJob.Advance() // should move status to STARTING
-
 	// switch job types
 	stream, err := d.jobsClient.StartOSS(ctx, job.ToProto())
 	if err != nil {

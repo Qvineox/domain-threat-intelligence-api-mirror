@@ -17,7 +17,21 @@ func NewAgentsServiceImpl(repo core.IAgentsRepo, sch *scheduler.Scheduler) *Agen
 }
 
 func (s AgentsServiceImpl) RetrieveAllAgents() ([]agentEntities.ScanAgent, error) {
-	return s.repo.SelectAllAgents()
+	agents, err := s.repo.SelectAllAgents()
+	if err != nil {
+		return nil, err
+	}
+
+	uuids := s.jobScheduler.GetAllConnectedDialersUUIDs()
+	for i, a := range agents {
+		for _, u := range uuids {
+			if *a.UUID == u {
+				agents[i].IsConnected = true
+			}
+		}
+	}
+
+	return agents, nil
 }
 
 func (s AgentsServiceImpl) RetrieveAgentByUUID(uuid pgtype.UUID) (agentEntities.ScanAgent, error) {
