@@ -85,7 +85,7 @@ func (s *Scheduler) Start() {
 					_ = s.ScheduleJob(job)
 				}
 			case <-queueStateTicker.C:
-				var latestJobs []*jobEntities.Job
+				var latestJobs = make([]*jobEntities.Job, 0)
 				var threshold = time.Now()
 				threshold = threshold.Add(-latestJobsLifespanMinutes * time.Minute)
 
@@ -220,4 +220,9 @@ func (s *Scheduler) GetAllConnectedDialersUUIDs() []pgtype.UUID {
 	}
 
 	return uuids
+}
+
+// ReconnectAllDialers queries all active agents and updates all dialers
+func (s *Scheduler) ReconnectAllDialers() error {
+	return errors.New("not implemented")
 }

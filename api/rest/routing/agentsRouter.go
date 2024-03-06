@@ -11,7 +11,6 @@ import (
 	"github.com/jackc/pgtype"
 	"net"
 	"net/http"
-	"strconv"
 )
 
 type AgentsRouter struct {
@@ -38,7 +37,7 @@ func NewAgentsRouter(service core.IAgentsService, path *gin.RouterGroup, authMid
 	agentsModifySecure.Use(authMiddleware.RequireRole(5202))
 
 	{
-		agentsModifySecure.PATCH("/agents", r.PatchAgent)
+		agentsModifySecure.PATCH("/agent", r.PatchAgent)
 		agentsModifySecure.PUT("/agent", r.PutAgent)
 		agentsModifySecure.DELETE("/agent", r.DeleteAgent)
 	}
@@ -78,14 +77,14 @@ func (r AgentsRouter) GetAllAgents(c *gin.Context) {
 // @Success            200        {object} agentEntities.ScanAgent
 // @Failure            401,400 {object} apiErrors.APIError
 func (r AgentsRouter) GetAgent(c *gin.Context) {
-	agentUUID, err := strconv.ParseUint(c.Param("agent_uuid"), 10, 64)
-	if err != nil {
-		apiErrors.ParamsErrorResponse(c, err)
+	agentUUID := c.Param("agent_uuid")
+	if agentUUID == "" {
+		apiErrors.ParamsErrorResponse(c, errors.New("missing uuid"))
 		return
 	}
 
 	uuid := pgtype.UUID{}
-	err = uuid.Set(agentUUID)
+	err := uuid.Set(agentUUID)
 	if err != nil {
 		apiErrors.ParamsErrorResponse(c, err)
 		return
@@ -186,7 +185,7 @@ func (r AgentsRouter) PatchAgent(c *gin.Context) {
 		return
 	}
 
-	var agentUUID *pgtype.UUID = nil
+	var agentUUID = &pgtype.UUID{}
 	err = agentUUID.Set(params.UUID)
 	if err != nil {
 		apiErrors.ParamsErrorResponse(c, err)

@@ -35,7 +35,19 @@ func (s AgentsServiceImpl) RetrieveAllAgents() ([]agentEntities.ScanAgent, error
 }
 
 func (s AgentsServiceImpl) RetrieveAgentByUUID(uuid pgtype.UUID) (agentEntities.ScanAgent, error) {
-	return s.repo.SelectAgentByUUID(uuid)
+	agent, err := s.repo.SelectAgentByUUID(uuid)
+	if err != nil {
+		return agentEntities.ScanAgent{}, err
+	}
+
+	uuids := s.jobScheduler.GetAllConnectedDialersUUIDs()
+	for _, u := range uuids {
+		if *agent.UUID == u {
+			agent.IsConnected = true
+		}
+	}
+
+	return agent, nil
 }
 
 func (s AgentsServiceImpl) SaveAgent(agent agentEntities.ScanAgent) (agentEntities.ScanAgent, error) {
