@@ -27,6 +27,7 @@ func (s AgentsServiceImpl) RetrieveAllAgents() ([]agentEntities.ScanAgent, error
 		for _, u := range uuids {
 			if *a.UUID == u {
 				agents[i].IsConnected = true
+				break
 			}
 		}
 	}
@@ -50,27 +51,41 @@ func (s AgentsServiceImpl) RetrieveAgentByUUID(uuid pgtype.UUID) (agentEntities.
 	return agent, nil
 }
 
-func (s AgentsServiceImpl) SaveAgent(agent agentEntities.ScanAgent) (agentEntities.ScanAgent, error) {
+func (s AgentsServiceImpl) CreateAgent(agent agentEntities.ScanAgent) (agentEntities.ScanAgent, error) {
 	agent, err := s.repo.SaveAgent(agent)
 	if err != nil {
 		return agentEntities.ScanAgent{}, err
 	}
 
-	err = s.jobScheduler.AddOrUpdateDialer(&agent)
+	err = s.jobScheduler.AddOrUpdateDialer(agent)
 	if err != nil {
 		return agentEntities.ScanAgent{}, err
 	}
 
-	return s.repo.SaveAgent(agent)
+	return agent, nil
+}
+
+func (s AgentsServiceImpl) UpdateAgent(agent agentEntities.ScanAgent) (agentEntities.ScanAgent, error) {
+	err := s.jobScheduler.AddOrUpdateDialer(agent)
+	if err != nil {
+		return agentEntities.ScanAgent{}, err
+	}
+
+	agent, err = s.repo.SaveAgent(agent)
+	if err != nil {
+		return agentEntities.ScanAgent{}, err
+	}
+
+	return agent, nil
 }
 
 func (s AgentsServiceImpl) DeleteAgent(uuid pgtype.UUID) error {
-	err := s.repo.DeleteAgent(uuid)
+	err := s.jobScheduler.RemoveDialerByUUID(uuid)
 	if err != nil {
 		return err
 	}
 
-	err = s.jobScheduler.RemoveDialerByUUID(uuid)
+	err = s.repo.DeleteAgent(uuid)
 	if err != nil {
 		return err
 	}

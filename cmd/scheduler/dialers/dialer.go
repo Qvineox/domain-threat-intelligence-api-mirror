@@ -10,6 +10,8 @@ import (
 	"errors"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"io"
 	"log/slog"
@@ -17,13 +19,15 @@ import (
 )
 
 type ScanAgentDialer struct {
-	MinPriority   jobEntities.JobPriority
-	IsBusy        bool
-	IsAcceptsJobs bool
+	MinPriority jobEntities.JobPriority
+	IsBusy      bool
 
 	CurrentJob *jobEntities.Job
 
-	Agent        *agentEntities.ScanAgent
+	Agent *agentEntities.ScanAgent
+
+	connection *grpc.ClientConn
+
 	jobsClient   protoServices.JobsClient
 	configClient protoServices.ConfigurationClient
 	connClient   protoServices.ConnectionClient
@@ -34,36 +38,81 @@ type ScanAgentDialer struct {
 }
 
 func NewAgentDialer(agent *agentEntities.ScanAgent, repo core.INetworkNodesRepo) (*ScanAgentDialer, error) {
-	if agent == nil || !agent.IsActive || agent.Host == "" {
-		return nil, errors.New("Agent not available")
+	if agent == nil || agent.Host == "" {
+		return nil, errors.New("agent not available")
 	}
+
+	a := &ScanAgentDialer{
+		MinPriority: agent.MinPriority,
+		Agent:       agent,
+		repo:        repo,
+		IsBusy:      false,
+		logger:      loggers.NewDialerLogger(agent.UUID, agent.Name),
+	}
+
+	return a, nil
+}
+
+func (d *ScanAgentDialer) Connect(tls credentials.TransportCredentials) error {
+	var err error
 
 	// ref: https://grpc.io/docs/guides/wait-for-ready/
 	// ref: https://stackoverflow.com/questions/45547278/how-to-wait-for-the-grpc-server-connection
+	// ref: https://github.com/grpc/grpc-go/blob/master/examples/features/encryption/TLS/client/main.go (tls)
 
-	// TODO: adjust security options
-	cc, err := grpc.Dial(agent.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		slog.Error(fmt.Sprintf("failed to connected agent '%s' on %s", agent.Name, agent.Host))
-		return nil, errors.New("Agent connection failed: " + err.Error())
+	if tls != nil {
+		d.connection, err = grpc.Dial(d.Agent.Host, grpc.WithTransportCredentials(tls))
+	} else {
+		d.connection, err = grpc.Dial(d.Agent.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
-	slog.Info(fmt.Sprintf("successfully connected agent '%s' on %s", agent.Name, agent.Host))
+	if err != nil {
+		err = errors.New(fmt.Sprintf("failed to connect agent '%s' on %s: %s", d.Agent.Name, d.Agent.Host, err.Error()))
 
-	return &ScanAgentDialer{
-		MinPriority:  agent.MinPriority,
-		Agent:        agent,
-		jobsClient:   protoServices.NewJobsClient(cc),
-		configClient: protoServices.NewConfigurationClient(cc),
-		connClient:   protoServices.NewConnectionClient(cc),
-		repo:         repo,
-		logger:       loggers.NewDialerLogger(agent.UUID, agent.Name),
-	}, nil
+		d.logger.ConnectionError(connectivity.Shutdown, err)
+		return err
+	}
+
+	d.jobsClient = protoServices.NewJobsClient(d.connection)
+	d.configClient = protoServices.NewConfigurationClient(d.connection)
+	d.connClient = protoServices.NewConnectionClient(d.connection)
+
+	return nil
+}
+
+func (d *ScanAgentDialer) IsConnected() bool {
+	if !d.Agent.IsActive || d.connection == nil {
+		return false
+	}
+
+	state := d.connection.GetState()
+
+	// try to reconnect
+	if d.Agent.IsActive && state != connectivity.Ready && !d.IsBusy {
+		d.connection.Connect()
+
+		if state == connectivity.TransientFailure {
+			d.connection.ResetConnectBackoff()
+		}
+	}
+
+	return state == connectivity.Ready || state == connectivity.Idle
+}
+
+func (d *ScanAgentDialer) CanAcceptJobs() bool {
+	return d.Agent.IsActive && d.IsConnected()
 }
 
 func (d *ScanAgentDialer) HandleOSSJob(job *jobEntities.Job) {
+	if !d.IsConnected() {
+		err := errors.New("agent is not connected")
+		d.logger.JobAssignmentFailed(job.Meta.UUID, err)
+
+		return
+	}
+
 	if d.IsBusy || d.MinPriority < job.Meta.Priority {
-		err := errors.New("job cant be assigned to this dialer")
+		err := errors.New("job cant be assigned: agent busy or priority too low")
 		d.logger.JobAssignmentFailed(job.Meta.UUID, err)
 
 		return

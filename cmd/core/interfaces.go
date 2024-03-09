@@ -130,7 +130,8 @@ type IAgentsService interface {
 	RetrieveAllAgents() ([]agentEntities.ScanAgent, error)
 	RetrieveAgentByUUID(uuid pgtype.UUID) (agentEntities.ScanAgent, error)
 
-	SaveAgent(agent agentEntities.ScanAgent) (agentEntities.ScanAgent, error)
+	CreateAgent(agent agentEntities.ScanAgent) (agentEntities.ScanAgent, error)
+	UpdateAgent(agent agentEntities.ScanAgent) (agentEntities.ScanAgent, error)
 	DeleteAgent(uuid pgtype.UUID) error
 }
 

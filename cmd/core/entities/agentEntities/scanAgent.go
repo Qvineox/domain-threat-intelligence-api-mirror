@@ -16,11 +16,11 @@ import (
 type ScanAgent struct {
 	UUID *pgtype.UUID `json:"UUID" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 
-	Name        string      `json:"Name" gorm:"column:name;size:64;not null"`
+	Name        string      `json:"Name" gorm:"column:name;size:64;not null;unique"`
 	IPAddress   pgtype.Inet `json:"IPAddress" gorm:"column:ip_address;type:inet"`
-	Host        string      `json:"Host" gorm:"column:host;size:128"`
-	IsActive    bool        `json:"IsActive" gorm:"column:is_active;default:true"`
-	IsHomeBound bool        `json:"IsHomeBound" gorm:"column:is_home_bound;default:true"`
+	Host        string      `json:"Host" gorm:"column:host;size:128;unique"`
+	IsActive    bool        `json:"IsActive" gorm:"column:is_active"`
+	IsHomeBound bool        `json:"IsHomeBound" gorm:"column:is_home_bound"`
 	Description string      `json:"Description" gorm:"column:description;size:512;default:No description."`
 
 	// IsConnected is used to monitor dialer connection

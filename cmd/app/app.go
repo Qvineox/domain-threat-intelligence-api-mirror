@@ -72,7 +72,18 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 	domainServices.JobsService = services.NewJobsServiceImpl(jobsRepo)
 
 	queue := jobEntities.NewQueue(staticCfg.Scheduling.QueueLimit)
-	jobScheduler, err := scheduler.NewScheduler(queue, agentsRepo, nodesRepo, jobsRepo, time.Duration(staticCfg.Scheduling.PollingRateMS))
+	jobScheduler, err := scheduler.NewScheduler(
+		queue,
+		agentsRepo,
+		nodesRepo,
+		jobsRepo,
+		time.Duration(staticCfg.Scheduling.PollingRateMS),
+		staticCfg.Scheduling.UseTLS,
+	)
+
+	if err != nil {
+		return err
+	}
 
 	domainServices.AgentsService = services.NewAgentsServiceImpl(agentsRepo, jobScheduler)
 	domainServices.QueueService = services.NewQueueServiceImpl(domainServices.JobsService, nodesRepo, agentsRepo, queue, jobScheduler)

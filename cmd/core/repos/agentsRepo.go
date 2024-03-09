@@ -47,7 +47,7 @@ func (r AgentsRepoImpl) SaveAgent(agent agentEntities.ScanAgent) (agentEntities.
 }
 
 func (r AgentsRepoImpl) DeleteAgent(uuid pgtype.UUID) error {
-	err := r.Where("uuid = ?", uuid).Delete(&agentEntities.ScanAgent{}).Error
+	err := r.Unscoped().Where("uuid = ?", uuid).Delete(&agentEntities.ScanAgent{}).Error
 	if err != nil {
 		return err
 	}

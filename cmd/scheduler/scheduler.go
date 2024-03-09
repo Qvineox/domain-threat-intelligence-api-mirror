@@ -8,7 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jackc/pgtype"
+	"google.golang.org/grpc/credentials"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"slices"
 	"sort"
 	"time"
@@ -27,9 +30,11 @@ type Scheduler struct {
 	latestJobs []*jobEntities.Job
 
 	quit chan bool
+
+	tlsCredentials credentials.TransportCredentials
 }
 
-func NewScheduler(q *jobEntities.Queue, ar core.IAgentsRepo, nr core.INetworkNodesRepo, jr core.IJobsRepo, pr time.Duration) (*Scheduler, error) {
+func NewScheduler(q *jobEntities.Queue, ar core.IAgentsRepo, nr core.INetworkNodesRepo, jr core.IJobsRepo, pr time.Duration, useTLS bool) (*Scheduler, error) {
 	slog.Info("creating scheduler...")
 	sh := &Scheduler{
 		queue:         q,
@@ -40,6 +45,20 @@ func NewScheduler(q *jobEntities.Queue, ar core.IAgentsRepo, nr core.INetworkNod
 		latestJobs:    make([]*jobEntities.Job, 0),
 	}
 
+	if useTLS {
+		currentDir, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+
+		certPath := filepath.Join(currentDir, "tls", "cert.crt")
+		sh.tlsCredentials, err = credentials.NewClientTLSFromFile(certPath, "qvineox.ru")
+		if err != nil {
+			slog.Error("failed to load credentials: " + err.Error())
+			panic(err)
+		}
+	}
+
 	// get all agents from database
 	slog.Info("adding scanning agents...")
 	agents, err := ar.SelectAllAgents()
@@ -48,19 +67,18 @@ func NewScheduler(q *jobEntities.Queue, ar core.IAgentsRepo, nr core.INetworkNod
 		panic(err)
 	}
 
-	for _, agent := range agents {
-		err = sh.AddOrUpdateDialer(&agent)
-		if err != nil {
-			slog.Warn("failed to add agent handler: " + err.Error())
-			return nil, err
-		}
-	}
-
-	ac := len(sh.GetAllConnectedDialersUUIDs())
-	if ac == 0 {
-		slog.Warn("no scanning agent were added")
+	if len(agents) == 0 {
+		slog.Warn("no scanning agents were added")
 	} else {
-		slog.Info(fmt.Sprintf("added %d scanning agents", ac))
+		slog.Info(fmt.Sprintf("addings %d scanning agents...", len(agents)))
+
+		for _, agent := range agents {
+			err = sh.AddOrUpdateDialer(agent)
+			if err != nil {
+				slog.Warn("failed to add agent handler: " + err.Error())
+				return nil, err
+			}
+		}
 	}
 
 	return sh, nil
@@ -73,6 +91,7 @@ func (s *Scheduler) Start() {
 
 	jobQueueTicker := time.NewTicker(s.pollingRateMS * time.Millisecond)
 	queueStateTicker := time.NewTicker(s.pollingRateMS * time.Second)
+	stateRefreshTicker := time.NewTicker(s.pollingRateMS * time.Second * 2)
 
 	go func() {
 		for {
@@ -96,6 +115,11 @@ func (s *Scheduler) Start() {
 				}
 
 				s.latestJobs = latestJobs
+			case <-stateRefreshTicker.C:
+				err := s.RefreshAllDialersState()
+				if err != nil {
+					slog.Error("failed to refresh dialers state: " + err.Error())
+				}
 			case <-s.quit:
 				slog.Warn("scheduler stopped")
 				jobQueueTicker.Stop()
@@ -109,13 +133,44 @@ func (s *Scheduler) Stop() {
 	s.quit <- true
 }
 
-func (s *Scheduler) AddOrUpdateDialer(agent *agentEntities.ScanAgent) error {
-	h, err := dialers.NewAgentDialer(agent, s.nodesRepo)
-	if err != nil {
-		return err
+func (s *Scheduler) AddOrUpdateDialer(agent agentEntities.ScanAgent) error {
+	var dialer *dialers.ScanAgentDialer
+	var err error
+
+	if agent.UUID == nil {
+		return errors.New("unknown agent")
 	}
 
-	s.dialers = append(s.dialers, h) // TODO: can require mutex to be saved
+	for _, d := range s.dialers {
+		if d.Agent.UUID.Bytes == agent.UUID.Bytes {
+			dialer = d
+			break
+		}
+	}
+
+	if dialer != nil {
+		if dialer.IsConnected() && dialer.IsBusy {
+			return errors.New("agent is busy")
+		}
+
+		dialer.Agent = &agent
+
+		// reconnect to new dialer
+		if dialer.Agent.IsActive {
+			_ = dialer.Connect(s.tlsCredentials)
+		}
+	} else {
+		dialer, err = dialers.NewAgentDialer(&agent, s.nodesRepo)
+		if err != nil {
+			return err
+		}
+
+		if agent.IsActive {
+			_ = dialer.Connect(s.tlsCredentials)
+		}
+
+		s.dialers = append(s.dialers, dialer)
+	}
 
 	return nil
 }
@@ -149,7 +204,7 @@ func (s *Scheduler) ScheduleJob(job *jobEntities.Job) error {
 	}
 
 	for _, h := range s.dialers {
-		if !h.IsBusy && job.Meta.Priority <= h.MinPriority {
+		if h.CanAcceptJobs() && !h.IsBusy && job.Meta.Priority <= h.MinPriority {
 
 			go func() {
 				h.HandleOSSJob(job)
@@ -216,13 +271,24 @@ func (s *Scheduler) GetAllConnectedDialersUUIDs() []pgtype.UUID {
 	var uuids = make([]pgtype.UUID, 0, len(s.dialers))
 
 	for _, d := range s.dialers {
-		uuids = append(uuids, *d.Agent.UUID)
+		if d.IsConnected() {
+			uuids = append(uuids, *d.Agent.UUID)
+		}
 	}
 
 	return uuids
 }
 
-// ReconnectAllDialers queries all active agents and updates all dialers
-func (s *Scheduler) ReconnectAllDialers() error {
-	return errors.New("not implemented")
+// RefreshAllDialersState queries all active agents and updates all dialers
+func (s *Scheduler) RefreshAllDialersState() error {
+	var connected int = 0
+
+	for _, d := range s.dialers {
+		if d.IsConnected() {
+			connected++
+		}
+	}
+
+	slog.Info(fmt.Sprintf("agents connected: (%d) out of %d", connected, len(s.dialers)))
+	return nil
 }

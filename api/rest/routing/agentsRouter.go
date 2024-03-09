@@ -140,7 +140,7 @@ func (r AgentsRouter) PutAgent(c *gin.Context) {
 		return
 	}
 
-	_, err = r.service.SaveAgent(agentEntities.ScanAgent{
+	_, err = r.service.CreateAgent(agentEntities.ScanAgent{
 		Name:        params.Name,
 		IPAddress:   ipAddress,
 		Host:        params.Host,
@@ -210,7 +210,7 @@ func (r AgentsRouter) PatchAgent(c *gin.Context) {
 		return
 	}
 
-	_, err = r.service.SaveAgent(agentEntities.ScanAgent{
+	_, err = r.service.UpdateAgent(agentEntities.ScanAgent{
 		UUID:        agentUUID,
 		Name:        params.Name,
 		IPAddress:   ipAddress,

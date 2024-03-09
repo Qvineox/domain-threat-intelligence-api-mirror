@@ -29,6 +29,7 @@ type StaticConfig struct {
 	Scheduling struct {
 		PollingRateMS uint64 `env-default:"1000" env:"scheduling_rate" json:"polling_rate_ms"`
 		QueueLimit    int    `env-default:"10" env:"scheduling_limit" json:"queue_limit"`
+		UseTLS        bool   `env:"scheduling_tls" json:"use_tls"`
 	} `json:"scheduling"`
 
 	WebServer struct {

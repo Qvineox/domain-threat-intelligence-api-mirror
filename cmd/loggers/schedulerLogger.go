@@ -3,6 +3,7 @@ package loggers
 import (
 	"fmt"
 	"github.com/jackc/pgtype"
+	"google.golang.org/grpc/connectivity"
 	"log/slog"
 	"os"
 	"path"
@@ -70,6 +71,22 @@ func (l *DialerLogger) MessageError(jobUUID *pgtype.UUID, err error) {
 	l.logger.Info(
 		"error handling message from agent",
 		slog.String("job uuid", fmt.Sprintf("%x", jobUUID.Bytes)),
+		slog.String("error_message", err.Error()),
+	)
+}
+
+func (l *DialerLogger) ConnectionStateChange(state connectivity.State) {
+	l.logger.Info(
+		"connection state changed",
+		slog.String("state", state.String()),
+		slog.String("error_message", ""),
+	)
+}
+
+func (l *DialerLogger) ConnectionError(state connectivity.State, err error) {
+	l.logger.Info(
+		"connection error",
+		slog.String("state", state.String()),
 		slog.String("error_message", err.Error()),
 	)
 }

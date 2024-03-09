@@ -174,7 +174,7 @@ func (r *ossProviderRoutine) start() {
 		}
 
 		if err != nil {
-			slog.Error(err.Error()) // TODO: add job handling logger
+			slog.Error("failed to save network scan record: " + err.Error())
 		}
 
 		r.wg.Done()
