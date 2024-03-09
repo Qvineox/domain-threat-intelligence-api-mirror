@@ -3,7 +3,9 @@ package rest
 import (
 	"domain_threat_intelligence_api/api/rest/auth"
 	"domain_threat_intelligence_api/api/rest/routing"
+	"domain_threat_intelligence_api/api/socket"
 	"domain_threat_intelligence_api/cmd/loggers"
+	"domain_threat_intelligence_api/cmd/scheduler"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"time"
@@ -12,7 +14,6 @@ import (
 // ref: https://github.com/swaggo/gin-swagger/issues/90
 
 // CreateRouter initializes application routing and all route groups
-//
 // @title                      Domain Threat Intelligence API
 // @version                    0.0.4
 // @description                API provided by DTI project
@@ -22,7 +23,7 @@ import (
 // @securityDefinitions.apikey ApiKeyAuth
 // @in                         header
 // @name                       x-api-Key
-func CreateRouter(services Services, basePath string, allowedOrigins []string, authMiddleware *auth.MiddlewareService) *gin.Engine {
+func CreateRouter(services Services, basePath string, allowedOrigins []string, authMiddleware *auth.MiddlewareService, sh *scheduler.Scheduler, pr time.Duration) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
@@ -61,8 +62,17 @@ func CreateRouter(services Services, basePath string, allowedOrigins []string, a
 	routing.NewSystemStateRouter(services.SystemStateService, baseRouteV1, authMiddleware)
 	routing.NewServiceDeskRouter(services.ServiceDeskService, baseRouteV1)
 	routing.NewUsersRouter(services.UsersService, baseRouteV1, authMiddleware)
-
+	routing.NewJobsRouter(services.JobsService, baseRouteV1, authMiddleware)
 	routing.NewAuthRouter(services.AuthService, baseRouteV1, authMiddleware)
+
+	scanningRoute := baseRouteV1.Group("/scanning")
+	scanningRoute.Use(authMiddleware.RequireAuth())
+
+	routing.NewQueueRouter(services.QueueService, scanningRoute, authMiddleware)
+	routing.NewAgentsRouter(services.AgentsService, scanningRoute, authMiddleware)
+
+	// web socket server configuration
+	socket.NewWebSocketServer(baseRouteV1, sh, pr)
 
 	return router
 }

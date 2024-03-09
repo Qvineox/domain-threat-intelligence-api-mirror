@@ -55,9 +55,9 @@ func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup, auth *auth.
 // @Tags               Auth
 // @Router             /auth/login [post]
 // @ProduceAccessToken json
-// @Param              username body          loginParams true "user credentials"
-// @Success            202                    {object}    tokenResponse
-// @Failure            401,400       {object} apiErrors.APIError
+// @Param              username body     loginParams true "user credentials"
+// @Success            202      {object} tokenResponse
+// @Failure            401,400  {object} apiErrors.APIError
 func (r *AuthRouter) Login(c *gin.Context) {
 	var params loginParams
 
@@ -98,7 +98,7 @@ type tokenResponse struct {
 // @Security           ApiKeyAuth
 // @Router             /auth/logout [post]
 // @ProduceAccessToken json
-// @Success            202              {object} tokenResponse
+// @Success            202     {object} tokenResponse
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *AuthRouter) Logout(c *gin.Context) {
 	refreshToken, err := c.Cookie("refresh_token")
@@ -129,7 +129,7 @@ func (r *AuthRouter) Logout(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /auth/refresh [post]
 // @ProduceAccessToken json
-// @Success            202              {object} tokenResponse
+// @Success            202     {object} tokenResponse
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *AuthRouter) Refresh(c *gin.Context) {
 	refreshToken, err := c.Cookie("refresh_token")
@@ -206,7 +206,7 @@ type registerParams struct {
 // @Tags               Auth
 // @Router             /auth/password-strength [post]
 // @ProduceAccessToken json
-// @Param              id  body      passwordStrengthParams true "password"
+// @Param              id  body     passwordStrengthParams true "password"
 // @Success            200 {object} passwordStrengthResponse
 // @Failure            400 {object} apiErrors.APIError
 func (r *AuthRouter) GetPasswordStrength(c *gin.Context) {

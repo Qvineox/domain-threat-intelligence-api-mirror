@@ -1,16 +1,17 @@
 package app
 
 import (
+	"domain_threat_intelligence_api/cmd/core/entities/agentEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/blacklistEntities"
+	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/networkEntities"
-	"domain_threat_intelligence_api/cmd/core/entities/scanEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/serviceDeskEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"gorm.io/gorm"
 	"log/slog"
 )
 
-func runMigrations(database *gorm.DB) error {
+func Migrate(database *gorm.DB) error {
 	slog.Info("running migrations...")
 
 	err := database.AutoMigrate(
@@ -23,11 +24,13 @@ func runMigrations(database *gorm.DB) error {
 		blacklistEntities.BlacklistedEmail{},
 		networkEntities.NetworkNodeType{},
 		networkEntities.NetworkNode{},
+		networkEntities.NetworkNodeScanType{},
 		networkEntities.NetworkNodeScan{},
 		networkEntities.NetworkNodeLink{},
 		userEntities.PlatformUserPermission{},
 		userEntities.PlatformUser{},
-		scanEntities.ScanAgent{},
+		agentEntities.ScanAgent{},
+		jobEntities.Job{},
 	)
 
 	if err != nil {
@@ -41,6 +44,16 @@ func runMigrations(database *gorm.DB) error {
 	}
 
 	err = migrateUserRoles(database)
+	if err != nil {
+		return err
+	}
+
+	err = migrateNodeTypes(database)
+	if err != nil {
+		return err
+	}
+
+	err = migrateScanTypes(database)
 	if err != nil {
 		return err
 	}
@@ -81,6 +94,40 @@ func migrateUserRoles(database *gorm.DB) error {
 
 		if err != nil {
 			slog.Error("error migrating user roles schema: " + err.Error())
+			return err
+		}
+	}
+
+	return nil
+}
+
+func migrateNodeTypes(database *gorm.DB) error {
+	for _, n := range networkEntities.DefaultNetworkNodeTypes {
+		err := database.
+			Where(networkEntities.NetworkNodeType{ID: n.ID}).
+			Assign(networkEntities.NetworkNodeType{Name: n.Name, Description: n.Description}).
+			FirstOrCreate(&n).
+			Error
+
+		if err != nil {
+			slog.Error("error migrating network node types schema: " + err.Error())
+			return err
+		}
+	}
+
+	return nil
+}
+
+func migrateScanTypes(database *gorm.DB) error {
+	for _, n := range networkEntities.DefaultNetworkNodeScanTypes {
+		err := database.
+			Where(networkEntities.NetworkNodeScanType{ID: n.ID}).
+			Assign(networkEntities.NetworkNodeScanType{Name: n.Name, Description: n.Description}).
+			FirstOrCreate(&n).
+			Error
+
+		if err != nil {
+			slog.Error("error migrating network node scan types schema: " + err.Error())
 			return err
 		}
 	}

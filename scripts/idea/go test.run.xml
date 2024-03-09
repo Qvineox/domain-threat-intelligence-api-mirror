@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="go test" type="GoTestRunConfiguration" factoryName="Go Test">
+    <module name="domain-threat-intelligence-api" />
+    <working_directory value="$PROJECT_DIR$" />
+    <parameters value="-v" />
+    <kind value="DIRECTORY" />
+    <package value="domain_threat_intelligence_api" />
+    <directory value="$PROJECT_DIR$/test" />
+    <filePath value="$PROJECT_DIR$" />
+    <framework value="gotest" />
+    <method v="2" />
+  </configuration>
+</component>

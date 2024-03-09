@@ -31,6 +31,7 @@ const (
 	InternalUnidentifiedErrorCode
 	AuthFailedErrorCode
 	AuthPermissionInsufficientErrorCode
+	JobQueueErrorCode
 )
 
 func ParamsErrorResponse(c *gin.Context, err error) {
@@ -144,5 +145,15 @@ func AuthErrorResponse(c *gin.Context, err error) {
 		ErrorCode:    AuthFailedErrorCode,
 		ErrorMessage: err.Error(),
 		ErrorModule:  "authorization",
+	})
+}
+
+func QueueErrorResponse(c *gin.Context, err error) {
+	_ = c.Error(err)
+	c.JSON(http.StatusBadRequest, APIError{
+		StatusCode:   http.StatusBadRequest,
+		ErrorCode:    JobQueueErrorCode,
+		ErrorMessage: err.Error(),
+		ErrorModule:  "scan jobs queue",
 	})
 }

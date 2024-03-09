@@ -1,0 +1,222 @@
+syntax = "proto3";
+package contracts;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "domain_threat_intelligence_api/api/proto/protoServices";
+
+// ref: https://habr.com/ru/articles/774796/
+// ref: https://www.geeksforgeeks.org/how-to-install-protocol-buffers-on-windows/
+// ref: https://github.com/grpc/grpc-go/blob/master/examples/features/metadata/server/main.go
+// ref: https://grpc.io/docs/guides/metadata/
+
+service Connection {
+  rpc Hello(SecurityToken) returns (SecurityToken); // describes initial connection sequence, key validation and exchange
+}
+
+message SecurityToken {
+  string securityToken = 1; // encoded token for access validation
+}
+
+service Jobs {
+  // StartJob accepts Job with all required params, streams back all queried and found results
+  rpc StartOSS (Job) returns (stream TargetAuditReport);
+
+  // rpc StartNMAP (Job) returns (stream TargetAuditReport);
+  // rpc StartWhoIs (Job) returns (stream TargetAuditReport);
+  // rpc StartDNS (Job) returns (stream TargetAuditReport);
+  // rpc StartDiscovery (Job) returns (stream TargetAuditReport);
+  // rpc StartSpider (Job) returns (stream TargetAuditReport);
+}
+
+service Configuration {
+  // Reconfigure used to configure agent, returns new config
+  rpc Reconfigure(AgentConfig) returns (AgentConfig);
+  rpc RetrieveConfig(None) returns (AgentConfig);
+}
+
+message Job {
+  Meta meta = 1; // job metadata and identity
+
+  // describes job parameters and settings, corresponds to meta.type
+  Payload payload = 2;
+  Directives directives = 3;
+
+  // tasks are internal entity for agent, should be visible to determine progress
+  optional uint64 tasksElapsed = 4;
+  optional uint64 tasksLeft = 5;
+}
+
+message Directives {
+  optional OSSDirectives oss = 1;
+  optional NMAPDirectives nmap = 2;
+  optional WhoIsDirectives whois = 3;
+  optional DNSDirectives dns = 4;
+  optional DiscoveryDirectives discovery = 5;
+  optional SpiderDirectives spider = 6;
+}
+
+message JobTermination {
+  string uuid = 1;
+  bool force = 2;
+}
+
+message Queue {
+  repeated Job jobs = 1;
+}
+
+message QueueStatus {
+  bool isBusy = 1;
+  bool acceptsNewJobs = 2;
+
+  uint64 jobsInQueue = 3;
+  uint64 tasksInQueue = 4;
+}
+
+message Meta {
+  string uuid = 1;
+
+  JobType type = 3;
+  JobStatus status = 4;
+
+  JobPriority priority = 5;
+  int64 weight = 6; // helps to determine job resource consumption
+
+  optional google.protobuf.Timestamp startedAt = 9;
+  optional google.protobuf.Timestamp finishedAt = 10;
+}
+
+// every JobType has its own assigned directives
+enum JobType {
+  JOB_TYPE_OSS = 0;
+  JOB_TYPE_NMAP = 1;
+  JOB_TYPE_WHOIS = 2;
+  JOB_TYPE_DNS = 3;
+  JOB_TYPE_DISCOVERY = 4;
+  JOB_TYPE_SPIDER = 5;
+}
+
+// describes the state of the job
+enum JobStatus {
+  JOB_STATUS_PENDING = 0; // not yet started
+  JOB_STATUS_STARTING = 1; // calculating tasks, creating required structures
+  JOB_STATUS_WORKING = 2; // executing tasks
+  JOB_STATUS_FINISHING = 3; // clearing and sending data
+  JOB_STATUS_DONE = 4; // job finished execution and saved
+  JOB_STATUS_ERROR = 5; // job stopped with error from API or scanners (can be multiple errors, with threshold)
+  JOB_STATUS_PANIC = 6; // internal exception
+  JOB_STATUS_CANCELLED = 7; // job was cancelled by user
+}
+
+enum JobPriority {
+  JOB_PRIORITY_CRITICAL = 0;  // job must be executed instantly
+  JOB_PRIORITY_HIGH = 1; // job must be executed after current (stack mode)
+  JOB_PRIORITY_MEDIUM = 2; // job should be executed with higher priority
+  JOB_PRIORITY_LOW = 3; // job should be executed lastly in order (queue mode)
+}
+
+// scanning using public service APIs, i.e VirusTotal, CrowdSec, IPQS and others
+message OSSDirectives {
+  repeated OSSProvider providers = 1;
+
+  Timings timings = 9;
+}
+
+enum OSSProvider {
+  OSS_PROVIDER_VIRUS_TOTAL = 0;
+  OSS_PROVIDER_IP_QUALITY_SCORE = 1;
+  OSS_PROVIDER_CROWD_SEC = 2;
+  OSS_PROVIDER_SHODAN = 3;
+  OSS_PROVIDER_IP_WHO_IS = 4;
+}
+
+// scanning using NMAP binding
+message NMAPDirectives {
+  Timings timings = 9;
+}
+
+// query WhoIS servers
+message WhoIsDirectives {
+  Timings timings = 9;
+}
+
+// query DNS servers
+message DNSDirectives {
+  Timings timings = 9;
+}
+
+// discover hosts with designated targets (must provide subnet/CIDR)
+message DiscoveryDirectives {
+  repeated int64 ports = 1; // which ports should be checked for response, see IANA ports
+
+  bool silent = 2;
+
+  Timings timings = 9;
+}
+
+// start spider host discovery
+message SpiderDirectives {
+  int64 depth = 1; // describes max amount of hops in depth
+
+  Timings timings = 9;
+}
+
+message Timings {
+  uint64 timeout = 1;
+  uint64 delay = 2;
+  uint64 retries = 3;
+}
+
+message Payload {
+  // the body of the Payload may differ depending on the type of payload
+  // can me CIDR subnets, ips, urls, domains, emails
+  repeated Target targets = 1;
+  repeated Target exceptions = 2;
+}
+
+// TargetPayload describes single target
+message Target {
+  string host = 1;
+  HostType type = 2;
+}
+
+enum HostType {
+  HOST_TYPE_CIDR = 0; // or IP address with /32
+  HOST_TYPE_DOMAIN = 1;
+  HOST_TYPE_URL = 2;
+  HOST_TYPE_EMAIL = 3;
+}
+
+// TargetAuditReport is used to represent Task return values. Task type and other data should be added to header.
+message TargetAuditReport {
+  Target target = 1;
+  OSSProvider provider = 2;
+  uint64 tasksLeft = 3;
+  bytes content = 4;
+  bool isSuccessful = 5;
+}
+
+message AgentConfig {
+  string uuid = 1;
+  string name = 2;
+  string address = 3;
+
+  reserved 4, 5; // TODO: reserved for tags and groups
+
+  bool isHomeBound = 6; // defines if agent is placed inside organisation and/or behind NAT
+
+  google.protobuf.Timestamp createdAt = 7;
+  google.protobuf.Timestamp updatedAt = 8;
+
+  repeated ProviderAPIKey keys = 9;
+  JobPriority minPriority = 10;
+}
+
+message ProviderAPIKey {
+  OSSProvider provider = 1;
+  string APIKey = 2;
+}
+
+message None {
+
+}

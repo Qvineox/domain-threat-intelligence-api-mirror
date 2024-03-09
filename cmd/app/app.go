@@ -2,10 +2,12 @@ package app
 
 import (
 	"domain_threat_intelligence_api/api/rest"
+	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"domain_threat_intelligence_api/cmd/core/repos"
 	"domain_threat_intelligence_api/cmd/core/services"
 	"domain_threat_intelligence_api/cmd/integrations/naumen"
 	"domain_threat_intelligence_api/cmd/mail"
+	"domain_threat_intelligence_api/cmd/scheduler"
 	"domain_threat_intelligence_api/configs"
 	"fmt"
 	slogGorm "github.com/orandin/slog-gorm"
@@ -13,6 +15,8 @@ import (
 	"gorm.io/gorm"
 	"log/slog"
 	"os"
+	"sync"
+	"time"
 )
 
 func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigProvider, dynamicUpdateChan chan bool) error {
@@ -41,7 +45,7 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 		slog.Info("database connected")
 	}
 
-	err = runMigrations(dbConn)
+	err = Migrate(dbConn)
 	if err != nil {
 		return err
 	}
@@ -61,13 +65,45 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 	domainServices.AuthService = services.NewAuthServiceImpl(usersRepo, domainServices.SMTPService, "salt", staticCfg.WebServer.Security.Domain, staticCfg.WebServer.Security.AllowedOrigins[0])
 	domainServices.UsersService = services.NewUsersServiceImpl(usersRepo, domainServices.AuthService)
 
+	jobsRepo := repos.NewJobsRepoImpl(dbConn)
+	nodesRepo := repos.NewNetworkNodesRepoImpl(dbConn)
+	agentsRepo := repos.NewAgentsRepoImpl(dbConn)
+
+	domainServices.JobsService = services.NewJobsServiceImpl(jobsRepo)
+
+	queue := jobEntities.NewQueue(staticCfg.Scheduling.QueueLimit)
+	jobScheduler, err := scheduler.NewScheduler(
+		queue,
+		agentsRepo,
+		nodesRepo,
+		jobsRepo,
+		time.Duration(staticCfg.Scheduling.PollingRateMS),
+		staticCfg.Scheduling.UseTLS,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	domainServices.AgentsService = services.NewAgentsServiceImpl(agentsRepo, jobScheduler)
+	domainServices.QueueService = services.NewQueueServiceImpl(domainServices.JobsService, nodesRepo, agentsRepo, queue, jobScheduler)
+
 	// web server configuration
 	webServer, err := rest.NewHTTPServer(
 		staticCfg.WebServer.Host,
 		staticCfg.WebServer.API.Path,
 		staticCfg.WebServer.Security.AllowedOrigins,
 		staticCfg.WebServer.Port,
+		jobScheduler,
+		time.Duration(staticCfg.WebSocket.PollingRateMS),
 		domainServices)
+	if err != nil {
+		return err
+	}
+
+	if err != nil {
+		return err
+	}
 
 	if staticCfg.WebServer.Swagger.Enabled {
 		webServer.EnableSwagger(
@@ -77,14 +113,18 @@ func StartApp(staticCfg configs.StaticConfig, dynamicCfg *configs.DynamicConfigP
 		)
 	}
 
-	slog.Info("web server starting...")
-	err = webServer.Start()
-	if err != nil {
-		slog.Info("web server stopped with error: " + err.Error())
-		return err
-	}
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
 
-	slog.Info("application stopping...")
+	go webServer.Start(wg)
+
+	wg.Wait()
+	slog.Info("application started")
+	wg.Add(1)
+
+	// TODO: add stop condition
+
+	wg.Wait()
 
 	return nil
 }

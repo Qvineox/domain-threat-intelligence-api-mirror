@@ -23,9 +23,8 @@ import (
 )
 
 type BlacklistsRouter struct {
-	service        core.IBlacklistsService
-	path           *gin.RouterGroup
-	authMiddleware *auth.MiddlewareService
+	service core.IBlacklistsService
+	path    *gin.RouterGroup
 
 	cachedValues struct {
 		stats BlacklistedStatistics
@@ -126,16 +125,16 @@ func NewBlacklistsRouter(service core.IBlacklistsService, path *gin.RouterGroup,
 // @Security           ApiKeyAuth
 // @Router             /blacklists/host [get]
 // @ProduceAccessToken json
-// @Param              source_id[]           query          []uint64 false "Source type IDs" collectionFormat(multi)
-// @Param              import_event_id query       uint64            false "Import event ID"
-// @Param              is_active             query          bool           false "Is active"
-// @Param              created_after   query       string            false "Created timestamp is after"
-// @Param              created_before  query       string            false "Created timestamp is before"
-// @Param              search_string   query       string            false "value to search"
-// @Param              limit                       query             int     true  "Query limit"
-// @Param              offset                      query             int     false "Query offset"
-// @Success            200                                  {object} []blacklistEntities.BlacklistedHost
-// @Failure            401,400                     {object} apiErrors.APIError
+// @Param              source_id[]     query    []uint64 false "Source type IDs" collectionFormat(multi)
+// @Param              import_event_id query    uint64   false "Import event ID"
+// @Param              is_active       query    bool     false "Is active"
+// @Param              created_after   query    string   false "Created timestamp is after"
+// @Param              created_before  query    string   false "Created timestamp is before"
+// @Param              search_string   query    string   false "value to search"
+// @Param              limit           query    int      true  "Query limit"
+// @Param              offset          query    int      false "Query offset"
+// @Success            200             {object} []blacklistEntities.BlacklistedHost
+// @Failure            401,400         {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetBlackListedHostsByFilter(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -172,16 +171,16 @@ func (r *BlacklistsRouter) GetBlackListedHostsByFilter(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/ip [get]
 // @ProduceAccessToken json
-// @Param              source_id             query          []uint64 false "Source type IDs" collectionFormat(multi)
-// @Param              import_event_id query       uint64            false "Import event ID"
-// @Param              is_active             query          bool           false "Is active"
-// @Param              created_after   query       string            false "Created timestamp is after"
-// @Param              created_before  query       string            false "Created timestamp is before"
-// @Param              search_string   query       string            false "CIDR to search (must include IP/MASK)"
-// @Param              limit                       query             int     true  "Query limit"
-// @Param              offset                      query             int     false "Query offset"
-// @Success            200                                  {object} []blacklistEntities.BlacklistedIP
-// @Failure            401,400                     {object} apiErrors.APIError
+// @Param              source_id       query    []uint64 false "Source type IDs" collectionFormat(multi)
+// @Param              import_event_id query    uint64   false "Import event ID"
+// @Param              is_active       query    bool     false "Is active"
+// @Param              created_after   query    string   false "Created timestamp is after"
+// @Param              created_before  query    string   false "Created timestamp is before"
+// @Param              search_string   query    string   false "CIDR to search (must include IP/MASK)"
+// @Param              limit           query    int      true  "Query limit"
+// @Param              offset          query    int      false "Query offset"
+// @Success            200             {object} []blacklistEntities.BlacklistedIP
+// @Failure            401,400         {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetBlackListedIPsByFilter(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -225,16 +224,16 @@ func (r *BlacklistsRouter) GetBlackListedIPsByFilter(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/domain [get]
 // @ProduceAccessToken json
-// @Param              source_id             query          []uint64 false "Source type IDs" collectionFormat(multi)
-// @Param              import_event_id query       uint64            false "Import event ID"
-// @Param              is_active             query          bool           false "Is active"
-// @Param              created_after   query       string            false "Created timestamp is after"
-// @Param              created_before  query       string            false "Created timestamp is before"
-// @Param              search_string   query       string            false "Substring to search"
-// @Param              limit                       query             int     true  "Query limit"
-// @Param              offset                      query             int     false "Query offset"
-// @Success            200                                  {object} []blacklistEntities.BlacklistedDomain
-// @Failure            401,400                     {object} apiErrors.APIError
+// @Param              source_id       query    []uint64 false "Source type IDs" collectionFormat(multi)
+// @Param              import_event_id query    uint64   false "Import event ID"
+// @Param              is_active       query    bool     false "Is active"
+// @Param              created_after   query    string   false "Created timestamp is after"
+// @Param              created_before  query    string   false "Created timestamp is before"
+// @Param              search_string   query    string   false "Substring to search"
+// @Param              limit           query    int      true  "Query limit"
+// @Param              offset          query    int      false "Query offset"
+// @Success            200             {object} []blacklistEntities.BlacklistedDomain
+// @Failure            401,400         {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetBlackListedDomainsByFilter(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -271,16 +270,16 @@ func (r *BlacklistsRouter) GetBlackListedDomainsByFilter(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/url [get]
 // @ProduceAccessToken json
-// @Param              source_id             query          []uint64 false "Source type IDs" collectionFormat(multi)
-// @Param              import_event_id query       uint64            false "Import event ID"
-// @Param              is_active             query          bool           false "Is active"
-// @Param              created_after   query       string            false "Created timestamp is after"
-// @Param              created_before  query       string            false "Created timestamp is before"
-// @Param              search_string   query       string            false "Substring to search"
-// @Param              limit                       query             int     true  "Query limit"
-// @Param              offset                      query             int     false "Query offset"
-// @Success            200                                  {object} []blacklistEntities.BlacklistedURL
-// @Failure            401,400                     {object} apiErrors.APIError
+// @Param              source_id       query    []uint64 false "Source type IDs" collectionFormat(multi)
+// @Param              import_event_id query    uint64   false "Import event ID"
+// @Param              is_active       query    bool     false "Is active"
+// @Param              created_after   query    string   false "Created timestamp is after"
+// @Param              created_before  query    string   false "Created timestamp is before"
+// @Param              search_string   query    string   false "Substring to search"
+// @Param              limit           query    int      true  "Query limit"
+// @Param              offset          query    int      false "Query offset"
+// @Success            200             {object} []blacklistEntities.BlacklistedURL
+// @Failure            401,400         {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetBlackListedURLsByFilter(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -317,16 +316,16 @@ func (r *BlacklistsRouter) GetBlackListedURLsByFilter(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/email [get]
 // @ProduceAccessToken json
-// @Param              source_id             query          []uint64 false "Source type IDs" collectionFormat(multi)
-// @Param              import_event_id query       uint64            false "Import event ID"
-// @Param              is_active             query          bool           false "Is active"
-// @Param              created_after   query       string            false "Created timestamp is after"
-// @Param              created_before  query       string            false "Created timestamp is before"
-// @Param              search_string   query       string            false "Substring to search"
-// @Param              limit                       query             int     true  "Query limit"
-// @Param              offset                      query             int     false "Query offset"
-// @Success            200                                  {object} []blacklistEntities.BlacklistedEmail
-// @Failure            401,400                     {object} apiErrors.APIError
+// @Param              source_id       query    []uint64 false "Source type IDs" collectionFormat(multi)
+// @Param              import_event_id query    uint64   false "Import event ID"
+// @Param              is_active       query    bool     false "Is active"
+// @Param              created_after   query    string   false "Created timestamp is after"
+// @Param              created_before  query    string   false "Created timestamp is before"
+// @Param              search_string   query    string   false "Substring to search"
+// @Param              limit           query    int      true  "Query limit"
+// @Param              offset          query    int      false "Query offset"
+// @Success            200             {object} []blacklistEntities.BlacklistedEmail
+// @Failure            401,400         {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetBlackListedEmailsByFilter(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -363,8 +362,8 @@ func (r *BlacklistsRouter) GetBlackListedEmailsByFilter(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/domain [put]
 // @ProduceAccessToken json
-// @Param              hosts   body              blacklistInsertParams true "IPs to save"
-// @Success            201              {object} success.DatabaseResponse
+// @Param              hosts   body     blacklistInsertParams true "IPs to save"
+// @Success            201     {object} success.DatabaseResponse
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *BlacklistsRouter) PutBlackListedDomains(c *gin.Context) {
 	var params blacklistInsertParams
@@ -401,8 +400,8 @@ func (r *BlacklistsRouter) PutBlackListedDomains(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/ip [put]
 // @ProduceAccessToken json
-// @Param              hosts   body              blacklistInsertParams true "IPs to save"
-// @Success            201              {object} success.DatabaseResponse
+// @Param              hosts   body     blacklistInsertParams true "IPs to save"
+// @Success            201     {object} success.DatabaseResponse
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *BlacklistsRouter) PutBlackListedIPs(c *gin.Context) {
 	var params blacklistInsertParams
@@ -447,8 +446,8 @@ func (r *BlacklistsRouter) PutBlackListedIPs(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/url [put]
 // @ProduceAccessToken json
-// @Param              hosts   body              blacklistInsertParams true "URLs to save"
-// @Success            201              {object} success.DatabaseResponse
+// @Param              hosts   body     blacklistInsertParams true "URLs to save"
+// @Success            201     {object} success.DatabaseResponse
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *BlacklistsRouter) PutBlackListedURLs(c *gin.Context) {
 	var params blacklistInsertParams
@@ -485,8 +484,8 @@ func (r *BlacklistsRouter) PutBlackListedURLs(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/email [put]
 // @ProduceAccessToken json
-// @Param              hosts   body              blacklistInsertParams true "emails to save"
-// @Success            201              {object} success.DatabaseResponse
+// @Param              hosts   body     blacklistInsertParams true "emails to save"
+// @Success            201     {object} success.DatabaseResponse
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *BlacklistsRouter) PutBlackListedEmails(c *gin.Context) {
 	var params blacklistInsertParams
@@ -531,10 +530,10 @@ type blacklistInsertParams struct {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/ip [delete]
 // @ProduceAccessToken json
-// @Param              id               body      byUUIDParams true "record UUID to delete"
-// @Success            200              {object} success.DatabaseResponse
+// @Param              id      body     byUUIDParams true "record UUID to delete"
+// @Success            200     {object} success.DatabaseResponse
 // @Failure            401,400 {object} apiErrors.APIError
-// @Failure            401              {object} apiErrors.APIError
+// @Failure            401     {object} apiErrors.APIError
 func (r *BlacklistsRouter) DeleteBlackListedIP(c *gin.Context) {
 	var params byUUIDParams
 
@@ -568,10 +567,10 @@ func (r *BlacklistsRouter) DeleteBlackListedIP(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/domain [delete]
 // @ProduceAccessToken json
-// @Param              id               body      byUUIDParams true "record UUID to delete"
-// @Success            200              {object} success.DatabaseResponse
+// @Param              id      body     byUUIDParams true "record UUID to delete"
+// @Success            200     {object} success.DatabaseResponse
 // @Failure            401,400 {object} apiErrors.APIError
-// @Failure            401              {object} apiErrors.APIError
+// @Failure            401     {object} apiErrors.APIError
 func (r *BlacklistsRouter) DeleteBlackListedDomain(c *gin.Context) {
 	var params byUUIDParams
 
@@ -605,10 +604,10 @@ func (r *BlacklistsRouter) DeleteBlackListedDomain(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/url [delete]
 // @ProduceAccessToken json
-// @Param              id               body      byUUIDParams true "record UUID to delete"
-// @Success            200              {object} success.DatabaseResponse
+// @Param              id      body     byUUIDParams true "record UUID to delete"
+// @Success            200     {object} success.DatabaseResponse
 // @Failure            401,400 {object} apiErrors.APIError
-// @Failure            401              {object} apiErrors.APIError
+// @Failure            401     {object} apiErrors.APIError
 func (r *BlacklistsRouter) DeleteBlackListedURL(c *gin.Context) {
 	var params byUUIDParams
 
@@ -642,10 +641,10 @@ func (r *BlacklistsRouter) DeleteBlackListedURL(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/email [delete]
 // @ProduceAccessToken json
-// @Param              id               body      byUUIDParams true "record UUID to delete"
-// @Success            200              {object} success.DatabaseResponse
+// @Param              id      body     byUUIDParams true "record UUID to delete"
+// @Success            200     {object} success.DatabaseResponse
 // @Failure            401,400 {object} apiErrors.APIError
-// @Failure            401              {object} apiErrors.APIError
+// @Failure            401     {object} apiErrors.APIError
 func (r *BlacklistsRouter) DeleteBlackListedEmail(c *gin.Context) {
 	var params byUUIDParams
 
@@ -687,11 +686,11 @@ type byIDParams struct {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/import/csv [post]
 // @ProduceAccessToken json
-// @Param              file_upload            formData file     true "file to import"
-// @Param              discovered_at formData string   true     "discovery date"
-// @Param              extract_all            formData string   true     "other types extraction"
-// @Success            201                                      {object} blacklistEntities.BlacklistImportEvent
-// @Failure            401,400                         {object} apiErrors.APIError
+// @Param              file_upload   formData file   true "file to import"
+// @Param              discovered_at formData string true "discovery date"
+// @Param              extract_all   formData string true "other types extraction"
+// @Success            201           {object} blacklistEntities.BlacklistImportEvent
+// @Failure            401,400  {object} apiErrors.APIError
 func (r *BlacklistsRouter) PostImportBlacklistsFromCSVFile(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -765,10 +764,10 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromCSVFile(c *gin.Context) {
 // @Router             /blacklists/import/stix [post]
 // @Accept             mpfd
 // @ProduceAccessToken json
-// @Param              file_upload  formData file     true     "files to import"
-// @Param              extract_all  formData string   true     "other types extraction"
-// @Success            201                            {object} blacklistEntities.BlacklistImportEvent
-// @Failure            401,400               {object} apiErrors.APIError
+// @Param              file_upload formData file   true "files to import"
+// @Param              extract_all formData string true "other types extraction"
+// @Success            201         {object} blacklistEntities.BlacklistImportEvent
+// @Failure            401,400     {object} apiErrors.APIError
 func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -844,8 +843,8 @@ func (r *BlacklistsRouter) PostImportBlacklistsFromSTIXFile(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/import/event/{event_id} [get]
 // @ProduceAccessToken json
-// @Param              event_id path          int      true "Event ID"
-// @Success            200                    {object} blacklistEntities.BlacklistImportEvent
+// @Param              event_id path     int true "Event ID"
+// @Success            200      {object} blacklistEntities.BlacklistImportEvent
 // @Failure            401,400       {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetImportEvent(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("event_id"), 10, 64)
@@ -874,13 +873,13 @@ func (r *BlacklistsRouter) GetImportEvent(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/import/event [get]
 // @ProduceAccessToken json
-// @Param              created_after  query  string   false    "Created timestamp is after"
-// @Param              created_before query  string   false    "Created timestamp is before"
-// @Param              type                  query             string false "Type to search"
-// @Param              limit                 query             int          true  "Query limit"
-// @Param              offset                query             int          false "Query offset"
-// @Success            200                            {object} []blacklistEntities.BlacklistImportEvent
-// @Failure            401,400               {object} apiErrors.APIError
+// @Param              created_after  query    string false "Created timestamp is after"
+// @Param              created_before query    string false "Created timestamp is before"
+// @Param              type           query    string false "Type to search"
+// @Param              limit          query    int    true  "Query limit"
+// @Param              offset         query    int    false "Query offset"
+// @Success            200            {object} []blacklistEntities.BlacklistImportEvent
+// @Failure            401,400        {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetImportEventByFilter(c *gin.Context) {
 	var params blacklistEntities.BlacklistImportEventFilter
 
@@ -912,10 +911,10 @@ func (r *BlacklistsRouter) GetImportEventByFilter(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/import/event [delete]
 // @ProduceAccessToken json
-// @Param              id               body      byIDParams true "record ID to delete"
-// @Success            200              {object} success.DatabaseResponse
+// @Param              id      body     byIDParams true "record ID to delete"
+// @Success            200     {object} success.DatabaseResponse
 // @Failure            401,400 {object} apiErrors.APIError
-// @Failure            401              {object} apiErrors.APIError
+// @Failure            401     {object} apiErrors.APIError
 func (r *BlacklistsRouter) DeleteImportEvent(c *gin.Context) {
 	var params byIDParams
 
@@ -941,13 +940,13 @@ func (r *BlacklistsRouter) DeleteImportEvent(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/export/csv [post]
 // @ProduceAccessToken json
-// @Param              source_id[]                    query  []uint64 false "Source type IDs" collectionFormat(multi)
-// @Param              created_after           query  string          false "Created timestamp is after"
-// @Param              created_before          query  string          false "Created timestamp is before"
-// @Param              discovered_after  query string        false    "Discovery timestamp is after"
-// @Param              discovered_before query string        false    "Discovery timestamp is before"
+// @Param              source_id[]       query []uint64 false "Source type IDs" collectionFormat(multi)
+// @Param              created_after     query string   false "Created timestamp is after"
+// @Param              created_before    query string   false "Created timestamp is before"
+// @Param              discovered_after  query string   false "Discovery timestamp is after"
+// @Param              discovered_before query string   false "Discovery timestamp is before"
 // @ProduceAccessToken application/csv
-// @Success            200              {file}  file
+// @Success            200     {file}   file
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
@@ -1002,15 +1001,15 @@ func (r *BlacklistsRouter) PostExportBlacklistsToCSV(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/export/json [post]
 // @ProduceAccessToken json
-// @Param              source_id[]                    query  []uint64 false "Source type IDs" collectionFormat(multi)
-// @Param              created_after           query  string          false "Created timestamp is after"
-// @Param              created_before          query  string          false "Created timestamp is before"
-// @Param              discovered_after  query string        false    "Discovery timestamp is after"
-// @Param              discovered_before query string        false    "Discovery timestamp is before"
+// @Param              source_id[]       query []uint64 false "Source type IDs" collectionFormat(multi)
+// @Param              created_after     query string   false "Created timestamp is after"
+// @Param              created_before    query string   false "Created timestamp is before"
+// @Param              discovered_after  query string   false "Discovery timestamp is after"
+// @Param              discovered_before query string   false "Discovery timestamp is before"
 // @ProduceAccessToken application/json
-// @Success            200              {file}  file
+// @Success            200     {file}   file
 // @Failure            401,400 {object} apiErrors.APIError
-// @Failure            401              {object} apiErrors.APIError
+// @Failure            401     {object} apiErrors.APIError
 func (r *BlacklistsRouter) PostExportBlacklistsToJSON(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -1065,14 +1064,14 @@ func (r *BlacklistsRouter) PostExportBlacklistsToJSON(c *gin.Context) {
 // @Security           ApiKeyAuth
 // @Router             /blacklists/export/naumen [post]
 // @ProduceAccessToken json
-// @Param              source_id             query          []uint64 false "Source type IDs" collectionFormat(multi)
-// @Param              import_event_id query       uint64            false "Import event ID"
-// @Param              is_active             query          bool           false "Is active"
-// @Param              created_after   query       string            false "Created timestamp is after"
-// @Param              created_before  query       string            false "Created timestamp is before"
-// @Param              search_string   query       string            false "Substring to search"
-// @Success            201                                  {object} serviceDeskEntities.ServiceDeskTicket
-// @Failure            401,400                     {object} apiErrors.APIError
+// @Param              source_id       query    []uint64 false "Source type IDs" collectionFormat(multi)
+// @Param              import_event_id query    uint64   false "Import event ID"
+// @Param              is_active       query    bool     false "Is active"
+// @Param              created_after   query    string   false "Created timestamp is after"
+// @Param              created_before  query    string   false "Created timestamp is before"
+// @Param              search_string   query    string   false "Substring to search"
+// @Success            201             {object} serviceDeskEntities.ServiceDeskTicket
+// @Failure            401,400         {object} apiErrors.APIError
 func (r *BlacklistsRouter) PostExportBlacklistsToNaumen(c *gin.Context) {
 	params := blacklistEntities.BlacklistSearchFilter{}
 
@@ -1119,7 +1118,7 @@ func (r *BlacklistsRouter) PostExportBlacklistsToNaumen(c *gin.Context) {
 // @Router             /blacklists/stats [get]
 // @ProduceAccessToken json
 // @ProduceAccessToken application/json
-// @Success            200              {object} BlacklistedStatistics
+// @Success            200     {object} BlacklistedStatistics
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetStatistics(c *gin.Context) {
 	if r.cachedValues.stats.LastEval == nil || r.cachedValues.stats.LastEval.Before(time.Now().Add(-2*time.Hour)) {
@@ -1138,7 +1137,7 @@ func (r *BlacklistsRouter) GetStatistics(c *gin.Context) {
 // @Router             /blacklists/sources [get]
 // @ProduceAccessToken json
 // @ProduceAccessToken application/json
-// @Success            200              {object} []blacklistEntities.BlacklistSource
+// @Success            200     {object} []blacklistEntities.BlacklistSource
 // @Failure            401,400 {object} apiErrors.APIError
 func (r *BlacklistsRouter) GetBlackListSources(c *gin.Context) {
 	sources, err := r.service.RetrieveAllSources()

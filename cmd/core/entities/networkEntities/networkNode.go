@@ -8,7 +8,7 @@ import (
 )
 
 type NetworkNode struct {
-	UUID pgtype.UUID `json:"UUID" gorm:"primaryKey;type:uuid"`
+	UUID pgtype.UUID `json:"UUID" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
 
 	// Network node unique identity, can be any address or URI. Must be unique.
 	Identity string `json:"Identity" gorm:"column:identity;size:128;not null;unique"`

@@ -1563,6 +1563,528 @@ const docTemplate = `{
                 }
             }
         },
+        "/jobs/job": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes single job",
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Delete single job by UUID",
+                "parameters": [
+                    {
+                        "description": "record UUID to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.byUUIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/success.DatabaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/job/{job_uuid}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns single job",
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Get single job by UUID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job UUID",
+                        "name": "job_uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/jobEntities.Job"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/jobs": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns list of jobs by filter",
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Get jobs by filter",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Job type IDs",
+                        "name": "types[]",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Job status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Job priority",
+                        "name": "priority",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Created by user with ID",
+                        "name": "created_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Only finished jobs",
+                        "name": "is_finished",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is after",
+                        "name": "created_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Created timestamp is before",
+                        "name": "created_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Query offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/jobEntities.Job"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/scanning/agents/agent": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and creates scanning agent",
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Create scanning agent",
+                "parameters": [
+                    {
+                        "description": "agent data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.scanAgentParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and deletes single scanning agent",
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Delete scanning agent",
+                "parameters": [
+                    {
+                        "description": "agent UUID to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.byUUIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and updates scanning agent",
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Update scanning agent",
+                "parameters": [
+                    {
+                        "description": "agent data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.scanAgentParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/scanning/agents/agent/{agent_uuid}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Return registered agent by UUID",
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Get scanning agent by UUID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Agent UUID",
+                        "name": "agent_uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/agentEntities.ScanAgent"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/scanning/agents/agents": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns all registered agents",
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Get all scanning agent",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/agentEntities.ScanAgent"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/scanning/queue/job": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Accepts and adds new scanning job to queue",
+                "tags": [
+                    "Queue"
+                ],
+                "summary": "Enqueue scanning job",
+                "parameters": [
+                    {
+                        "description": "New job to queue",
+                        "name": "job",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/jobEntities.JobCreateParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/routing.queuedJob"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes single job from queue",
+                "tags": [
+                    "Queue"
+                ],
+                "summary": "Delete single job from queue by UUID",
+                "parameters": [
+                    {
+                        "description": "job UUID to delete",
+                        "name": "id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/routing.removeFromQueueByUUIDParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/scanning/queue/jobs": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns list of jobs from queue",
+                "tags": [
+                    "Queue"
+                ],
+                "summary": "Enqueued scanning jobs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/jobEntities.Job"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/system/dynamic": {
             "get": {
                 "security": [
@@ -2177,6 +2699,63 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "agentEntities.ScanAgent": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "Description": {
+                    "type": "string"
+                },
+                "Host": {
+                    "type": "string"
+                },
+                "IPAddress": {
+                    "$ref": "#/definitions/pgtype.Inet"
+                },
+                "IsActive": {
+                    "type": "boolean"
+                },
+                "IsConnected": {
+                    "description": "IsConnected is used to monitor dialer connection",
+                    "type": "boolean"
+                },
+                "IsHomeBound": {
+                    "type": "boolean"
+                },
+                "IsPrivate": {
+                    "description": "Private agents can only be used by their owners.",
+                    "type": "boolean"
+                },
+                "MinPriority": {
+                    "description": "MinPriority is minimal job priority that Agent can accept",
+                    "type": "integer"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "Owner": {
+                    "description": "Defines who is the owner of Agent.",
+                    "$ref": "#/definitions/userEntities.PlatformUser"
+                },
+                "OwnerID": {
+                    "type": "integer"
+                },
+                "UUID": {
+                    "type": "string"
+                },
+                "UpdatedAt": {
+                    "type": "string"
+                },
+                "config": {
+                    "type": "object"
+                }
+            }
+        },
         "blacklistEntities.BlacklistImportEvent": {
             "type": "object",
             "properties": {
@@ -2474,6 +3053,275 @@ const docTemplate = `{
                 }
             }
         },
+        "jobEntities.DNSDirectives": {
+            "type": "object",
+            "properties": {
+                "Timings": {
+                    "$ref": "#/definitions/jobEntities.DirectiveTimings"
+                }
+            }
+        },
+        "jobEntities.DirectiveTimings": {
+            "type": "object",
+            "required": [
+                "Delay",
+                "Reties",
+                "Timeout"
+            ],
+            "properties": {
+                "Delay": {
+                    "type": "integer"
+                },
+                "Reties": {
+                    "type": "integer"
+                },
+                "Timeout": {
+                    "type": "integer"
+                }
+            }
+        },
+        "jobEntities.Directives": {
+            "type": "object",
+            "properties": {
+                "DNSDirectives": {
+                    "$ref": "#/definitions/jobEntities.DNSDirectives"
+                },
+                "DiscoveryDirectives": {
+                    "$ref": "#/definitions/jobEntities.DiscoveryDirectives"
+                },
+                "NMAPDirectives": {
+                    "$ref": "#/definitions/jobEntities.NMAPDirectives"
+                },
+                "OpenSourceScanDirectives": {
+                    "$ref": "#/definitions/jobEntities.OSSDirectives"
+                },
+                "SpiderDirectives": {
+                    "$ref": "#/definitions/jobEntities.SpiderDirectives"
+                },
+                "WhoISDirectives": {
+                    "$ref": "#/definitions/jobEntities.WhoISDirectives"
+                }
+            }
+        },
+        "jobEntities.DiscoveryDirectives": {
+            "type": "object",
+            "properties": {
+                "Ports": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "Silent": {
+                    "type": "boolean"
+                },
+                "Timings": {
+                    "$ref": "#/definitions/jobEntities.DirectiveTimings"
+                }
+            }
+        },
+        "jobEntities.Job": {
+            "type": "object",
+            "properties": {
+                "DequeuedTimes": {
+                    "type": "integer"
+                },
+                "Directives": {
+                    "$ref": "#/definitions/jobEntities.Directives"
+                },
+                "Meta": {
+                    "$ref": "#/definitions/jobEntities.Metadata"
+                },
+                "Payload": {
+                    "$ref": "#/definitions/jobEntities.Payload"
+                }
+            }
+        },
+        "jobEntities.JobCreateParams": {
+            "type": "object",
+            "required": [
+                "Targets"
+            ],
+            "properties": {
+                "CreatedByUserID": {
+                    "type": "integer"
+                },
+                "Delay": {
+                    "type": "integer"
+                },
+                "Exceptions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "Priority": {
+                    "description": "MinPriority is minimal job priority that Agent can accept",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ]
+                },
+                "Private": {
+                    "type": "boolean"
+                },
+                "Providers": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "Retries": {
+                    "type": "integer"
+                },
+                "Targets": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "Timout": {
+                    "type": "integer"
+                },
+                "Type": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ]
+                },
+                "UseHomeBound": {
+                    "type": "boolean"
+                },
+                "Weight": {
+                    "type": "integer"
+                }
+            }
+        },
+        "jobEntities.Metadata": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "CreatedBy": {
+                    "$ref": "#/definitions/userEntities.PlatformUser"
+                },
+                "CreatedByID": {
+                    "type": "integer"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "Error": {
+                    "type": "string"
+                },
+                "FinishedAt": {
+                    "type": "string"
+                },
+                "Priority": {
+                    "description": "MinPriority is minimal job priority that Agent can accept",
+                    "type": "integer"
+                },
+                "StartedAt": {
+                    "type": "string"
+                },
+                "Status": {
+                    "type": "integer"
+                },
+                "TasksLeft": {
+                    "type": "integer"
+                },
+                "Type": {
+                    "type": "integer"
+                },
+                "UUID": {
+                    "type": "string"
+                },
+                "UpdatedAt": {
+                    "type": "string"
+                },
+                "Weight": {
+                    "type": "integer"
+                }
+            }
+        },
+        "jobEntities.NMAPDirectives": {
+            "type": "object",
+            "properties": {
+                "Timings": {
+                    "$ref": "#/definitions/jobEntities.DirectiveTimings"
+                }
+            }
+        },
+        "jobEntities.OSSDirectives": {
+            "type": "object",
+            "properties": {
+                "Providers": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "Timings": {
+                    "$ref": "#/definitions/jobEntities.DirectiveTimings"
+                }
+            }
+        },
+        "jobEntities.Payload": {
+            "type": "object",
+            "properties": {
+                "Exceptions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jobEntities.Target"
+                    }
+                },
+                "Targets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jobEntities.Target"
+                    }
+                }
+            }
+        },
+        "jobEntities.SpiderDirectives": {
+            "type": "object",
+            "properties": {
+                "Depth": {
+                    "type": "integer"
+                },
+                "Timings": {
+                    "$ref": "#/definitions/jobEntities.DirectiveTimings"
+                }
+            }
+        },
+        "jobEntities.Target": {
+            "type": "object",
+            "properties": {
+                "Host": {
+                    "type": "string"
+                },
+                "Type": {
+                    "type": "integer"
+                }
+            }
+        },
+        "jobEntities.WhoISDirectives": {
+            "type": "object",
+            "properties": {
+                "Timings": {
+                    "$ref": "#/definitions/jobEntities.DirectiveTimings"
+                }
+            }
+        },
         "net.IPNet": {
             "type": "object",
             "properties": {
@@ -2729,13 +3577,71 @@ const docTemplate = `{
                 }
             }
         },
+        "routing.queuedJob": {
+            "type": "object",
+            "properties": {
+                "UUID": {
+                    "type": "string"
+                }
+            }
+        },
+        "routing.removeFromQueueByUUIDParams": {
+            "type": "object",
+            "required": [
+                "UUID"
+            ],
+            "properties": {
+                "Force": {
+                    "type": "boolean"
+                },
+                "UUID": {
+                    "type": "string"
+                }
+            }
+        },
+        "routing.scanAgentParams": {
+            "type": "object",
+            "required": [
+                "Host",
+                "Name"
+            ],
+            "properties": {
+                "Description": {
+                    "type": "string"
+                },
+                "Host": {
+                    "type": "string"
+                },
+                "IsActive": {
+                    "type": "boolean"
+                },
+                "IsHomeBound": {
+                    "type": "boolean"
+                },
+                "IsPrivate": {
+                    "type": "boolean"
+                },
+                "MinPriority": {
+                    "description": "MinPriority is minimal job priority that Agent can accept",
+                    "type": "integer"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "OwnerID": {
+                    "type": "integer"
+                },
+                "UUID": {
+                    "type": "string"
+                }
+            }
+        },
         "routing.smtpConfigUpdateParams": {
             "type": "object",
             "required": [
                 "From",
                 "Host",
-                "Port",
-                "User"
+                "Port"
             ],
             "properties": {
                 "Enabled": {

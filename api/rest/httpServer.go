@@ -3,11 +3,14 @@ package rest
 import (
 	"domain_threat_intelligence_api/api/rest/auth"
 	"domain_threat_intelligence_api/cmd/core"
+	"domain_threat_intelligence_api/cmd/scheduler"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"log/slog"
 	"net/http"
+	"sync"
 	"time"
 
 	swaggerDocs "domain_threat_intelligence_api/docs/swagger" // needs to be imported to use Enabled docs
@@ -21,7 +24,7 @@ type HTTPServer struct {
 	port uint64
 }
 
-func NewHTTPServer(host, path string, allowedOrigins []string, port uint64, services Services) (*HTTPServer, error) {
+func NewHTTPServer(host, path string, allowedOrigins []string, port uint64, sh *scheduler.Scheduler, pr time.Duration, services Services) (*HTTPServer, error) {
 	s := &HTTPServer{}
 
 	if len(host) == 0 {
@@ -40,7 +43,7 @@ func NewHTTPServer(host, path string, allowedOrigins []string, port uint64, serv
 	authMiddleware := auth.NewMiddlewareService(services.AuthService)
 
 	// gin router initialization
-	s.router = CreateRouter(services, path, allowedOrigins, authMiddleware)
+	s.router = CreateRouter(services, path, allowedOrigins, authMiddleware, sh, pr)
 
 	// http server creation
 	address := fmt.Sprintf("%s:%d", s.host, s.port)
@@ -69,8 +72,18 @@ func (s *HTTPServer) EnableSwagger(host, version, path string) {
 	s.router.GET("/swagger/*any", h)
 }
 
-func (s *HTTPServer) Start() error {
-	return s.server.ListenAndServe()
+func (s *HTTPServer) Start(wg *sync.WaitGroup) {
+	slog.Info("starting web server...")
+
+	go func() {
+		err := s.server.ListenAndServe()
+		if err != nil {
+			slog.Error("failed to start web socket server: " + err.Error())
+			panic(err)
+		}
+	}()
+
+	wg.Done()
 }
 
 type Services struct {
@@ -80,4 +93,7 @@ type Services struct {
 	UsersService       core.IUsersService
 	AuthService        core.IAuthService
 	SMTPService        core.ISMTPService
+	JobsService        core.IJobsService
+	QueueService       core.IQueueService
+	AgentsService      core.IAgentsService
 }

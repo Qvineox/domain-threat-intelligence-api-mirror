@@ -2,6 +2,7 @@ stages:
   - build
   - test
   - deploy
+  - publish
 
 include:
   - template: Security/SAST.gitlab-ci.yml
@@ -123,10 +124,14 @@ trivy image scan:
 deploy to staging:
   extends: .registry_setup
   stage: deploy
+  needs:
+    - build staging docker image
   environment:
     name: Stage
     url: https://domain-threat-intel-api-stage.qvineox.ru/swagger/index.html
   script:
+    - mkdir $CI_PROJECT_DIR/tls
+    - cp $TLS_CRT $CI_PROJECT_DIR/tls/cert.crt
     - docker pull $IMAGE_TAG
     - docker compose -f build/docker/docker-compose.stage.yml up -d
   tags:
@@ -138,10 +143,14 @@ deploy to staging:
 deploy to production:
   extends: .registry_setup
   stage: deploy
+  needs:
+    - build production docker image
   environment:
     name: Production
     url: https://domain-threat-intel.qvineox.ru
   script:
+    - mkdir $CI_PROJECT_DIR/tls
+    - cp $TLS_CRT $CI_PROJECT_DIR/tls/cert.crt
     - docker pull $IMAGE_TAG
     - docker compose -f build/docker/docker-compose.production.yml up -d
   tags:
@@ -150,3 +159,21 @@ deploy to production:
     refs:
       - main
 
+#publish to ghcr.io:
+#  extends: .registry_setup
+#  stage: publish
+#  needs:
+#    - deploy to production
+#    - sast
+#    - trivy image scan
+#  environment:
+#    name: Production
+#    url: https://domain-threat-intel.qvineox.ru
+#  script:
+#    - docker login ghcr.io -u $GITHUB_USERNAME --password-stdin <<< $GITHUB_TOKEN
+#    - docker push $IMAGE_TAG
+#  tags:
+#    - docker
+#  only:
+#    refs:
+#      - main

@@ -22,6 +22,16 @@ type StaticConfig struct {
 		Timezone string `env-required:"true" env:"db_timezone" json:"timezone"`
 	} `json:"database"`
 
+	Logging struct {
+		Level string `env-default:"info" env:"log_level" json:"level"`
+	} `json:"logging"`
+
+	Scheduling struct {
+		PollingRateMS uint64 `env-default:"1000" env:"scheduling_rate" json:"polling_rate_ms"`
+		QueueLimit    int    `env-default:"10" env:"scheduling_limit" json:"queue_limit"`
+		UseTLS        bool   `env:"scheduling_tls" json:"use_tls"`
+	} `json:"scheduling"`
+
 	WebServer struct {
 		Host string `env-required:"true" env:"http_host" json:"host"`
 		Port uint64 `env-required:"true" env:"http_port" json:"port"`
@@ -43,9 +53,9 @@ type StaticConfig struct {
 		} `json:"security"`
 	} `json:"http"`
 
-	Logging struct {
-		Level string `env-default:"info" env:"log_level" json:"level"`
-	} `json:"log"`
+	WebSocket struct {
+		PollingRateMS uint64 `env-default:"2500" env:"ws_rate" json:"polling_rate_ms"`
+	} `json:"ws"`
 }
 
 func NewStaticConfig() (StaticConfig, error) {
