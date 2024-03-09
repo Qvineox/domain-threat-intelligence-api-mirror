@@ -2720,6 +2720,10 @@ const docTemplate = `{
                 "IsActive": {
                     "type": "boolean"
                 },
+                "IsConnected": {
+                    "description": "IsConnected is used to monitor dialer connection",
+                    "type": "boolean"
+                },
                 "IsHomeBound": {
                     "type": "boolean"
                 },
@@ -3139,7 +3143,7 @@ const docTemplate = `{
                 "Targets"
             ],
             "properties": {
-                "CreatedBy": {
+                "CreatedByUserID": {
                     "type": "integer"
                 },
                 "Delay": {

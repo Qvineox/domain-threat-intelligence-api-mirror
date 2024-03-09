@@ -22,14 +22,15 @@ type Job struct {
 	DequeuedTimes uint64 `json:"DequeuedTimes" gorm:"-"`
 }
 
-func (j *Job) WithMetadata(t JobType, p JobPriority, w int64) *Job {
+func (j *Job) WithMetadata(t JobType, p JobPriority, w int64, createdBy *uint64) *Job {
 	j.Meta = &Metadata{
-		Type:      t,
-		Status:    JOB_STATUS_PENDING,
-		Priority:  p,
-		Weight:    w,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Type:        t,
+		Status:      JOB_STATUS_PENDING,
+		Priority:    p,
+		Weight:      w,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		CreatedByID: createdBy,
 	}
 
 	return j
@@ -162,7 +163,7 @@ type JobsSearchFilter struct {
 
 	Priority *JobPriority `json:"Priority" form:"priority" binding:"oneof=0 1 2 3"`
 
-	CreatedBy *uint64 `json:"CreatedBy"  form:"created_by"`
+	CreatedBy *uint64 `json:"CreatedByUserID"  form:"created_by"`
 
 	IsFinished bool `json:"IsFinished" form:"is_finished"`
 
@@ -184,7 +185,7 @@ type JobCreateParams struct {
 	UseHomeBound bool `json:"UseHomeBound"`
 	Private      bool `json:"Private"`
 
-	CreatedBy *uint64 `json:"CreatedBy"`
+	CreatedByUserID *uint64 `json:"CreatedByUserID"`
 
 	OpenSourceProviders []SupportedOSSProvider `json:"Providers,omitempty" binding:"dive,oneof=0 1 2 3 4"`
 

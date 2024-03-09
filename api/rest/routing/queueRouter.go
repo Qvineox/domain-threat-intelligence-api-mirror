@@ -22,28 +22,28 @@ func NewQueueRouter(service core.IQueueService, path *gin.RouterGroup, auth *aut
 	queueGroup := path.Group("/queue")
 
 	queueViewGroup := queueGroup.Group("")
-	// queueViewGroup.Use(auth.RequireRole(5006))
+	queueViewGroup.Use(auth.RequireRole(5006))
 
 	{
 		queueViewGroup.GET("/jobs", router.GetQueuedJobs)
 	}
 
 	queueExecuteGroup := queueGroup.Group("")
-	// queueExecuteGroup.Use(auth.RequireRole(5001))
+	queueExecuteGroup.Use(auth.RequireRole(5001))
 
 	{
 		queueExecuteGroup.POST("/job", router.PostQueueJob)
 	}
 
 	queueModifyGroup := queueGroup.Group("")
-	// queueModifyGroup.Use(auth.RequireRole(5007))
+	queueModifyGroup.Use(auth.RequireRole(5007))
 
 	{
 		queueModifyGroup.PATCH("/job", router.PatchQueuedJob)
 	}
 
 	queueDeleteGroup := queueGroup.Group("")
-	// queueDeleteGroup.Use(auth.RequireRole(5008))
+	queueDeleteGroup.Use(auth.RequireRole(5008))
 
 	{
 		queueDeleteGroup.DELETE("/job", router.DeleteQueuedJobByUUID)
@@ -71,6 +71,20 @@ func (r *QueueRouter) PostQueueJob(c *gin.Context) {
 		apiErrors.ParamsErrorResponse(c, err)
 		return
 	}
+
+	contextUserID, ok := c.Get("user_id")
+	if !ok {
+		apiErrors.ParamsErrorResponse(c, errors.New("missing user id"))
+		return
+	}
+
+	id, ok := contextUserID.(uint64)
+	if !ok {
+		apiErrors.ParamsErrorResponse(c, errors.New("failed to obtain user id"))
+		return
+	}
+
+	params.CreatedByUserID = &id
 
 	jobUUID, err := r.service.QueueNewJob(params)
 	if err != nil {

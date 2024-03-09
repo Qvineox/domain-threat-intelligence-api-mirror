@@ -34,7 +34,7 @@ func (q *QueueServiceImpl) QueueNewJob(params jobEntities.JobCreateParams) (*pgt
 	var job = &jobEntities.Job{}
 
 	job.
-		WithMetadata(params.Type, params.Priority, params.Weight).
+		WithMetadata(params.Type, params.Priority, params.Weight, params.CreatedByUserID).
 		WithPayload(params.Targets, params.Exceptions)
 
 	switch job.Meta.Type {
