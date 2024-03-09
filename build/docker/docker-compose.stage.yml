@@ -22,6 +22,10 @@ services:
       db_name: $DB_NAME
       db_timezone: $DB_TZ
 
+      scheduling_rate: 1000
+      scheduling_limit: 100
+      scheduling_tls: true
+
       http_host: 0.0.0.0
       http_port: 80
 
@@ -41,6 +45,7 @@ services:
       - internal
     volumes:
       - api_stage_dynamic_config:/configs
+      - $CI_PROJECT_DIR/tls:/tls
     labels:
       - traefik.enable=true
       - traefik.http.routers.dti_api_stage.service=dti_api_stage
