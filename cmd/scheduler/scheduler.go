@@ -85,6 +85,8 @@ func NewScheduler(q *jobEntities.Queue, ar core.IAgentsRepo, nr core.INetworkNod
 }
 
 const latestJobsLifespanMinutes = 120
+const queueWaitTimeMinutes = 1
+const minimalDequeTimes = 100
 
 func (s *Scheduler) Start() {
 	slog.Info(fmt.Sprintf("starting scheduler with polling rate %dms...", s.pollingRateMS))
@@ -205,6 +207,7 @@ func (s *Scheduler) ScheduleJob(job *jobEntities.Job) error {
 
 	for _, h := range s.dialers {
 		if h.CanAcceptJobs() && !h.IsBusy && job.Meta.Priority <= h.MinPriority {
+			job.Advance() // should move status to STARTING
 
 			go func() {
 				h.HandleOSSJob(job)
@@ -225,8 +228,19 @@ func (s *Scheduler) ScheduleJob(job *jobEntities.Job) error {
 		}
 	}
 
-	// if there are no available agents at the moment // TODO: add to config
-	if job.DequeuedTimes <= 100 {
+	// if there are no available agents at the moment
+	if job.DequeuedTimes > minimalDequeTimes && time.Now().After(job.Meta.CreatedAt.Add(queueWaitTimeMinutes*time.Minute)) {
+		go func() {
+			job.DoneWithError(errors.New("number of retries to enqueue job exceeded"))
+			err := s.jobsRepo.SaveJob(job)
+			if err != nil {
+				slog.Warn(fmt.Sprintf("failed to save ended job (%x): %s", job.Meta.UUID, err.Error()))
+			}
+
+			s.latestJobs = append(s.latestJobs, job)
+			slog.Info(fmt.Sprintf("saved ended job (%x) with status %d", job.Meta.UUID, job.Meta.Status))
+		}()
+	} else {
 		_ = s.queue.Enqueue(job)
 	}
 

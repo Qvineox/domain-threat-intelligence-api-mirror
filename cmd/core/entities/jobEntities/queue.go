@@ -66,10 +66,6 @@ func (q *Queue) Dequeue() *Job {
 
 	job := q.queue[0]
 
-	if job.DequeuedTimes == 0 {
-		job.Advance() // sets status to STARTING
-	}
-
 	q.queue = slices.Delete(q.queue, 0, 1)
 
 	return job
