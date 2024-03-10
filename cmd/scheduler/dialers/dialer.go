@@ -103,19 +103,19 @@ func (d *ScanAgentDialer) CanAcceptJobs() bool {
 	return d.Agent.IsActive && d.IsConnected()
 }
 
-func (d *ScanAgentDialer) HandleOSSJob(job *jobEntities.Job) {
+func (d *ScanAgentDialer) HandleOSSJob(job *jobEntities.Job) error {
 	if !d.IsConnected() {
 		err := errors.New("agent is not connected")
 		d.logger.JobAssignmentFailed(job.Meta.UUID, err)
 
-		return
+		return err
 	}
 
 	if d.IsBusy || d.MinPriority < job.Meta.Priority {
 		err := errors.New("job cant be assigned: agent busy or priority too low")
 		d.logger.JobAssignmentFailed(job.Meta.UUID, err)
 
-		return
+		return err
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -141,7 +141,7 @@ func (d *ScanAgentDialer) HandleOSSJob(job *jobEntities.Job) {
 	stream, err := d.jobsClient.StartOSS(ctx, job.ToProto())
 	if err != nil {
 		d.CurrentJob.DoneWithError(err)
-		return
+		return err
 	}
 
 	d.logger.JobAssigned(job.Meta.UUID)
@@ -186,4 +186,6 @@ func (d *ScanAgentDialer) HandleOSSJob(job *jobEntities.Job) {
 	wg.Wait()
 	d.logger.JobFinished(job.Meta.UUID)
 	d.CurrentJob.Advance() // // should move status to FINISHING
+
+	return nil
 }

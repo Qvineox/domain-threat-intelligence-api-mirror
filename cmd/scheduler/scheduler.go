@@ -210,11 +210,14 @@ func (s *Scheduler) ScheduleJob(job *jobEntities.Job) error {
 			job.Advance() // should move status to STARTING
 
 			go func() {
-				h.HandleOSSJob(job)
+				err := h.HandleOSSJob(job)
+				if err != nil {
+					job.DoneWithError(err)
+				} else {
+					job.Done()
+				}
 
-				job.Advance() // should move status to DONE
-
-				err := s.jobsRepo.SaveJob(job)
+				err = s.jobsRepo.SaveJob(job)
 				if err != nil {
 					slog.Warn(fmt.Sprintf("failed to save ended job (%x): %s", job.Meta.UUID, err.Error()))
 				}

@@ -15,11 +15,44 @@ func NewJobsRepoImpl(DB *gorm.DB) *JobsRepoImpl {
 }
 
 func (r *JobsRepoImpl) SelectJobsByFilter(filter jobEntities.JobsSearchFilter) ([]jobEntities.Job, error) {
-	var jobs = make([]jobEntities.Job, 0)
+	query := r.Model(&jobEntities.Job{})
 
-	// query := r.Model(&jobEntities.Job{})
+	if filter.CreatedAfter != nil {
+		query = query.Where("created_at > ?", filter.CreatedAfter)
+	}
 
-	return jobs, nil
+	if filter.CreatedBefore != nil {
+		query = query.Where("created_at < ?", filter.CreatedBefore)
+	}
+
+	if filter.Priority != nil {
+		query = query.Where("priority = ?", filter.Priority)
+	}
+
+	if filter.Status != nil {
+		query = query.Where("status = ?", filter.Status)
+	}
+
+	if filter.CreatedBy != nil {
+		query = query.Where("created_by_id = ?", filter.CreatedBy)
+	}
+
+	if len(filter.Types) > 0 {
+		query = query.Where("type IN ?", filter.Types)
+	}
+
+	if filter.Limit != 0 {
+		query = query.Limit(filter.Limit)
+	}
+
+	var result = make([]jobEntities.Job, 0)
+	err := query.Preload("CreatedBy").Offset(filter.Offset).Order("created_at DESC, updated_at DESC, UUID DESC").Find(&result).Error
+
+	for i := range result {
+		_ = result[i].GetFieldsFromJSON()
+	}
+
+	return result, err
 }
 
 func (r *JobsRepoImpl) SelectJobByUUID(uuid pgtype.UUID) (jobEntities.Job, error) {
@@ -45,6 +78,7 @@ func (r *JobsRepoImpl) SaveJob(job *jobEntities.Job) error {
 }
 
 func (r *JobsRepoImpl) DeleteJob(uuid pgtype.UUID) (int64, error) {
-	// TODO implement me
-	panic("implement me")
+	query := r.Where("UUID = ?", uuid).Delete(&jobEntities.Job{})
+
+	return query.RowsAffected, query.Error
 }

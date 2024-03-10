@@ -53,7 +53,7 @@ func (r *BlacklistsRepoImpl) SelectURLsByFilter(filter blacklistEntities.Blackli
 		query = query.Limit(filter.Limit)
 	}
 
-	var result []blacklistEntities.BlacklistedURL
+	var result = make([]blacklistEntities.BlacklistedURL, 0)
 	err := query.Preload("Source").Offset(filter.Offset).Order("created_at DESC, updated_at DESC, UUID DESC").Find(&result).Error
 
 	return result, err

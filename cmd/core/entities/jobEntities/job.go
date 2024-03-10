@@ -153,15 +153,22 @@ func (j *Job) PrepareToSave() error {
 	return nil
 }
 
+func (j *Job) GetFieldsFromJSON() error {
+	j.Directives = j.DirectivesJSON.Data()
+	j.Payload = j.PayloadJSON.Data()
+
+	return nil
+}
+
 const defaultTimout = 5000
 const defaultDelay = 200
 const defaultRetries = 3
 
 type JobsSearchFilter struct {
-	Types  []JobType  `json:"Type" form:"types[]" binding:"dive,oneof=0 1 2 3 4 5"`
-	Status *JobStatus `json:"Status" form:"status" binding:"oneof=0 1 2 3 4 5 6"`
+	Types  []JobType  `json:"Type" form:"types[]" binding:"omitempty,dive,oneof=0 1 2 3 4 5"`
+	Status *JobStatus `json:"Status" form:"status" binding:"omitempty,oneof=0 1 2 3 4 5 6"`
 
-	Priority *JobPriority `json:"Priority" form:"priority" binding:"oneof=0 1 2 3"`
+	Priority *JobPriority `json:"Priority" form:"priority" binding:"omitempty,oneof=0 1 2 3"`
 
 	CreatedBy *uint64 `json:"CreatedByUserID"  form:"created_by"`
 
