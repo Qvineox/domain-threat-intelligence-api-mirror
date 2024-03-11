@@ -2,6 +2,7 @@ package jobEntities
 
 import (
 	"domain_threat_intelligence_api/api/grpc/protoServices"
+	"domain_threat_intelligence_api/cmd/core/entities/agentEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"fmt"
 	"github.com/jackc/pgtype"
@@ -17,9 +18,10 @@ type Metadata struct {
 	Priority JobPriority `json:"Priority" gorm:"column:priority"`
 	Weight   int64       `json:"Weight" gorm:"column:weight"`
 
-	// TODO: add AgentUUID field
+	TasksLeft uint64 `json:"TasksLeft,omitempty" gorm:"-"`
 
-	TasksLeft uint64 `json:"TasksLeft" gorm:"-"`
+	Agent     *agentEntities.ScanAgent `json:"Agent,omitempty"`
+	AgentUUID *pgtype.UUID             `json:"JobUUID;type:uuid" gorm:"column:agent_uuid;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
 	CreatedBy   *userEntities.PlatformUser `json:"CreatedBy"`
 	CreatedByID *uint64                    `json:"CreatedByID" gorm:"column:created_by_id"`
@@ -27,7 +29,7 @@ type Metadata struct {
 	StartedAt  *time.Time `json:"StartedAt" gorm:"column:finished_at"`
 	FinishedAt *time.Time `json:"FinishedAt" gorm:"column:finished_at"`
 
-	Error string `json:"Error" gorm:"column:error"`
+	Error string `json:"Error,omitempty" gorm:"column:error"`
 
 	CreatedAt time.Time      `json:"CreatedAt"`
 	UpdatedAt time.Time      `json:"UpdatedAt"`

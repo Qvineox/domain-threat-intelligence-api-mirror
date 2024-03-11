@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/networkEntities"
+	"errors"
 	"github.com/jackc/pgtype"
 	"gorm.io/gorm"
 	"time"
@@ -37,6 +38,11 @@ func (n NetworkNodesRepoImpl) SaveNetworkNodeScan(scan networkEntities.NetworkNo
 }
 
 func (n NetworkNodesRepoImpl) CreateNetworkNodeWithIdentity(scan networkEntities.NetworkNodeScan, target jobEntities.Target) error {
+	err := scan.Compact()
+	if err != nil {
+		return errors.New("failed to compact json message: " + err.Error())
+	}
+
 	node, err := n.SelectOrCreateByTarget(target)
 	if err != nil {
 		return err
