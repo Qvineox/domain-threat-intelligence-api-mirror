@@ -54,15 +54,15 @@ func NewQueueRouter(service core.IQueueService, path *gin.RouterGroup, auth *aut
 
 // PostQueueJob accepts and adds new scanning job to queue
 //
-//	@Summary			Enqueue scanning job
-//	@Description		Accepts and adds new scanning job to queue
-//	@Tags				Queue
-//	@Security			ApiKeyAuth
-//	@Router				/scanning/queue/job [post]
-//	@ProduceAccessToken	json
-//	@Param				job		body		jobEntities.JobCreateParams	true	"New job to queue"
-//	@Success			201		{object}	queuedJob
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Enqueue scanning job
+// @Description        Accepts and adds new scanning job to queue
+// @Tags               Queue
+// @Security           ApiKeyAuth
+// @Router             /scanning/queue/job [post]
+// @ProduceAccessToken json
+// @Param              job              body      jobEntities.JobCreateParams true "New job to queue"
+// @Success            201              {object} queuedJob
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *QueueRouter) PostQueueJob(c *gin.Context) {
 	var params = jobEntities.JobCreateParams{}
 
@@ -105,15 +105,15 @@ func (r *QueueRouter) PatchQueuedJob(c *gin.Context) {
 
 // DeleteQueuedJobByUUID accepts UUID and removed Job from scanning queue
 //
-//	@Summary			Delete single job from queue by UUID
-//	@Description		Deletes single job from queue
-//	@Tags				Queue
-//	@Security			ApiKeyAuth
-//	@Router				/scanning/queue/job [delete]
-//	@ProduceAccessToken	json
-//	@Param				id	body	removeFromQueueByUUIDParams	true	"job UUID to delete"
-//	@Success			200
-//	@Failure			404,401,400	{object}	apiErrors.APIError
+// @Summary            Delete single job from queue by UUID
+// @Description        Deletes single job from queue
+// @Tags               Queue
+// @Security           ApiKeyAuth
+// @Router             /scanning/queue/job [delete]
+// @ProduceAccessToken json
+// @Param              id body removeFromQueueByUUIDParams true "job UUID to delete"
+// @Success            200
+// @Failure            404,401,400 {object} apiErrors.APIError
 func (r *QueueRouter) DeleteQueuedJobByUUID(c *gin.Context) {
 	params := removeFromQueueByUUIDParams{}
 
@@ -146,14 +146,14 @@ type removeFromQueueByUUIDParams struct {
 
 // GetQueuedJobs returns list of jobs from queue
 //
-//	@Summary			Enqueued scanning jobs
-//	@Description		Returns list of jobs from queue
-//	@Tags				Queue
-//	@Security			ApiKeyAuth
-//	@Router				/scanning/queue/jobs [get]
-//	@ProduceAccessToken	json
-//	@Success			200		{object}	[]jobEntities.Job
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Enqueued scanning jobs
+// @Description        Returns list of jobs from queue
+// @Tags               Queue
+// @Security           ApiKeyAuth
+// @Router             /scanning/queue/jobs [get]
+// @ProduceAccessToken json
+// @Success            200              {object} []jobEntities.Job
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *QueueRouter) GetQueuedJobs(c *gin.Context) {
 	jobs := r.service.RetrieveAllJobs()
 	c.JSON(http.StatusOK, queuedJobs{

@@ -22,7 +22,7 @@ type Metadata struct {
 	CreatedBy   *userEntities.PlatformUser `json:"CreatedBy"`
 	CreatedByID *uint64                    `json:"CreatedByID" gorm:"column:created_by_id"`
 
-	StartedAt  *time.Time `json:"StartedAt" gorm:"column:finished_at"`
+	StartedAt  *time.Time `json:"StartedAt" gorm:"column:started_at"`
 	FinishedAt *time.Time `json:"FinishedAt" gorm:"column:finished_at"`
 
 	Error string `json:"Error,omitempty" gorm:"column:error"`

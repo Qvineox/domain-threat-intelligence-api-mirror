@@ -47,14 +47,14 @@ func NewAgentsRouter(service core.IAgentsService, path *gin.RouterGroup, authMid
 
 // GetAllAgents returns all registered agents
 //
-//	@Summary			Get all scanning agent
-//	@Description		Returns all registered agents
-//	@Tags				Agents
-//	@Security			ApiKeyAuth
-//	@Router				/scanning/agents/agents [get]
-//	@ProduceAccessToken	json
-//	@Success			200		{object}	[]agentEntities.ScanAgent
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Get all scanning agent
+// @Description        Returns all registered agents
+// @Tags               Agents
+// @Security           ApiKeyAuth
+// @Router             /scanning/agents/agents [get]
+// @ProduceAccessToken json
+// @Success            200              {object} []agentEntities.ScanAgent
+// @Failure            401,400 {object} apiErrors.APIError
 func (r AgentsRouter) GetAllAgents(c *gin.Context) {
 	agents, err := r.service.RetrieveAllAgents()
 	if err != nil {
@@ -67,15 +67,15 @@ func (r AgentsRouter) GetAllAgents(c *gin.Context) {
 
 // GetAgent return registered agent by UUID
 //
-//	@Summary			Get scanning agent by UUID
-//	@Description		Return registered agent by UUID
-//	@Tags				Agents
-//	@Security			ApiKeyAuth
-//	@Router				/scanning/agents/agent/{agent_uuid} [get]
-//	@ProduceAccessToken	json
-//	@Param				agent_uuid	path		string	true	"Agent UUID"
-//	@Success			200			{object}	agentEntities.ScanAgent
-//	@Failure			401,400		{object}	apiErrors.APIError
+// @Summary            Get scanning agent by UUID
+// @Description        Return registered agent by UUID
+// @Tags               Agents
+// @Security           ApiKeyAuth
+// @Router             /scanning/agents/agent/{agent_uuid} [get]
+// @ProduceAccessToken json
+// @Param              agent_uuid path          string   true "Agent UUID"
+// @Success            200                      {object} agentEntities.ScanAgent
+// @Failure            401,400         {object} apiErrors.APIError
 func (r AgentsRouter) GetAgent(c *gin.Context) {
 	agentUUID := c.Param("agent_uuid")
 	if agentUUID == "" {
@@ -104,15 +104,15 @@ func (r AgentsRouter) GetAgent(c *gin.Context) {
 
 // PutAgent accepts and creates scanning agent
 //
-//	@Summary			Create scanning agent
-//	@Description		Accepts and creates scanning agent
-//	@Tags				Agents
-//	@Security			ApiKeyAuth
-//	@Router				/scanning/agents/agent [put]
-//	@ProduceAccessToken	json
-//	@Param				user	body	scanAgentParams	true	"agent data"
-//	@Success			200
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Create scanning agent
+// @Description        Accepts and creates scanning agent
+// @Tags               Agents
+// @Security           ApiKeyAuth
+// @Router             /scanning/agents/agent [put]
+// @ProduceAccessToken json
+// @Param              user body scanAgentParams true "agent data"
+// @Success            200
+// @Failure            401,400 {object} apiErrors.APIError
 func (r AgentsRouter) PutAgent(c *gin.Context) {
 	var params scanAgentParams
 
@@ -162,15 +162,15 @@ func (r AgentsRouter) PutAgent(c *gin.Context) {
 
 // PatchAgent accepts and updates scanning agent
 //
-//	@Summary			Update scanning agent
-//	@Description		Accepts and updates scanning agent
-//	@Tags				Agents
-//	@Security			ApiKeyAuth
-//	@Router				/scanning/agents/agent [patch]
-//	@ProduceAccessToken	json
-//	@Param				user	body	scanAgentParams	true	"agent data"
-//	@Success			200
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Update scanning agent
+// @Description        Accepts and updates scanning agent
+// @Tags               Agents
+// @Security           ApiKeyAuth
+// @Router             /scanning/agents/agent [patch]
+// @ProduceAccessToken json
+// @Param              user body scanAgentParams true "agent data"
+// @Success            200
+// @Failure            401,400 {object} apiErrors.APIError
 func (r AgentsRouter) PatchAgent(c *gin.Context) {
 	var params scanAgentParams
 
@@ -233,15 +233,15 @@ func (r AgentsRouter) PatchAgent(c *gin.Context) {
 
 // DeleteAgent accepts and deletes single scanning agent
 //
-//	@Summary			Delete scanning agent
-//	@Description		Accepts and deletes single scanning agent
-//	@Tags				Agents
-//	@Security			ApiKeyAuth
-//	@Router				/scanning/agents/agent [delete]
-//	@ProduceAccessToken	json
-//	@Param				id	body	byUUIDParams	true	"agent UUID to delete"
-//	@Success			200
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Delete scanning agent
+// @Description        Accepts and deletes single scanning agent
+// @Tags               Agents
+// @Security           ApiKeyAuth
+// @Router             /scanning/agents/agent [delete]
+// @ProduceAccessToken json
+// @Param              id body byUUIDParams true "agent UUID to delete"
+// @Success            200
+// @Failure            401,400 {object} apiErrors.APIError
 func (r AgentsRouter) DeleteAgent(c *gin.Context) {
 	var params byUUIDParams
 

@@ -58,7 +58,7 @@ func (r *JobsRepoImpl) SelectJobsByFilter(filter jobEntities.JobsSearchFilter) (
 func (r *JobsRepoImpl) SelectJobByUUID(uuid pgtype.UUID) (jobEntities.Job, error) {
 	var job jobEntities.Job
 
-	err := r.Preload("NodeScans").Find(&job, uuid).Error
+	err := r.Preload("CreatedBy").Preload("NodeScans").Preload("NodeScans.Node").Find(&job, uuid).Error
 
 	job.Payload = job.PayloadJSON.Data()
 	job.Directives = job.DirectivesJSON.Data()

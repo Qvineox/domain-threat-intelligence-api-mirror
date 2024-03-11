@@ -50,14 +50,14 @@ func NewAuthRouter(service core.IAuthService, path *gin.RouterGroup, auth *auth.
 
 // Login accepts login and password, return pair of auth tokens
 //
-//	@Summary			Authorizes user by login and password
-//	@Description		Accepts login and password, return pair of auth tokens
-//	@Tags				Auth
-//	@Router				/auth/login [post]
-//	@ProduceAccessToken	json
-//	@Param				username	body		loginParams	true	"user credentials"
-//	@Success			202			{object}	tokenResponse
-//	@Failure			401,400		{object}	apiErrors.APIError
+// @Summary            Authorizes user by login and password
+// @Description        Accepts login and password, return pair of auth tokens
+// @Tags               Auth
+// @Router             /auth/login [post]
+// @ProduceAccessToken json
+// @Param              username body          loginParams true "user credentials"
+// @Success            202                    {object}    tokenResponse
+// @Failure            401,400       {object} apiErrors.APIError
 func (r *AuthRouter) Login(c *gin.Context) {
 	var params loginParams
 
@@ -92,14 +92,14 @@ type tokenResponse struct {
 
 // Logout removes auth info from cookie and database by provided refresh token
 //
-//	@Summary			Removes user auth tokens
-//	@Description		Removes auth info from cookie and database by provided refresh token
-//	@Tags				Auth
-//	@Security			ApiKeyAuth
-//	@Router				/auth/logout [post]
-//	@ProduceAccessToken	json
-//	@Success			202		{object}	tokenResponse
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Removes user auth tokens
+// @Description        Removes auth info from cookie and database by provided refresh token
+// @Tags               Auth
+// @Security           ApiKeyAuth
+// @Router             /auth/logout [post]
+// @ProduceAccessToken json
+// @Success            202              {object} tokenResponse
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *AuthRouter) Logout(c *gin.Context) {
 	refreshToken, err := c.Cookie("refresh_token")
 	if err != nil {
@@ -123,14 +123,14 @@ func (r *AuthRouter) Logout(c *gin.Context) {
 
 // Refresh gets refresh token from Cookie and updates user auth tokens
 //
-//	@Summary			Updates user auth tokens
-//	@Description		Gets refresh token from Cookie and updates user auth tokens
-//	@Tags				Auth
-//	@Security			ApiKeyAuth
-//	@Router				/auth/refresh [post]
-//	@ProduceAccessToken	json
-//	@Success			202		{object}	tokenResponse
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Updates user auth tokens
+// @Description        Gets refresh token from Cookie and updates user auth tokens
+// @Tags               Auth
+// @Security           ApiKeyAuth
+// @Router             /auth/refresh [post]
+// @ProduceAccessToken json
+// @Success            202              {object} tokenResponse
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *AuthRouter) Refresh(c *gin.Context) {
 	refreshToken, err := c.Cookie("refresh_token")
 	if err != nil {
@@ -161,14 +161,14 @@ func (r *AuthRouter) ConfirmEmail(c *gin.Context) {
 
 // Register accepts user account data and register new platform user
 //
-//	@Summary			Creates new user with defined data
-//	@Description		Accepts user account data and register new platform user
-//	@Tags				Auth
-//	@Router				/auth/registration [post]
-//	@ProduceAccessToken	json
-//	@Param				username	body	loginParams	true	"user credentials"
-//	@Success			202
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Creates new user with defined data
+// @Description        Accepts user account data and register new platform user
+// @Tags               Auth
+// @Router             /auth/registration [post]
+// @ProduceAccessToken json
+// @Param              username body loginParams true "user credentials"
+// @Success            202
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *AuthRouter) Register(c *gin.Context) {
 	var params registerParams
 
@@ -201,14 +201,14 @@ type registerParams struct {
 
 // GetPasswordStrength returns password strength
 //
-//	@Summary			Get strength of a password
-//	@Description		Returns password strength
-//	@Tags				Auth
-//	@Router				/auth/password-strength [post]
-//	@ProduceAccessToken	json
-//	@Param				id	body		passwordStrengthParams	true	"password"
-//	@Success			200	{object}	passwordStrengthResponse
-//	@Failure			400	{object}	apiErrors.APIError
+// @Summary            Get strength of a password
+// @Description        Returns password strength
+// @Tags               Auth
+// @Router             /auth/password-strength [post]
+// @ProduceAccessToken json
+// @Param              id  body      passwordStrengthParams true "password"
+// @Success            200 {object} passwordStrengthResponse
+// @Failure            400 {object} apiErrors.APIError
 func (r *AuthRouter) GetPasswordStrength(c *gin.Context) {
 	var params passwordStrengthParams
 

@@ -45,23 +45,23 @@ func NewJobsRouter(service core.IJobsService, path *gin.RouterGroup, auth *auth.
 
 // GetJobsByFilter returns saved jobs by filter
 //
-//	@Summary			Get jobs by filter
-//	@Description		Returns list of jobs by filter
-//	@Tags				Jobs
-//	@Security			ApiKeyAuth
-//	@Router				/jobs/jobs [get]
-//	@ProduceAccessToken	json
-//	@Param				types[]			query		[]uint64	false	"Job type IDs"	collectionFormat(multi)
-//	@Param				status			query		uint64		false	"Job status"
-//	@Param				priority		query		uint64		false	"Job priority"
-//	@Param				created_by		query		uint64		false	"Created by user with ID"
-//	@Param				is_finished		query		bool		false	"Only finished jobs"
-//	@Param				created_after	query		string		false	"Created timestamp is after"
-//	@Param				created_before	query		string		false	"Created timestamp is before"
-//	@Param				limit			query		int			true	"Query limit"
-//	@Param				offset			query		int			false	"Query offset"
-//	@Success			200				{object}	[]jobEntities.Job
-//	@Failure			401,400			{object}	apiErrors.APIError
+// @Summary            Get jobs by filter
+// @Description        Returns list of jobs by filter
+// @Tags               Jobs
+// @Security           ApiKeyAuth
+// @Router             /jobs/jobs [get]
+// @ProduceAccessToken json
+// @Param              types[]                    query             []uint64 false "Job type IDs" collectionFormat(multi)
+// @Param              status                     query             uint64         false          "Job status"
+// @Param              priority             query          uint64            false "Job priority"
+// @Param              created_by           query          uint64            false "Created by user with ID"
+// @Param              is_finished          query          bool              false "Only finished jobs"
+// @Param              created_after  query       string            false    "Created timestamp is after"
+// @Param              created_before query       string            false    "Created timestamp is before"
+// @Param              limit                      query             int        true  "Query limit"
+// @Param              offset                     query             int        false "Query offset"
+// @Success            200                                 {object} []jobEntities.Job
+// @Failure            401,400                    {object} apiErrors.APIError
 func (r *JobsRouter) GetJobsByFilter(c *gin.Context) {
 	params := jobEntities.JobsSearchFilter{}
 
@@ -87,15 +87,15 @@ func (r *JobsRouter) GetJobsByFilter(c *gin.Context) {
 
 // GetJobByUUID accepts UUID and returns saved Job
 //
-//	@Summary			Get single job by UUID
-//	@Description		Returns single job
-//	@Tags				Jobs
-//	@Security			ApiKeyAuth
-//	@Router				/jobs/job/{job_uuid} [get]
-//	@ProduceAccessToken	json
-//	@Param				job_uuid	path		string	true	"Job UUID"
-//	@Success			200			{object}	jobEntities.Job
-//	@Failure			404,401,400	{object}	apiErrors.APIError
+// @Summary            Get single job by UUID
+// @Description        Returns single job
+// @Tags               Jobs
+// @Security           ApiKeyAuth
+// @Router             /jobs/job/{job_uuid} [get]
+// @ProduceAccessToken json
+// @Param              job_uuid    path      string   true "Job UUID"
+// @Success            200                   {object} jobEntities.Job
+// @Failure            404,401,400 {object} apiErrors.APIError
 func (r *JobsRouter) GetJobByUUID(c *gin.Context) {
 	uuidParam := c.Param("job_uuid")
 	if len(uuidParam) == 0 {
@@ -124,15 +124,15 @@ func (r *JobsRouter) GetJobByUUID(c *gin.Context) {
 
 // DeleteJobByUUID accepts UUID and deletes Job
 //
-//	@Summary			Delete single job by UUID
-//	@Description		Deletes single job
-//	@Tags				Jobs
-//	@Security			ApiKeyAuth
-//	@Router				/jobs/job [delete]
-//	@ProduceAccessToken	json
-//	@Param				id		body		byUUIDParams	true	"record UUID to delete"
-//	@Success			200		{object}	success.DatabaseResponse
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Delete single job by UUID
+// @Description        Deletes single job
+// @Tags               Jobs
+// @Security           ApiKeyAuth
+// @Router             /jobs/job [delete]
+// @ProduceAccessToken json
+// @Param              id               body      byUUIDParams true "record UUID to delete"
+// @Success            200              {object} success.DatabaseResponse
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *JobsRouter) DeleteJobByUUID(c *gin.Context) {
 	params := byUUIDParams{}
 

@@ -1,7 +1,6 @@
 package networkEntities
 
 import (
-	"database/sql"
 	"github.com/jackc/pgtype"
 	"gorm.io/gorm"
 	"time"
@@ -14,7 +13,7 @@ type NetworkNode struct {
 	Identity string `json:"Identity" gorm:"column:identity;size:128;not null;unique"`
 
 	// Network node discovery timestamp, when was this node first found
-	DiscoveredAt sql.NullTime `json:"DiscoveredAt" gorm:"column:discovered_at"`
+	DiscoveredAt *time.Time `json:"DiscoveredAt" gorm:"column:discovered_at"`
 
 	Type   *NetworkNodeType `json:"NodeType,omitempty" gorm:"foreignKey:TypeID;constraint:OnUpdate:CASCADE;OnDelete:SET NULL"`
 	TypeID uint64           `json:"NodeTypeId"`

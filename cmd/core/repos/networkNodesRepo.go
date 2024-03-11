@@ -1,7 +1,6 @@
 package repos
 
 import (
-	"database/sql"
 	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/networkEntities"
 	"errors"
@@ -20,12 +19,13 @@ func NewNetworkNodesRepoImpl(DB *gorm.DB) *NetworkNodesRepoImpl {
 
 func (r NetworkNodesRepoImpl) SelectOrCreateByTarget(target jobEntities.Target) (networkEntities.NetworkNode, error) {
 	node := networkEntities.NetworkNode{}
+	now := time.Now()
 
 	err := r.
 		Where("identity = ? AND type_id = ?", target.Host, target.Type+1).
 		Attrs(networkEntities.NetworkNode{
 			Identity:     target.Host,
-			DiscoveredAt: sql.NullTime{Time: time.Now()},
+			DiscoveredAt: &now,
 			TypeID:       uint64(target.Type + 1),
 		}).
 		FirstOrCreate(&node).Error
@@ -34,11 +34,40 @@ func (r NetworkNodesRepoImpl) SelectOrCreateByTarget(target jobEntities.Target) 
 }
 
 func (r NetworkNodesRepoImpl) SelectNetworkNodesByFilter(filter networkEntities.NetworkNodeSearchFilter) ([]networkEntities.NetworkNode, error) {
+	query := r.Model(&networkEntities.NetworkNode{})
+
+	if filter.CreatedAfter != nil {
+		query = query.Where("created_at > ?", filter.CreatedAfter)
+	}
+
+	if filter.CreatedBefore != nil {
+		query = query.Where("created_at < ?", filter.CreatedBefore)
+	}
+
+	if filter.DiscoveredAfter != nil {
+		query = query.Where("discovered_at > ?", filter.DiscoveredAfter)
+	}
+
+	if filter.DiscoveredBefore != nil {
+		query = query.Where("discovered_at < ?", filter.DiscoveredBefore)
+	}
+
+	if len(filter.SearchString) > 0 {
+		query = query.Where("identity LIKE ?", "%"+filter.SearchString+"%")
+	}
+
+	if len(filter.TypeIDs) > 0 {
+		query = query.Where("type_id IN ?", filter.TypeIDs)
+	}
+
+	if filter.Limit != 0 {
+		query = query.Limit(filter.Limit)
+	}
+
 	nodes := make([]networkEntities.NetworkNode, 0)
+	err := query.Offset(filter.Offset).Order("created_at DESC, updated_at DESC, UUID DESC").Find(&nodes).Error
 
-	// TODO: use query filters
-
-	return nodes, nil
+	return nodes, err
 }
 
 func (r NetworkNodesRepoImpl) SaveNetworkNode(node networkEntities.NetworkNode) (networkEntities.NetworkNode, error) {

@@ -17,6 +17,7 @@ type NetworkNodeType struct {
 	DeletedAt gorm.DeletedAt `json:"DeletedAt,omitempty" gorm:"index"`
 }
 
+// DefaultNetworkNodeTypes has equal IDs to jobEntities.TargetType
 var DefaultNetworkNodeTypes = []NetworkNodeType{
 	{
 		ID:          1,

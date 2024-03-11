@@ -59,15 +59,15 @@ func NewUsersRouter(service core.IUsersService, path *gin.RouterGroup, authMiddl
 
 // PutUser accepts and creates user account
 //
-//	@Summary			Create user account
-//	@Description		Accepts and creates user account
-//	@Tags				Users
-//	@Security			ApiKeyAuth
-//	@Router				/users/user [put]
-//	@ProduceAccessToken	json
-//	@Param				user	body		userCreateParams	true	"user data"
-//	@Success			200		{object}	success.DatabaseResponse
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Create user account
+// @Description        Accepts and creates user account
+// @Tags               Users
+// @Security           ApiKeyAuth
+// @Router             /users/user [put]
+// @ProduceAccessToken json
+// @Param              user    body              userCreateParams true "user data"
+// @Success            200              {object} success.DatabaseResponse
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *UsersRouter) PutUser(c *gin.Context) {
 	var params userCreateParams
 
@@ -103,15 +103,15 @@ type userCreateParams struct {
 
 // PatchUser accepts and updates single user account
 //
-//	@Summary			Update user account
-//	@Description		Accepts and updates single user account
-//	@Tags				Users
-//	@Security			ApiKeyAuth
-//	@Router				/users/user [patch]
-//	@ProduceAccessToken	json
-//	@Param				user		body		userUpdateParams	true	"user update"
-//	@Success			200			{object}	success.DatabaseResponse
-//	@Failure			404,401,400	{object}	apiErrors.APIError
+// @Summary            Update user account
+// @Description        Accepts and updates single user account
+// @Tags               Users
+// @Security           ApiKeyAuth
+// @Router             /users/user [patch]
+// @ProduceAccessToken json
+// @Param              user                 body          userUpdateParams true "user update"
+// @Success            200                       {object} success.DatabaseResponse
+// @Failure            404,401,400 {object} apiErrors.APIError
 func (r *UsersRouter) PatchUser(c *gin.Context) {
 	var params userUpdateParams
 
@@ -153,15 +153,15 @@ type userUpdateParams struct {
 
 // DeleteUser accepts and deletes single user account
 //
-//	@Summary			Delete user account
-//	@Description		Accepts and deletes single user account
-//	@Tags				Users
-//	@Security			ApiKeyAuth
-//	@Router				/users/user [delete]
-//	@ProduceAccessToken	json
-//	@Param				id		body		byIDParams	true	"record ID to delete"
-//	@Success			200		{object}	success.DatabaseResponse
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Delete user account
+// @Description        Accepts and deletes single user account
+// @Tags               Users
+// @Security           ApiKeyAuth
+// @Router             /users/user [delete]
+// @ProduceAccessToken json
+// @Param              id               body      byIDParams true "record ID to delete"
+// @Success            200              {object} success.DatabaseResponse
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *UsersRouter) DeleteUser(c *gin.Context) {
 	var params byIDParams
 
@@ -182,14 +182,14 @@ func (r *UsersRouter) DeleteUser(c *gin.Context) {
 
 // GetUsers returns all user accounts
 //
-//	@Summary			Get all user accounts
-//	@Description		Returns all user accounts
-//	@Tags				Users
-//	@Security			ApiKeyAuth
-//	@Router				/users/users [get]
-//	@ProduceAccessToken	json
-//	@Success			200		{object}	[]userEntities.PlatformUser
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Get all user accounts
+// @Description        Returns all user accounts
+// @Tags               Users
+// @Security           ApiKeyAuth
+// @Router             /users/users [get]
+// @ProduceAccessToken json
+// @Success            200              {object} []userEntities.PlatformUser
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *UsersRouter) GetUsers(c *gin.Context) {
 	users, err := r.service.RetrieveUsers()
 	if err != nil {
@@ -202,15 +202,15 @@ func (r *UsersRouter) GetUsers(c *gin.Context) {
 
 // GetUser returns single user account
 //
-//	@Summary			Get single user account
-//	@Description		Returns single user account
-//	@Tags				Users
-//	@Security			ApiKeyAuth
-//	@Router				/users/user/{user_id} [get]
-//	@ProduceAccessToken	json
-//	@Param				user_id	path		int	true	"User ID"
-//	@Success			200		{object}	userEntities.PlatformUser
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Get single user account
+// @Description        Returns single user account
+// @Tags               Users
+// @Security           ApiKeyAuth
+// @Router             /users/user/{user_id} [get]
+// @ProduceAccessToken json
+// @Param              user_id path              int true "User ID"
+// @Success            200              {object} userEntities.PlatformUser
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *UsersRouter) GetUser(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("user_id"), 10, 64)
 	if err != nil {
@@ -232,14 +232,14 @@ func (r *UsersRouter) GetUser(c *gin.Context) {
 
 // GetMe returns current session user in JWT token
 //
-//	@Summary			Get current session user
-//	@Description		Returns current session user in JWT token
-//	@Tags				Users
-//	@Security			ApiKeyAuth
-//	@Router				/users/me [get]
-//	@ProduceAccessToken	json
-//	@Success			200		{object}	userEntities.PlatformUser
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Get current session user
+// @Description        Returns current session user in JWT token
+// @Tags               Users
+// @Security           ApiKeyAuth
+// @Router             /users/me [get]
+// @ProduceAccessToken json
+// @Success            200              {object} userEntities.PlatformUser
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *UsersRouter) GetMe(c *gin.Context) {
 	contextUserID, ok := c.Get("user_id")
 	if !ok {
@@ -267,14 +267,14 @@ func (r *UsersRouter) GetMe(c *gin.Context) {
 
 // GetPermissions returns all available permissions
 //
-//	@Summary			Get all available permissions
-//	@Description		Returns all permissions
-//	@Tags				Users
-//	@Security			ApiKeyAuth
-//	@Router				/users/permissions [get]
-//	@ProduceAccessToken	json
-//	@Success			200		{object}	[]userEntities.PlatformUserPermission
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Get all available permissions
+// @Description        Returns all permissions
+// @Tags               Users
+// @Security           ApiKeyAuth
+// @Router             /users/permissions [get]
+// @ProduceAccessToken json
+// @Success            200              {object} []userEntities.PlatformUserPermission
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *UsersRouter) GetPermissions(c *gin.Context) {
 	permissions, err := r.service.RetrievePermissions()
 	if err != nil {
@@ -287,29 +287,29 @@ func (r *UsersRouter) GetPermissions(c *gin.Context) {
 
 // GetPermissionPresets returns all permission presets
 //
-//	@Summary			Get all permission presets
-//	@Description		Returns all permission presets
-//	@Tags				Users
-//	@Security			ApiKeyAuth
-//	@Router				/users/permissions/presets [get]
-//	@ProduceAccessToken	json
-//	@Success			200		{object}	[]userEntities.PlatformUserRolesPreset
-//	@Failure			401,400	{object}	apiErrors.APIError
+// @Summary            Get all permission presets
+// @Description        Returns all permission presets
+// @Tags               Users
+// @Security           ApiKeyAuth
+// @Router             /users/permissions/presets [get]
+// @ProduceAccessToken json
+// @Success            200              {object} []userEntities.PlatformUserRolesPreset
+// @Failure            401,400 {object} apiErrors.APIError
 func (r *UsersRouter) GetPermissionPresets(c *gin.Context) {
 	c.JSON(http.StatusOK, r.service.RetrievePermissionPresets())
 }
 
 // ResetPassword resets password for user
 //
-//	@Summary			Reset password
-//	@Description		Resets password for user
-//	@Tags				Users
-//	@Security			ApiKeyAuth
-//	@Router				/users/password/reset [post]
-//	@ProduceAccessToken	json
-//	@Param				id	body	byIDParams	true	"user to reset"
-//	@Success			200
-//	@Failure			404,401,400	{object}	apiErrors.APIError
+// @Summary            Reset password
+// @Description        Resets password for user
+// @Tags               Users
+// @Security           ApiKeyAuth
+// @Router             /users/password/reset [post]
+// @ProduceAccessToken json
+// @Param              id body byIDParams true "user to reset"
+// @Success            200
+// @Failure            404,401,400 {object} apiErrors.APIError
 func (r *UsersRouter) ResetPassword(c *gin.Context) {
 	var params byIDParams
 
@@ -335,15 +335,15 @@ func (r *UsersRouter) ResetPassword(c *gin.Context) {
 
 // ChangePassword sets new password for user
 //
-//	@Summary			Changes password for user
-//	@Description		Sets new password for user. Closes session
-//	@Tags				Users
-//	@Security			ApiKeyAuth
-//	@Router				/users/password/change [post]
-//	@ProduceAccessToken	json
-//	@Param				id	body	changePasswordParams	true	"new password"
-//	@Success			200
-//	@Failure			404,401,400	{object}	apiErrors.APIError
+// @Summary            Changes password for user
+// @Description        Sets new password for user. Closes session
+// @Tags               Users
+// @Security           ApiKeyAuth
+// @Router             /users/password/change [post]
+// @ProduceAccessToken json
+// @Param              id body changePasswordParams true "new password"
+// @Success            200
+// @Failure            404,401,400 {object} apiErrors.APIError
 func (r *UsersRouter) ChangePassword(c *gin.Context) {
 	var params changePasswordParams
 
