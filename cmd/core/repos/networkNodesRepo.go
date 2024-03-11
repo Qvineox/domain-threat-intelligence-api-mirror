@@ -56,7 +56,7 @@ func (n NetworkNodesRepoImpl) CreateNetworkNodeWithIdentity(scan networkEntities
 func (n NetworkNodesRepoImpl) SelectNetworkNodeByUUID(uuid pgtype.UUID) (networkEntities.NetworkNode, error) {
 	node := networkEntities.NetworkNode{}
 
-	err := n.Find(&node, uuid).Error
+	err := n.Preload("Type").Preload("Scans").Find(&node, uuid).Error
 	if err != nil {
 		return networkEntities.NetworkNode{}, err
 	}

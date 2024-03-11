@@ -2,7 +2,6 @@ package jobEntities
 
 import (
 	"domain_threat_intelligence_api/api/grpc/protoServices"
-	"domain_threat_intelligence_api/cmd/core/entities/agentEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"fmt"
 	"github.com/jackc/pgtype"
@@ -19,9 +18,6 @@ type Metadata struct {
 	Weight   int64       `json:"Weight" gorm:"column:weight"`
 
 	TasksLeft uint64 `json:"TasksLeft,omitempty" gorm:"-"`
-
-	Agent     *agentEntities.ScanAgent `json:"Agent,omitempty"`
-	AgentUUID *pgtype.UUID             `json:"JobUUID;type:uuid" gorm:"column:agent_uuid;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 
 	CreatedBy   *userEntities.PlatformUser `json:"CreatedBy"`
 	CreatedByID *uint64                    `json:"CreatedByID" gorm:"column:created_by_id"`

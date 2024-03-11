@@ -20,7 +20,7 @@ type Job struct {
 	// PayloadJSON is marshalled from Payload via PrepareToSave
 	PayloadJSON datatypes.JSONType[Payload] `json:"-" gorm:"column:payload"`
 
-	NodeScans []networkEntities.NetworkNodeScan `json:"NodeScans" gorm:"references:JobUUID"`
+	NodeScans []networkEntities.NetworkNodeScan `json:"NodeScans" gorm:"foreignKey:JobUUID"`
 
 	DequeuedTimes uint64 `json:"DequeuedTimes" gorm:"-"`
 }

@@ -87,13 +87,14 @@ func (s *HTTPServer) Start(wg *sync.WaitGroup) {
 }
 
 type Services struct {
-	BlacklistService   core.IBlacklistsService
-	SystemStateService core.ISystemStateService
-	ServiceDeskService core.IServiceDeskService
-	UsersService       core.IUsersService
-	AuthService        core.IAuthService
-	SMTPService        core.ISMTPService
-	JobsService        core.IJobsService
-	QueueService       core.IQueueService
-	AgentsService      core.IAgentsService
+	BlacklistService    core.IBlacklistsService
+	SystemStateService  core.ISystemStateService
+	ServiceDeskService  core.IServiceDeskService
+	UsersService        core.IUsersService
+	AuthService         core.IAuthService
+	SMTPService         core.ISMTPService
+	JobsService         core.IJobsService
+	QueueService        core.IQueueService
+	AgentsService       core.IAgentsService
+	NetworkNodesService core.INetworkNodesService
 }

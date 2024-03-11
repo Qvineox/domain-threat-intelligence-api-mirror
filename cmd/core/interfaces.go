@@ -96,6 +96,14 @@ type IQueueService interface {
 	RetrieveConnectedAgentsUUIDs() []pgtype.UUID
 }
 
+type INetworkNodesService interface {
+	RetrieveNetworkNodeByUUID(uuid pgtype.UUID) (networkEntities.NetworkNode, error)
+	RetrieveNetworkNodesByFilter() ([]networkEntities.NetworkNode, error)
+
+	SaveNetworkNode(node networkEntities.NetworkNode) (networkEntities.NetworkNode, error)
+	DeleteNetworkNode(uuid pgtype.UUID) error
+}
+
 type INetworkNodesRepo interface {
 	SelectNetworkNodeByUUID(uuid pgtype.UUID) (networkEntities.NetworkNode, error)
 

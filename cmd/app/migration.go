@@ -22,6 +22,7 @@ func Migrate(database *gorm.DB) error {
 		blacklistEntities.BlacklistedIP{},
 		blacklistEntities.BlacklistedURL{},
 		blacklistEntities.BlacklistedEmail{},
+		jobEntities.Job{},
 		networkEntities.NetworkNodeType{},
 		networkEntities.NetworkNode{},
 		networkEntities.NetworkNodeScanType{},
@@ -30,7 +31,6 @@ func Migrate(database *gorm.DB) error {
 		userEntities.PlatformUserPermission{},
 		userEntities.PlatformUser{},
 		agentEntities.ScanAgent{},
-		jobEntities.Job{},
 	)
 
 	if err != nil {

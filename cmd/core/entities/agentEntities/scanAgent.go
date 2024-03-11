@@ -2,7 +2,6 @@ package agentEntities
 
 import (
 	"domain_threat_intelligence_api/api/grpc/protoServices"
-	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"domain_threat_intelligence_api/cmd/core/entities/userEntities"
 	"fmt"
 	"github.com/jackc/pgtype"
@@ -27,7 +26,7 @@ type ScanAgent struct {
 	IsConnected bool `json:"IsConnected" gorm:"-"`
 
 	// MinPriority is minimal job priority that Agent can accept
-	MinPriority jobEntities.JobPriority `json:"MinPriority" gorm:"column:min_priority;default:3"`
+	MinPriority uint64 `json:"MinPriority" gorm:"column:min_priority;default:3"`
 
 	// Defines who is the owner of Agent.
 	Owner   *userEntities.PlatformUser `json:"Owner,omitempty" gorm:"foreignKey:OwnerID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`

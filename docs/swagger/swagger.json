@@ -1746,6 +1746,55 @@
                 }
             }
         },
+        "/nodes/node/{node_uuid}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns single node",
+                "tags": [
+                    "Nodes"
+                ],
+                "summary": "Get single node by UUID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Node UUID",
+                        "name": "node_uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/networkEntities.NetworkNode"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/error.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/scanning/agents/agent": {
             "put": {
                 "security": [
@@ -2731,7 +2780,11 @@
                 },
                 "Owner": {
                     "description": "Defines who is the owner of Agent.",
-                    "$ref": "#/definitions/userEntities.PlatformUser"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/userEntities.PlatformUser"
+                        }
+                    ]
                 },
                 "OwnerID": {
                     "type": "integer"
@@ -2743,7 +2796,7 @@
                     "type": "string"
                 },
                 "config": {
-                    "type": "object"
+                    "$ref": "#/definitions/datatypes.JSONType-agentEntities_ScanAgentConfig"
                 }
             }
         },
@@ -2755,7 +2808,11 @@
                 },
                 "CreatedBy": {
                     "description": "CreatedBy defines import event creator identity",
-                    "$ref": "#/definitions/userEntities.PlatformUser"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/userEntities.PlatformUser"
+                        }
+                    ]
                 },
                 "CreatedByID": {
                     "type": "integer"
@@ -2770,7 +2827,7 @@
                     "type": "boolean"
                 },
                 "Summary": {
-                    "type": "object"
+                    "$ref": "#/definitions/datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary"
                 },
                 "Type": {
                     "type": "string"
@@ -2818,14 +2875,22 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -2862,14 +2927,22 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -2903,20 +2976,28 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Source defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
                 },
                 "Status": {
-                    "type": "string"
+                    "$ref": "#/definitions/blacklistEntities.HostStatus"
                 },
                 "Type": {
                     "description": "domain, url or IP",
@@ -2951,14 +3032,22 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -2989,7 +3078,11 @@
                 },
                 "ImportEvent": {
                     "description": "ImportEvent describes import session from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistImportEvent"
+                        }
+                    ]
                 },
                 "ImportEventID": {
                     "type": "integer"
@@ -2999,7 +3092,11 @@
                 },
                 "Source": {
                     "description": "Defines source from where blacklisted host was added",
-                    "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/blacklistEntities.BlacklistSource"
+                        }
+                    ]
                 },
                 "SourceID": {
                     "type": "integer"
@@ -3015,11 +3112,26 @@
                 }
             }
         },
+        "blacklistEntities.HostStatus": {
+            "type": "string",
+            "enum": [
+                "new"
+            ],
+            "x-enum-varnames": [
+                "HostStatusNew"
+            ]
+        },
+        "datatypes.JSONType-agentEntities_ScanAgentConfig": {
+            "type": "object"
+        },
+        "datatypes.JSONType-blacklistEntities_BlacklistImportEventSummary": {
+            "type": "object"
+        },
         "error.APIError": {
             "type": "object",
             "properties": {
                 "ErrorCode": {
-                    "type": "integer"
+                    "$ref": "#/definitions/error.CodeError"
                 },
                 "ErrorMessage": {
                     "type": "string"
@@ -3031,6 +3143,43 @@
                     "type": "integer"
                 }
             }
+        },
+        "error.CodeError": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15
+            ],
+            "x-enum-varnames": [
+                "EncodingErrorCode",
+                "DecodingErrorCode",
+                "IncorrectParamsErrorCode",
+                "InsufficientParamsErrorCode",
+                "DatabaseErrorCode",
+                "DatabaseEntityNotFoundCode",
+                "FileDecodingErrorCode",
+                "FileReadingErrorCode",
+                "FileExtensionNotSupportedErrorCode",
+                "NotImplementedErrorCode",
+                "FileProcessingErrorCode",
+                "InternalUnidentifiedErrorCode",
+                "AuthFailedErrorCode",
+                "AuthPermissionInsufficientErrorCode",
+                "JobQueueErrorCode"
+            ]
         },
         "gorm.DeletedAt": {
             "type": "object",
@@ -3123,6 +3272,12 @@
                 "Meta": {
                     "$ref": "#/definitions/jobEntities.Metadata"
                 },
+                "NodeScans": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/networkEntities.NetworkNodeScan"
+                    }
+                },
                 "Payload": {
                     "$ref": "#/definitions/jobEntities.Payload"
                 }
@@ -3147,13 +3302,16 @@
                     }
                 },
                 "Priority": {
-                    "description": "MinPriority is minimal job priority that Agent can accept",
-                    "type": "integer",
                     "enum": [
                         0,
                         1,
                         2,
                         3
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/jobEntities.JobPriority"
+                        }
                     ]
                 },
                 "Private": {
@@ -3162,7 +3320,7 @@
                 "Providers": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/jobEntities.SupportedOSSProvider"
                     }
                 },
                 "Retries": {
@@ -3178,7 +3336,6 @@
                     "type": "integer"
                 },
                 "Type": {
-                    "type": "integer",
                     "enum": [
                         0,
                         1,
@@ -3186,6 +3343,11 @@
                         3,
                         4,
                         5
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/jobEntities.JobType"
+                        }
                     ]
                 },
                 "UseHomeBound": {
@@ -3195,6 +3357,79 @@
                     "type": "integer"
                 }
             }
+        },
+        "jobEntities.JobPriority": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "x-enum-comments": {
+                "JOB_PRIORITY_CRITICAL": "job must be executed instantly",
+                "JOB_PRIORITY_HIGH": "job must be executed after current (stack mode)",
+                "JOB_PRIORITY_LOW": "job should be executed lastly in order (queue mode)",
+                "JOB_PRIORITY_MEDIUM": "job should be executed with higher priority"
+            },
+            "x-enum-varnames": [
+                "JOB_PRIORITY_CRITICAL",
+                "JOB_PRIORITY_HIGH",
+                "JOB_PRIORITY_MEDIUM",
+                "JOB_PRIORITY_LOW"
+            ]
+        },
+        "jobEntities.JobStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "x-enum-comments": {
+                "JOB_STATUS_CANCELLED": "job was cancelled by user",
+                "JOB_STATUS_DONE": "job finished execution and saved",
+                "JOB_STATUS_ERROR": "job stopped with error from API or scanners (can be multiple errors, with threshold)",
+                "JOB_STATUS_FINISHING": "clearing and sending data",
+                "JOB_STATUS_PANIC": "internal exception",
+                "JOB_STATUS_PENDING": "not yet started",
+                "JOB_STATUS_STARTING": "calculating tasks, creating required structures",
+                "JOB_STATUS_WORKING": "executing tasks"
+            },
+            "x-enum-varnames": [
+                "JOB_STATUS_PENDING",
+                "JOB_STATUS_STARTING",
+                "JOB_STATUS_WORKING",
+                "JOB_STATUS_FINISHING",
+                "JOB_STATUS_DONE",
+                "JOB_STATUS_ERROR",
+                "JOB_STATUS_PANIC",
+                "JOB_STATUS_CANCELLED"
+            ]
+        },
+        "jobEntities.JobType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "x-enum-varnames": [
+                "JOB_TYPE_OSS",
+                "JOB_TYPE_NMAP",
+                "JOB_TYPE_WHOIS",
+                "JOB_TYPE_DNS",
+                "JOB_TYPE_DISCOVERY",
+                "JOB_TYPE_SPIDER"
+            ]
         },
         "jobEntities.Metadata": {
             "type": "object",
@@ -3218,20 +3453,19 @@
                     "type": "string"
                 },
                 "Priority": {
-                    "description": "MinPriority is minimal job priority that Agent can accept",
-                    "type": "integer"
+                    "$ref": "#/definitions/jobEntities.JobPriority"
                 },
                 "StartedAt": {
                     "type": "string"
                 },
                 "Status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/jobEntities.JobStatus"
                 },
                 "TasksLeft": {
                     "type": "integer"
                 },
                 "Type": {
-                    "type": "integer"
+                    "$ref": "#/definitions/jobEntities.JobType"
                 },
                 "UUID": {
                     "type": "string"
@@ -3258,7 +3492,7 @@
                 "Providers": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/jobEntities.SupportedOSSProvider"
                     }
                 },
                 "Timings": {
@@ -3294,6 +3528,23 @@
                 }
             }
         },
+        "jobEntities.SupportedOSSProvider": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4
+            ],
+            "x-enum-varnames": [
+                "OSS_PROVIDER_VIRUS_TOTAL",
+                "OSS_PROVIDER_IP_QUALITY_SCORE",
+                "OSS_PROVIDER_CROWD_SEC",
+                "OSS_PROVIDER_SHODAN",
+                "OSS_PROVIDER_IP_WHO_IS"
+            ]
+        },
         "jobEntities.Target": {
             "type": "object",
             "properties": {
@@ -3301,9 +3552,24 @@
                     "type": "string"
                 },
                 "Type": {
-                    "type": "integer"
+                    "$ref": "#/definitions/jobEntities.TargetType"
                 }
             }
+        },
+        "jobEntities.TargetType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "HOST_TYPE_CIDR",
+                "HOST_TYPE_DOMAIN",
+                "HOST_TYPE_URL",
+                "HOST_TYPE_EMAIL"
+            ]
         },
         "jobEntities.WhoISDirectives": {
             "type": "object",
@@ -3332,6 +3598,134 @@
                 }
             }
         },
+        "networkEntities.NetworkNode": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "DiscoveredAt": {
+                    "description": "Network node discovery timestamp, when was this node first found",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/sql.NullTime"
+                        }
+                    ]
+                },
+                "Identity": {
+                    "description": "Network node unique identity, can be any address or URI. Must be unique.",
+                    "type": "string"
+                },
+                "NodeType": {
+                    "$ref": "#/definitions/networkEntities.NetworkNodeType"
+                },
+                "NodeTypeId": {
+                    "type": "integer"
+                },
+                "Scans": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/networkEntities.NetworkNodeScan"
+                    }
+                },
+                "UUID": {
+                    "type": "string"
+                },
+                "UpdatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "networkEntities.NetworkNodeScan": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "Data": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "ID": {
+                    "type": "integer"
+                },
+                "IsComplete": {
+                    "type": "boolean"
+                },
+                "JobUUID": {
+                    "description": "Defines in which job scan result was created",
+                    "type": "string"
+                },
+                "Node": {
+                    "description": "Defines parent node, scan object belongs to node object (many-to-one)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/networkEntities.NetworkNode"
+                        }
+                    ]
+                },
+                "NodeUUID": {
+                    "type": "string"
+                },
+                "Type": {
+                    "$ref": "#/definitions/networkEntities.NetworkNodeScanType"
+                },
+                "TypeID": {
+                    "type": "integer"
+                },
+                "UpdatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "networkEntities.NetworkNodeScanType": {
+            "type": "object",
+            "properties": {
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "Description": {
+                    "type": "string"
+                },
+                "ID": {
+                    "type": "integer"
+                },
+                "Name": {
+                    "type": "string"
+                }
+            }
+        },
+        "networkEntities.NetworkNodeType": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "DeletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "Description": {
+                    "type": "string"
+                },
+                "ID": {
+                    "type": "integer"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "UpdatedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "pgtype.Inet": {
             "type": "object",
             "properties": {
@@ -3339,9 +3733,22 @@
                     "$ref": "#/definitions/net.IPNet"
                 },
                 "status": {
-                    "type": "integer"
+                    "$ref": "#/definitions/pgtype.Status"
                 }
             }
+        },
+        "pgtype.Status": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "Undefined",
+                "Null",
+                "Present"
+            ]
         },
         "routing.BlacklistedStatistics": {
             "type": "object",
@@ -3613,8 +4020,7 @@
                     "type": "boolean"
                 },
                 "MinPriority": {
-                    "description": "MinPriority is minimal job priority that Agent can accept",
-                    "type": "integer"
+                    "$ref": "#/definitions/jobEntities.JobPriority"
                 },
                 "Name": {
                     "type": "string"
@@ -3760,6 +4166,18 @@
                 },
                 "UpdatedAt": {
                     "type": "string"
+                }
+            }
+        },
+        "sql.NullTime": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if Time is not NULL",
+                    "type": "boolean"
                 }
             }
         },

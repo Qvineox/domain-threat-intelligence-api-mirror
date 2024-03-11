@@ -1,7 +1,6 @@
 package networkEntities
 
 import (
-	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"gorm.io/gorm"
 	"time"
 )
@@ -20,22 +19,22 @@ type NetworkNodeType struct {
 
 var DefaultNetworkNodeTypes = []NetworkNodeType{
 	{
-		ID:          uint64(jobEntities.HOST_TYPE_CIDR) + 1,
+		ID:          1,
 		Name:        "CIDR/IP",
 		Description: "IP address",
 	},
 	{
-		ID:          uint64(jobEntities.HOST_TYPE_DOMAIN) + 1,
+		ID:          2,
 		Name:        "Domain",
 		Description: "Internet Domain",
 	},
 	{
-		ID:          uint64(jobEntities.HOST_TYPE_EMAIL) + 1,
+		ID:          3,
 		Name:        "EMail",
 		Description: "Email address",
 	},
 	{
-		ID:          uint64(jobEntities.HOST_TYPE_URL) + 1,
+		ID:          4,
 		Name:        "URL",
 		Description: "URL address",
 	},

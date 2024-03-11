@@ -2,7 +2,6 @@ package networkEntities
 
 import (
 	"bytes"
-	"domain_threat_intelligence_api/cmd/core/entities/jobEntities"
 	"encoding/json"
 	"github.com/jackc/pgtype"
 	"gorm.io/datatypes"
@@ -12,20 +11,19 @@ import (
 
 // NetworkNodeScan represents unique scanning procedure on a single defined network node.
 type NetworkNodeScan struct {
-	ID uint64 `json:"UUID" gorm:"primaryKey"`
+	ID uint64 `json:"ID" gorm:"primaryKey"`
 
 	IsComplete bool `json:"IsComplete" gorm:"default:false;not null"`
 
 	// Defines parent node, scan object belongs to node object (many-to-one)
 	Node     *NetworkNode `json:"Node,omitempty" gorm:"foreignKey:NodeUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	NodeUUID pgtype.UUID  `json:"NodeUUID;type:uuid"`
+	NodeUUID pgtype.UUID  `json:"NodeUUID"`
 
 	ScanType   *NetworkNodeScanType `json:"Type,omitempty" gorm:"foreignKey:ScanTypeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	ScanTypeID uint64               `json:"TypeID"`
 
 	// Defines in which job scan result was created
-	Job     *jobEntities.Job `json:"Job,omitempty" gorm:"foreignKey:JobUUID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	JobUUID *pgtype.UUID     `json:"JobUUID;type:uuid"`
+	JobUUID *pgtype.UUID `json:"JobUUID"`
 
 	Data datatypes.JSON `json:"Data" gorm:"column:data"`
 

@@ -43,7 +43,7 @@ func NewAgentDialer(agent *agentEntities.ScanAgent, repo core.INetworkNodesRepo)
 	}
 
 	a := &ScanAgentDialer{
-		MinPriority: agent.MinPriority,
+		MinPriority: jobEntities.JobPriority(agent.MinPriority),
 		Agent:       agent,
 		repo:        repo,
 		IsBusy:      false,
