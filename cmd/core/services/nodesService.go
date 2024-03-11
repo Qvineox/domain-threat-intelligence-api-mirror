@@ -18,17 +18,14 @@ func (n NodesServiceImpl) RetrieveNetworkNodeByUUID(uuid pgtype.UUID) (networkEn
 	return n.repo.SelectNetworkNodeByUUID(uuid)
 }
 
-func (n NodesServiceImpl) RetrieveNetworkNodesByFilter() ([]networkEntities.NetworkNode, error) {
-	//TODO implement me
-	panic("implement me")
+func (n NodesServiceImpl) RetrieveNetworkNodesByFilter(filter networkEntities.NetworkNodeSearchFilter) ([]networkEntities.NetworkNode, error) {
+	return n.repo.SelectNetworkNodesByFilter(filter)
 }
 
 func (n NodesServiceImpl) SaveNetworkNode(node networkEntities.NetworkNode) (networkEntities.NetworkNode, error) {
-	//TODO implement me
-	panic("implement me")
+	return n.repo.SaveNetworkNode(node)
 }
 
-func (n NodesServiceImpl) DeleteNetworkNode(uuid pgtype.UUID) error {
-	//TODO implement me
-	panic("implement me")
+func (n NodesServiceImpl) DeleteNetworkNode(uuid pgtype.UUID) (int64, error) {
+	return n.repo.DeleteNetworkNode(uuid)
 }

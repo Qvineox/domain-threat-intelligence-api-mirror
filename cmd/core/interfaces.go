@@ -98,20 +98,23 @@ type IQueueService interface {
 
 type INetworkNodesService interface {
 	RetrieveNetworkNodeByUUID(uuid pgtype.UUID) (networkEntities.NetworkNode, error)
-	RetrieveNetworkNodesByFilter() ([]networkEntities.NetworkNode, error)
+	RetrieveNetworkNodesByFilter(filter networkEntities.NetworkNodeSearchFilter) ([]networkEntities.NetworkNode, error)
 
 	SaveNetworkNode(node networkEntities.NetworkNode) (networkEntities.NetworkNode, error)
-	DeleteNetworkNode(uuid pgtype.UUID) error
+	DeleteNetworkNode(uuid pgtype.UUID) (int64, error)
 }
 
 type INetworkNodesRepo interface {
 	SelectNetworkNodeByUUID(uuid pgtype.UUID) (networkEntities.NetworkNode, error)
+	SelectNetworkNodesByFilter(filter networkEntities.NetworkNodeSearchFilter) ([]networkEntities.NetworkNode, error)
+	SaveNetworkNode(node networkEntities.NetworkNode) (networkEntities.NetworkNode, error)
+	DeleteNetworkNode(uuid pgtype.UUID) (int64, error)
 
 	// SelectOrCreateByTarget returns node data by ID, domain, URL or email. Creates new node if it doesn't exist.
 	SelectOrCreateByTarget(target jobEntities.Target) (networkEntities.NetworkNode, error)
 
 	// SaveNetworkNodeScan creates or updates new network node scan.
-	SaveNetworkNodeScan(scan networkEntities.NetworkNodeScan) error
+	SaveNetworkNodeScan(scan networkEntities.NetworkNodeScan) (networkEntities.NetworkNodeScan, error)
 
 	// CreateNetworkNodeWithIdentity creates new network node scan via SaveNetworkNodeScan.
 	// Also creates new node from host value, if it doesn't exist via SelectOrCreateByTarget.
@@ -123,8 +126,6 @@ type IJobsService interface {
 	RetrieveJobByUUID(uuid pgtype.UUID) (jobEntities.Job, error)
 	SaveJob(job *jobEntities.Job) error
 	DeleteJob(uuid pgtype.UUID) (rows int64, err error)
-
-	// TODO: RequeueJobByUUID(uuid pgtype.UUID)
 }
 
 type IJobsRepo interface {

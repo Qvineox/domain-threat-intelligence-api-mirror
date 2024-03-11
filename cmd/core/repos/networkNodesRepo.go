@@ -18,10 +18,10 @@ func NewNetworkNodesRepoImpl(DB *gorm.DB) *NetworkNodesRepoImpl {
 	return &NetworkNodesRepoImpl{DB: DB}
 }
 
-func (n NetworkNodesRepoImpl) SelectOrCreateByTarget(target jobEntities.Target) (networkEntities.NetworkNode, error) {
+func (r NetworkNodesRepoImpl) SelectOrCreateByTarget(target jobEntities.Target) (networkEntities.NetworkNode, error) {
 	node := networkEntities.NetworkNode{}
 
-	err := n.
+	err := r.
 		Where("identity = ? AND type_id = ?", target.Host, target.Type+1).
 		Attrs(networkEntities.NetworkNode{
 			Identity:     target.Host,
@@ -33,30 +33,53 @@ func (n NetworkNodesRepoImpl) SelectOrCreateByTarget(target jobEntities.Target) 
 	return node, err
 }
 
-func (n NetworkNodesRepoImpl) SaveNetworkNodeScan(scan networkEntities.NetworkNodeScan) error {
-	return n.Save(&scan).Error
+func (r NetworkNodesRepoImpl) SelectNetworkNodesByFilter(filter networkEntities.NetworkNodeSearchFilter) ([]networkEntities.NetworkNode, error) {
+	nodes := make([]networkEntities.NetworkNode, 0)
+
+	// TODO: use query filters
+
+	return nodes, nil
 }
 
-func (n NetworkNodesRepoImpl) CreateNetworkNodeWithIdentity(scan networkEntities.NetworkNodeScan, target jobEntities.Target) error {
+func (r NetworkNodesRepoImpl) SaveNetworkNode(node networkEntities.NetworkNode) (networkEntities.NetworkNode, error) {
+	err := r.Save(&node).Error
+
+	return node, err
+}
+
+func (r NetworkNodesRepoImpl) DeleteNetworkNode(uuid pgtype.UUID) (int64, error) {
+	query := r.Where("UUID = ?", uuid).Delete(&networkEntities.NetworkNode{})
+
+	return query.RowsAffected, query.Error
+}
+
+func (r NetworkNodesRepoImpl) SaveNetworkNodeScan(scan networkEntities.NetworkNodeScan) (networkEntities.NetworkNodeScan, error) {
+	err := r.Save(&scan).Error
+
+	return scan, err
+}
+
+func (r NetworkNodesRepoImpl) CreateNetworkNodeWithIdentity(scan networkEntities.NetworkNodeScan, target jobEntities.Target) error {
 	err := scan.Compact()
 	if err != nil {
 		return errors.New("failed to compact json message: " + err.Error())
 	}
 
-	node, err := n.SelectOrCreateByTarget(target)
+	node, err := r.SelectOrCreateByTarget(target)
 	if err != nil {
 		return err
 	}
 
 	scan.NodeUUID = node.UUID
 
-	return n.SaveNetworkNodeScan(scan)
+	_, err = r.SaveNetworkNodeScan(scan)
+	return err
 }
 
-func (n NetworkNodesRepoImpl) SelectNetworkNodeByUUID(uuid pgtype.UUID) (networkEntities.NetworkNode, error) {
+func (r NetworkNodesRepoImpl) SelectNetworkNodeByUUID(uuid pgtype.UUID) (networkEntities.NetworkNode, error) {
 	node := networkEntities.NetworkNode{}
 
-	err := n.Preload("Type").Preload("Scans").Find(&node, uuid).Error
+	err := r.Preload("Type").Preload("Scans").Find(&node, uuid).Error
 	if err != nil {
 		return networkEntities.NetworkNode{}, err
 	}
