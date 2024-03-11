@@ -2,6 +2,7 @@ package jobEntities
 
 import (
 	"domain_threat_intelligence_api/api/grpc/protoServices"
+	"domain_threat_intelligence_api/cmd/core/entities/networkEntities"
 	"errors"
 	"gorm.io/datatypes"
 	"reflect"
@@ -18,6 +19,8 @@ type Job struct {
 
 	// PayloadJSON is marshalled from Payload via PrepareToSave
 	PayloadJSON datatypes.JSONType[Payload] `json:"-" gorm:"column:payload"`
+
+	NodeScans []networkEntities.NetworkNodeScan `json:"NodeScans" gorm:"references:JobUUID"`
 
 	DequeuedTimes uint64 `json:"DequeuedTimes" gorm:"-"`
 }

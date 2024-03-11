@@ -15,8 +15,6 @@ type NetworkNodeScanType struct {
 
 type ScanType uint64
 
-// TODO: change provider IDs in proto files (do +1)
-
 const (
 	SCAN_TYPE_OSS_VT ScanType = iota + 1
 	SCAN_TYPE_OSS_IPQS
