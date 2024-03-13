@@ -25,7 +25,7 @@ type NetworkNodeScan struct {
 	ScanTypeID uint64               `json:"TypeID"`
 
 	// RiskScore is a final audit result. Determines if host is malicious or not. Lower is better.
-	RiskScore uint8 `json:"RiskScore" gorm:"column:scoring;default:128"`
+	RiskScore *uint8 `json:"RiskScore" gorm:"column:scoring"`
 
 	// Defines in which job scan result was created
 	JobUUID *pgtype.UUID `json:"JobUUID"`
@@ -83,6 +83,13 @@ func (scan *NetworkNodeScan) ProcessCollectedData(data []byte) error {
 		if err != nil {
 			return err
 		}
+
+		scan.RiskScore = content.GetRiskScore()
+		break
+
+	case SCAN_TYPE_OSS_IPQS_DOMAIN:
+		content := ossEntities.IPQSMaliciousURLScanBody{}
+		err = json.Unmarshal(data, &content)
 
 		scan.RiskScore = content.GetRiskScore()
 		break

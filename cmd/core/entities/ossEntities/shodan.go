@@ -1,9 +1,5 @@
 package ossEntities
 
-import (
-	"math"
-)
-
 // ShodanHostScanBody https://datapedia.shodan.io/
 type ShodanHostScanBody struct {
 	// host info
@@ -38,6 +34,7 @@ type ShodanHostScanBody struct {
 	LastUpdate string `json:"last_update"`
 }
 
-func (report ShodanHostScanBody) GetRiskScore() uint8 {
-	return math.MaxUint8 / 2
+func (report ShodanHostScanBody) GetRiskScore() *uint8 {
+	var score uint8 = 50
+	return &score
 }

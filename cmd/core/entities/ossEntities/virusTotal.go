@@ -1,9 +1,5 @@
 package ossEntities
 
-import (
-	"math"
-)
-
 // VTIPScanBody https://developers.virustotal.com/reference/ip-object
 type VTIPScanBody struct {
 	Data struct {
@@ -341,71 +337,77 @@ type VTErrorBody struct {
 	} `json:"error"`
 }
 
-func (report VTIPScanBody) GetRiskScore() uint8 {
-	var badScore uint8 = 0
-	var goodScore uint8 = 0
+func (report VTIPScanBody) GetRiskScore() *uint8 {
+	var total float32 = 0
+	var bad float32 = 0
 
 	// providers score
-	badScore += report.Data.Attributes.LastAnalysisStats.Malicious * 6
-	badScore += report.Data.Attributes.LastAnalysisStats.Suspicious * 4
-	badScore += report.Data.Attributes.LastAnalysisStats.Timeout
+	total += float32(report.Data.Attributes.LastAnalysisStats.Malicious) * 4
+	total += float32(report.Data.Attributes.LastAnalysisStats.Suspicious)
+	bad = total
 
-	goodScore += report.Data.Attributes.LastAnalysisStats.Harmless * 2
-	goodScore += report.Data.Attributes.LastAnalysisStats.Timeout
+	total += float32(report.Data.Attributes.LastAnalysisStats.Timeout)
+	total += float32(report.Data.Attributes.LastAnalysisStats.Harmless)
+	total += float32(report.Data.Attributes.LastAnalysisStats.Undetected)
 
-	// users score
-	goodScore += report.Data.Attributes.TotalVotes.Harmless
-	badScore += report.Data.Attributes.TotalVotes.Malicious
-
-	if (badScore + goodScore) == 0 {
-		return math.MaxUint8 / 2
+	var score float32
+	if (total) == 0 {
+		score = 10
+	} else {
+		score = bad / total * 100
 	}
 
-	return goodScore / (badScore + goodScore) * math.MaxUint8
+	var s = uint8(score)
+
+	return &s
 }
 
-func (report VTURLScanBody) GetRiskScore() uint8 {
-	var badScore uint8 = 0
-	var goodScore uint8 = 0
+func (report VTURLScanBody) GetRiskScore() *uint8 {
+	var total float32 = 0
+	var bad float32 = 0
 
 	// providers score
-	badScore += report.Data.Attributes.LastAnalysisStats.Malicious * 6
-	badScore += report.Data.Attributes.LastAnalysisStats.Suspicious * 4
-	badScore += report.Data.Attributes.LastAnalysisStats.Timeout
+	total += float32(report.Data.Attributes.LastAnalysisStats.Malicious) * 4
+	total += float32(report.Data.Attributes.LastAnalysisStats.Suspicious)
+	bad = total
 
-	goodScore += report.Data.Attributes.LastAnalysisStats.Harmless * 2
-	goodScore += report.Data.Attributes.LastAnalysisStats.Timeout
+	total += float32(report.Data.Attributes.LastAnalysisStats.Timeout)
+	total += float32(report.Data.Attributes.LastAnalysisStats.Harmless)
+	total += float32(report.Data.Attributes.LastAnalysisStats.Undetected)
 
-	// users score
-	goodScore += report.Data.Attributes.TotalVotes.Harmless
-	badScore += report.Data.Attributes.TotalVotes.Malicious
-
-	if (badScore + goodScore) == 0 {
-		return math.MaxUint8 / 2
+	var score float32
+	if (total) == 0 {
+		score = 10
+	} else {
+		score = bad / total * 100
 	}
 
-	return goodScore / (badScore + goodScore) * math.MaxUint8
+	var s = uint8(score)
+
+	return &s
 }
 
-func (report VTDomainScanBody) GetRiskScore() uint8 {
-	var badScore uint8 = 0
-	var goodScore uint8 = 0
+func (report VTDomainScanBody) GetRiskScore() *uint8 {
+	var total float32 = 0
+	var bad float32 = 0
 
 	// providers score
-	badScore += report.Data.Attributes.LastAnalysisStats.Malicious * 6
-	badScore += report.Data.Attributes.LastAnalysisStats.Suspicious * 4
-	badScore += report.Data.Attributes.LastAnalysisStats.Timeout
+	total += float32(report.Data.Attributes.LastAnalysisStats.Malicious) * 4
+	total += float32(report.Data.Attributes.LastAnalysisStats.Suspicious)
+	bad = total
 
-	goodScore += report.Data.Attributes.LastAnalysisStats.Harmless * 2
-	goodScore += report.Data.Attributes.LastAnalysisStats.Timeout
+	total += float32(report.Data.Attributes.LastAnalysisStats.Timeout)
+	total += float32(report.Data.Attributes.LastAnalysisStats.Harmless)
+	total += float32(report.Data.Attributes.LastAnalysisStats.Undetected)
 
-	// users score
-	goodScore += report.Data.Attributes.TotalVotes.Harmless
-	badScore += report.Data.Attributes.TotalVotes.Malicious
-
-	if (badScore + goodScore) == 0 {
-		return math.MaxUint8 / 2
+	var score float32
+	if (total) == 0 {
+		score = 10
+	} else {
+		score = bad / total * 100
 	}
 
-	return uint8(float32(goodScore) / float32(badScore+goodScore) * math.MaxUint8)
+	var s = uint8(score)
+
+	return &s
 }

@@ -1,7 +1,6 @@
 package ossEntities
 
 import (
-	"math"
 	"time"
 )
 
@@ -187,14 +186,14 @@ type IPQSEMailScanBody struct {
 	} `json:"domain_age"`
 }
 
-func (report IPQSEMailScanBody) GetRiskScore() uint8 {
-	return uint8(float32(report.FraudScore) / 100 * math.MaxUint8)
+func (report IPQSEMailScanBody) GetRiskScore() *uint8 {
+	return &report.FraudScore
 }
 
-func (report IPQSMaliciousURLScanBody) GetRiskScore() uint8 {
-	return uint8(float32(report.RiskScore) / 100 * math.MaxUint8)
+func (report IPQSMaliciousURLScanBody) GetRiskScore() *uint8 {
+	return &report.RiskScore
 }
 
-func (report IPQSPrivacyScanBody) GetRiskScore() uint8 {
-	return uint8(float32(report.FraudScore) / 100 * math.MaxUint8)
+func (report IPQSPrivacyScanBody) GetRiskScore() *uint8 {
+	return &report.FraudScore
 }

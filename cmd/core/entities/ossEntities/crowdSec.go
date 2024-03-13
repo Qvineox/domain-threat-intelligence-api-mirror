@@ -1,9 +1,5 @@
 package ossEntities
 
-import (
-	"math"
-)
-
 type CrowdSecIPScanBody struct {
 	Ip         string `json:"ip"`
 	Reputation string `json:"reputation"`
@@ -116,6 +112,8 @@ type CrowdSecIPScanBody struct {
 	} `json:"scores"`
 }
 
-func (report CrowdSecIPScanBody) GetRiskScore() uint8 {
-	return uint8(float32(report.Scores.Overall.Total) / 5 * math.MaxUint8)
+func (report CrowdSecIPScanBody) GetRiskScore() *uint8 {
+	var score = uint8(float32(report.Scores.Overall.Total) / 5 * 100)
+
+	return &score
 }

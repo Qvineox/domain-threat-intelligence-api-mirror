@@ -103,7 +103,7 @@ func (t *Target) ToProto() *protoServices.Target {
 	case HOST_TYPE_CIDR:
 		target.Type = protoServices.HostType_HOST_TYPE_CIDR
 	case HOST_TYPE_DOMAIN:
-		target.Type = protoServices.HostType_HOST_TYPE_CIDR
+		target.Type = protoServices.HostType_HOST_TYPE_DOMAIN
 	case HOST_TYPE_URL:
 		target.Type = protoServices.HostType_HOST_TYPE_URL
 	case HOST_TYPE_EMAIL:

@@ -129,7 +129,6 @@ func (r *ossProviderRoutine) start() {
 				IsComplete: false,
 				JobUUID:    r.jobUUID,
 				ScanTypeID: uint64(msg.GetScanType()),
-				RiskScore:  128,
 				Data:       c,
 			}, jobEntities.Target{
 				Host: t.Host,
