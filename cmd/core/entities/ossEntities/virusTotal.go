@@ -1,5 +1,9 @@
 package ossEntities
 
+import (
+	"math"
+)
+
 // VTIPScanBody https://developers.virustotal.com/reference/ip-object
 type VTIPScanBody struct {
 	Data struct {
@@ -33,11 +37,11 @@ type VTIPScanBody struct {
 			} `json:"last_analysis_results"`
 
 			LastAnalysisStats struct {
-				Harmless   int `json:"harmless"`
-				Malicious  int `json:"malicious"`
-				Suspicious int `json:"suspicious"`
-				Timeout    int `json:"timeout"`
-				Undetected int `json:"undetected"`
+				Harmless   uint8 `json:"harmless"`
+				Malicious  uint8 `json:"malicious"`
+				Suspicious uint8 `json:"suspicious"`
+				Timeout    uint8 `json:"timeout"`
+				Undetected uint8 `json:"undetected"`
 			} `json:"last_analysis_stats"`
 
 			// encryption info
@@ -47,8 +51,8 @@ type VTIPScanBody struct {
 			// malware info
 			Reputation int `json:"reputation"`
 			TotalVotes struct {
-				Harmless  int `json:"harmless"`
-				Malicious int `json:"malicious"`
+				Harmless  uint8 `json:"harmless"`
+				Malicious uint8 `json:"malicious"`
 			} `json:"total_votes"`
 
 			LastModificationDate int `json:"last_modification_date"`
@@ -195,11 +199,11 @@ type VTDomainScanBody struct {
 			LastAnalysisDate   int `json:"last_analysis_date"`
 			LastDnsRecordsDate int `json:"last_dns_records_date"`
 			LastAnalysisStats  struct {
-				Harmless   int `json:"harmless"`
-				Malicious  int `json:"malicious"`
-				Suspicious int `json:"suspicious"`
-				Undetected int `json:"undetected"`
-				Timeout    int `json:"timeout"`
+				Harmless   uint8 `json:"harmless"`
+				Malicious  uint8 `json:"malicious"`
+				Suspicious uint8 `json:"suspicious"`
+				Timeout    uint8 `json:"timeout"`
+				Undetected uint8 `json:"undetected"`
 			} `json:"last_analysis_stats"`
 			LastAnalysisResults map[string]struct {
 				Category   string `json:"category"`
@@ -208,8 +212,8 @@ type VTDomainScanBody struct {
 				EngineName string `json:"engine_name"`
 			} `json:"last_analysis_results"` // analysis by security provider
 			TotalVotes struct {
-				Harmless  int `json:"harmless"`
-				Malicious int `json:"malicious"`
+				Harmless  uint8 `json:"harmless"`
+				Malicious uint8 `json:"malicious"`
 			} `json:"total_votes"`
 		} `json:"attributes"`
 
@@ -249,11 +253,11 @@ type VTURLScanBody struct {
 			} `json:"last_analysis_results"`
 
 			LastAnalysisStats struct {
-				Harmless   int `json:"harmless"`
-				Malicious  int `json:"malicious"`
-				Suspicious int `json:"suspicious"`
-				Timeout    int `json:"timeout"`
-				Undetected int `json:"undetected"`
+				Harmless   uint8 `json:"harmless"`
+				Malicious  uint8 `json:"malicious"`
+				Suspicious uint8 `json:"suspicious"`
+				Timeout    uint8 `json:"timeout"`
+				Undetected uint8 `json:"undetected"`
 			} `json:"last_analysis_stats"`
 
 			LastFinalUrl                  string `json:"last_final_url"`
@@ -294,8 +298,8 @@ type VTURLScanBody struct {
 			TimesSubmitted   int               `json:"times_submitted"`
 			Title            string            `json:"title"`
 			TotalVotes       struct {
-				Harmless  int `json:"harmless"`
-				Malicious int `json:"malicious"`
+				Harmless  uint8 `json:"harmless"`
+				Malicious uint8 `json:"malicious"`
 			} `json:"total_votes"`
 			Trackers map[string]struct {
 				Id        string `json:"id"`
@@ -335,4 +339,73 @@ type VTErrorBody struct {
 		Code    string `json:"code"`
 		Message string `json:"message"`
 	} `json:"error"`
+}
+
+func (report VTIPScanBody) GetRiskScore() uint8 {
+	var badScore uint8 = 0
+	var goodScore uint8 = 0
+
+	// providers score
+	badScore += report.Data.Attributes.LastAnalysisStats.Malicious * 6
+	badScore += report.Data.Attributes.LastAnalysisStats.Suspicious * 4
+	badScore += report.Data.Attributes.LastAnalysisStats.Timeout
+
+	goodScore += report.Data.Attributes.LastAnalysisStats.Harmless * 2
+	goodScore += report.Data.Attributes.LastAnalysisStats.Timeout
+
+	// users score
+	goodScore += report.Data.Attributes.TotalVotes.Harmless
+	badScore += report.Data.Attributes.TotalVotes.Malicious
+
+	if (badScore + goodScore) == 0 {
+		return math.MaxUint8 / 2
+	}
+
+	return goodScore / (badScore + goodScore) * math.MaxUint8
+}
+
+func (report VTURLScanBody) GetRiskScore() uint8 {
+	var badScore uint8 = 0
+	var goodScore uint8 = 0
+
+	// providers score
+	badScore += report.Data.Attributes.LastAnalysisStats.Malicious * 6
+	badScore += report.Data.Attributes.LastAnalysisStats.Suspicious * 4
+	badScore += report.Data.Attributes.LastAnalysisStats.Timeout
+
+	goodScore += report.Data.Attributes.LastAnalysisStats.Harmless * 2
+	goodScore += report.Data.Attributes.LastAnalysisStats.Timeout
+
+	// users score
+	goodScore += report.Data.Attributes.TotalVotes.Harmless
+	badScore += report.Data.Attributes.TotalVotes.Malicious
+
+	if (badScore + goodScore) == 0 {
+		return math.MaxUint8 / 2
+	}
+
+	return goodScore / (badScore + goodScore) * math.MaxUint8
+}
+
+func (report VTDomainScanBody) GetRiskScore() uint8 {
+	var badScore uint8 = 0
+	var goodScore uint8 = 0
+
+	// providers score
+	badScore += report.Data.Attributes.LastAnalysisStats.Malicious * 6
+	badScore += report.Data.Attributes.LastAnalysisStats.Suspicious * 4
+	badScore += report.Data.Attributes.LastAnalysisStats.Timeout
+
+	goodScore += report.Data.Attributes.LastAnalysisStats.Harmless * 2
+	goodScore += report.Data.Attributes.LastAnalysisStats.Timeout
+
+	// users score
+	goodScore += report.Data.Attributes.TotalVotes.Harmless
+	badScore += report.Data.Attributes.TotalVotes.Malicious
+
+	if (badScore + goodScore) == 0 {
+		return math.MaxUint8 / 2
+	}
+
+	return uint8(float32(goodScore) / float32(badScore+goodScore) * math.MaxUint8)
 }

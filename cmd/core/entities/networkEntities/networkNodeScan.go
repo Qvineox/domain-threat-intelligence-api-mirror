@@ -42,42 +42,102 @@ type NetworkNodeScanData struct {
 }
 
 // ProcessCollectedData scans collected byte data from sources, compacts and clears it, removing redundant data.
-// Also evaluates starting RiskScore from scanned data.
-func (scan *NetworkNodeScan) ProcessCollectedData() error {
+// Inserts processed JSON into database. Also evaluates starting RiskScore from scanned data.
+func (scan *NetworkNodeScan) ProcessCollectedData(data []byte) error {
 	var err error
-	var compacted bytes.Buffer
 
 	switch ScanType(scan.ScanTypeID) {
 	case SCAN_TYPE_OSS_VT_IP:
-		c := ossEntities.VTIPScanBody{}
-		err = scan.Data.Scan(&c)
-		if err != nil {
-			return err
-		}
+		content := ossEntities.VTIPScanBody{}
+		err = json.Unmarshal(data, &content)
+
+		scan.RiskScore = content.GetRiskScore()
+		data, err = json.Marshal(content.Data)
+		break
+
 	case SCAN_TYPE_OSS_VT_DOMAIN:
-		c := ossEntities.VTDomainScanBody{}
-		err = scan.Data.Scan(&c)
-		if err != nil {
-			return err
-		}
-	case SCAN_TYPE_OSS_VT_URL:
-		c := ossEntities.VTURLScanBody{}
-		err = scan.Data.Scan(&c)
+		content := ossEntities.VTDomainScanBody{}
+		err = json.Unmarshal(data, &content)
 		if err != nil {
 			return err
 		}
 
+		scan.RiskScore = content.GetRiskScore()
+		data, err = json.Marshal(content.Data)
+		break
+
+	case SCAN_TYPE_OSS_VT_URL:
+		content := ossEntities.VTURLScanBody{}
+		err = json.Unmarshal(data, &content)
+		if err != nil {
+			return err
+		}
+
+		scan.RiskScore = content.GetRiskScore()
+		data, err = json.Marshal(content.Data)
+		break
+
+	case SCAN_TYPE_OSS_IPQS_IP:
+		content := ossEntities.IPQSPrivacyScanBody{}
+		err = json.Unmarshal(data, &content)
+		if err != nil {
+			return err
+		}
+
+		scan.RiskScore = content.GetRiskScore()
+		break
+
+	case SCAN_TYPE_OSS_IPQS_URL:
+		content := ossEntities.IPQSMaliciousURLScanBody{}
+		err = json.Unmarshal(data, &content)
+
+		scan.RiskScore = content.GetRiskScore()
+		break
+
+	case SCAN_TYPE_OSS_IPQS_EMAIL:
+		content := ossEntities.IPQSEMailScanBody{}
+		err = json.Unmarshal(data, &content)
+		if err != nil {
+			return err
+		}
+
+		scan.RiskScore = content.GetRiskScore()
+		break
+
+	case SCAN_TYPE_OSS_SHODAN_IP:
+		content := ossEntities.ShodanHostScanBody{}
+		err = json.Unmarshal(data, &content)
+		if err != nil {
+			return err
+		}
+
+		scan.RiskScore = content.GetRiskScore()
+		break
+
+	case SCAN_TYPE_OSS_CS_IP:
+		content := ossEntities.CrowdSecIPScanBody{}
+		err = json.Unmarshal(data, &content)
+		if err != nil {
+			return err
+		}
+
+		scan.RiskScore = content.GetRiskScore()
+		break
 	// TODO: add compacting, remove redundant or null (N/A, or other) fields
 	default:
-		slog.Warn("unsupported compact type")
-		return nil
+		slog.Warn("unsupported marshal type")
 	}
 
-	err = json.Compact(&compacted, scan.Data)
 	if err != nil {
 		return err
 	}
 
-	scan.Data = compacted.Bytes()
+	dst := &bytes.Buffer{}
+	if err = json.Compact(dst, data); err != nil {
+		return err
+	}
+
+	scan.Data = dst.Bytes()
+
 	return nil
 }

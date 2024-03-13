@@ -75,7 +75,7 @@ func (h *OSSJobHandler) createStartRoutines(ctx context.Context, wg *sync.WaitGr
 		}
 
 		// staring all routines
-		routines[i].start()
+		go routines[i].start()
 	}
 
 	return routines
@@ -107,10 +107,9 @@ func (r *ossProviderRoutine) start() {
 				IsComplete: true,
 				JobUUID:    r.jobUUID,
 				ScanTypeID: uint64(msg.GetScanType()),
-				Data:       msg.GetContent(),
 			}
 
-			err = scan.ProcessCollectedData()
+			err = scan.ProcessCollectedData(msg.GetContent())
 			if err != nil {
 				slog.Warn("failed to process scan data, saved without processing: " + err.Error())
 			}
@@ -127,9 +126,10 @@ func (r *ossProviderRoutine) start() {
 			})
 
 			err = r.repo.CreateNetworkNodeWithIdentity(networkEntities.NetworkNodeScan{
-				IsComplete: true,
+				IsComplete: false,
 				JobUUID:    r.jobUUID,
 				ScanTypeID: uint64(msg.GetScanType()),
+				RiskScore:  128,
 				Data:       c,
 			}, jobEntities.Target{
 				Host: t.Host,
