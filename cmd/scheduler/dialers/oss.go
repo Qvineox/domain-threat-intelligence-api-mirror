@@ -39,17 +39,19 @@ loop:
 				continue
 			}
 
-			switch jobEntities.SupportedOSSProvider(msg.GetProvider()) {
-			case jobEntities.OSS_PROVIDER_VIRUS_TOTAL:
+			switch networkEntities.ScanType(msg.GetScanType()) / 100 {
+			case 1:
 				routines[0].input <- msg
-			case jobEntities.OSS_PROVIDER_IP_QUALITY_SCORE:
+			case 2:
 				routines[1].input <- msg
-			case jobEntities.OSS_PROVIDER_SHODAN:
+			case 3:
 				routines[2].input <- msg
-			case jobEntities.OSS_PROVIDER_CROWD_SEC:
+			case 4:
 				routines[3].input <- msg
-			case jobEntities.OSS_PROVIDER_IP_WHO_IS:
+			case 5:
 				routines[4].input <- msg
+			default:
+				slog.Warn("unsupported scan type message received")
 			}
 		}
 	}
@@ -58,70 +60,25 @@ loop:
 }
 
 func (h *OSSJobHandler) createStartRoutines(ctx context.Context, wg *sync.WaitGroup) [5]ossProviderRoutine {
-	vtCh := make(chan *protoServices.TargetAuditReport, 100)
-	ipqsCh := make(chan *protoServices.TargetAuditReport, 100)
-	shdCh := make(chan *protoServices.TargetAuditReport, 100)
-	csCh := make(chan *protoServices.TargetAuditReport, 100)
-	ipwhCh := make(chan *protoServices.TargetAuditReport, 100)
+	routines := [5]ossProviderRoutine{}
 
-	vtRoutine := ossProviderRoutine{
-		repo:      h.repo,                                   // repo to save records to database
-		input:     vtCh,                                     // passing audit reports from agent
-		wg:        wg,                                       // required to wait for all transactions to end
-		ctx:       ctx,                                      // passing context to finish underlying routines
-		agentUUID: h.agent.UUID,                             // agent uuid
-		jobUUID:   h.job.Meta.UUID,                          // job uuid
-		scanType:  uint64(networkEntities.SCAN_TYPE_OSS_VT), // predefined open source scan type
+	for i := 0; i < 5; i++ {
+		ch := make(chan *protoServices.TargetAuditReport, 100)
+
+		routines[i] = ossProviderRoutine{
+			repo:      h.repo,          // repo to save records to database
+			input:     ch,              // passing audit reports from agent
+			wg:        wg,              // required to wait for all transactions to end
+			ctx:       ctx,             // passing context to finish underlying routines
+			agentUUID: h.agent.UUID,    // agent uuid
+			jobUUID:   h.job.Meta.UUID, // job uuid
+		}
+
+		// staring all routines
+		routines[i].start()
 	}
 
-	ipqsRoutine := ossProviderRoutine{
-		repo:      h.repo,
-		input:     ipqsCh,
-		wg:        wg,
-		ctx:       ctx,
-		agentUUID: h.agent.UUID,
-		jobUUID:   h.job.Meta.UUID,
-		scanType:  uint64(networkEntities.SCAN_TYPE_OSS_IPQS),
-	}
-
-	shdRoutine := ossProviderRoutine{
-		repo:      h.repo,
-		input:     shdCh,
-		wg:        wg,
-		ctx:       ctx,
-		agentUUID: h.agent.UUID,
-		jobUUID:   h.job.Meta.UUID,
-		scanType:  uint64(networkEntities.SCAN_TYPE_OSS_SHD),
-	}
-
-	csRoutine := ossProviderRoutine{
-		repo:      h.repo,
-		input:     csCh,
-		wg:        wg,
-		ctx:       ctx,
-		agentUUID: h.agent.UUID,
-		jobUUID:   h.job.Meta.UUID,
-		scanType:  uint64(networkEntities.SCAN_TYPE_OSS_CS),
-	}
-
-	ipwhRoutine := ossProviderRoutine{
-		repo:      h.repo,
-		input:     ipwhCh,
-		wg:        wg,
-		ctx:       ctx,
-		agentUUID: h.agent.UUID,
-		jobUUID:   h.job.Meta.UUID,
-		scanType:  uint64(networkEntities.SCAN_TYPE_OSS_IPWH),
-	}
-
-	// staring all routines
-	go vtRoutine.start()
-	go ipqsRoutine.start()
-	go shdRoutine.start()
-	go csRoutine.start()
-	go ipwhRoutine.start()
-
-	return [5]ossProviderRoutine{vtRoutine, ipqsRoutine, shdRoutine, csRoutine, ipwhRoutine}
+	return routines
 }
 
 type ossProviderRoutine struct {
@@ -132,8 +89,6 @@ type ossProviderRoutine struct {
 
 	agentUUID *pgtype.UUID
 	jobUUID   *pgtype.UUID
-
-	scanType uint64
 }
 
 func (r *ossProviderRoutine) start() {
@@ -148,15 +103,24 @@ func (r *ossProviderRoutine) start() {
 		var err error
 
 		if msg.IsSuccessful {
-			err = r.repo.CreateNetworkNodeWithIdentity(networkEntities.NetworkNodeScan{
+			scan := networkEntities.NetworkNodeScan{
 				IsComplete: true,
 				JobUUID:    r.jobUUID,
-				ScanTypeID: r.scanType,
-				Data:       msg.Content,
-			}, jobEntities.Target{
+				ScanTypeID: uint64(msg.GetScanType()),
+				Data:       msg.GetContent(),
+			}
+
+			err = scan.ProcessCollectedData()
+			if err != nil {
+				slog.Warn("failed to process scan data, saved without processing: " + err.Error())
+			}
+
+			target := jobEntities.Target{
 				Host: t.Host,
 				Type: jobEntities.TargetType(t.Type),
-			})
+			}
+
+			err = r.repo.CreateNetworkNodeWithIdentity(scan, target)
 		} else {
 			c, _ := json.Marshal(errorScanData{
 				ErrorMessage: string(msg.Content),
@@ -165,7 +129,7 @@ func (r *ossProviderRoutine) start() {
 			err = r.repo.CreateNetworkNodeWithIdentity(networkEntities.NetworkNodeScan{
 				IsComplete: true,
 				JobUUID:    r.jobUUID,
-				ScanTypeID: r.scanType,
+				ScanTypeID: uint64(msg.GetScanType()),
 				Data:       c,
 			}, jobEntities.Target{
 				Host: t.Host,
